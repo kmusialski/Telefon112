@@ -6,12 +6,13 @@
 <title>Zadzwoń pod 112</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-  body{background:#000;min-height:100vh;display:flex;flex-direction:column;align-items:center;font-family:-apple-system,sans-serif;color:#fff;padding-bottom:40px}
+  body{background:#000 !important;min-height:100vh;display:flex;flex-direction:column;align-items:center;font-family:-apple-system,sans-serif;color:#fff;padding-bottom:40px}
+  html{background:#000 !important}
   @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
   @keyframes ring{0%,100%{transform:scale(1)}40%{transform:scale(1.18)}70%{transform:scale(0.94)}}
   .screen{width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center}
   .hidden{display:none!important}
-  .key{background:#1c1c1e;border:none;border-radius:50%;width:76px;height:76px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;touch-action:manipulation}
+  .key{background:#1c1c1e;border:none;border-radius:50%;width:76px;height:76px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;touch-action:manipulation;-webkit-user-select:none;user-select:none;}
   .key-num{font-size:30px;line-height:1}
   .key-sub{font-size:10px;color:#8e8e93;letter-spacing:2px;margin-top:2px}
   .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:0 20px;width:100%;margin-top:12px}
@@ -120,6 +121,12 @@
 </div>
 
 <script>
+window.onload = function() {
+  document.querySelectorAll('.key').forEach(btn => {
+    const digit = btn.querySelector('.key-num').textContent;
+    btn.addEventListener('click', () => pressDigit(digit));
+  });
+};
 const XI_KEY = "sk_412c43758a90750bc719cb9c75604b564ae9b8705803a57b";
 const VOICE_ID = "pqHfZKP75CvOlQylNhV4";
 
@@ -293,7 +300,7 @@ function startListening(e) {
   currentTranscript = "";
   rec.onresult = (ev) => {
     currentTranscript = Array.from(ev.results).map(r => r[0].transcript).join("");
-    document.getElementById("transcript-box").textContent = "„" + currentTranscript + """;
+    document.getElementById("transcript-box").textContent = '"' + currentTranscript + '"';
   };
   rec.onend = () => {
     listening = false;
