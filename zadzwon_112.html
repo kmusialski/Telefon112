@@ -39,16 +39,10 @@ html{background:#000}
   <div style="font-size:22px;font-weight:600;text-align:center">Zadzwon pod 112</div>
   <div style="font-size:14px;color:#8e8e93;text-align:center;margin-top:8px;line-height:1.6">Symulator rozmowy z dyspozytorem<br/>dla przedszkolakow</div>
 
-  <div style="width:100%;margin-top:32px">
+  <div style="width:100%;margin-top:16px">
     <div style="font-size:13px;color:#8e8e93;margin-bottom:4px">Klucz Anthropic API</div>
     <input id="claude-key-input" class="api-input" type="password" placeholder="sk-ant-api03-..." oninput="checkKeys()"/>
     <div style="font-size:11px;color:#636366;margin-top:6px">console.anthropic.com → API Keys</div>
-  </div>
-
-  <div style="width:100%;margin-top:16px">
-    <div style="font-size:13px;color:#8e8e93;margin-bottom:4px">Klucz ElevenLabs (TTS)</div>
-    <input id="xi-key-input" class="api-input" type="password" placeholder="sk_..." oninput="checkKeys()"/>
-    <div style="font-size:11px;color:#636366;margin-top:6px">elevenlabs.io → Profile → API Key</div>
   </div>
 
   <div id="setup-error" style="font-size:13px;color:#ff3b30;margin-top:12px;text-align:center;min-height:20px"></div>
@@ -303,13 +297,11 @@ function startSpeechRecognition() {
 
 function checkKeys() {
   const ck = document.getElementById("claude-key-input").value.trim();
-  const xk = document.getElementById("xi-key-input").value.trim();
-  document.getElementById("start-btn").disabled = !(ck.length > 10 && xk.length > 10);
+  document.getElementById("start-btn").disabled = !(ck.length > 10);
 }
 
 async function saveKeys() {
   const ck = document.getElementById("claude-key-input").value.trim();
-  const xk = document.getElementById("xi-key-input").value.trim();
   const errEl = document.getElementById("setup-error");
   const btn = document.getElementById("start-btn");
   btn.textContent = "Sprawdzam...";
@@ -324,27 +316,20 @@ async function saveKeys() {
         "content-type": "application/json",
         "anthropic-dangerous-direct-browser-access": "true"
       },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 10,
-        messages: [{ role: "user", content: "test" }]
-      })
+      body: JSON.stringify({ model:"claude-haiku-4-5-20251001", max_tokens:10, messages:[{role:"user",content:"test"}] })
     });
     const data = await res.json();
     if (data.error) {
-      errEl.textContent = "Blad klucza Anthropic: " + data.error.message;
-      btn.textContent = "Rozpocznij";
-      btn.disabled = false;
-      return;
+      errEl.textContent = "Blad klucza: " + data.error.message;
+      btn.textContent = "Rozpocznij"; btn.disabled = false; return;
     }
   } catch(e) {
     errEl.textContent = "Blad polaczenia: " + e.message;
-    btn.textContent = "Rozpocznij";
-    btn.disabled = false;
-    return;
+    btn.textContent = "Rozpocznij"; btn.disabled = false; return;
   }
   CLAUDE_KEY = ck;
-  XI_KEY = xk;
+  // Zaladuj glosy TTS
+  window.speechSynthesis.getVoices();
   show("s-dialer");
 }
 
@@ -375,32 +360,20 @@ function updateDisplay() {
   else hint.textContent = "";
 }
 
-async function speakEL(text, onEnd) {
+function speakTTS(text, onEnd) {
   speaking = true;
   updateMicState();
-  try {
-    const res = await fetch("https://api.elevenlabs.io/v1/text-to-speech/" + VOICE_ID, {
-      method: "POST",
-      headers: { "xi-api-key": XI_KEY, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        text: text,
-        model_id: "eleven_multilingual_v2",
-        voice_settings: { stability: 0.5, similarity_boost: 0.75 }
-      })
-    });
-    if (!res.ok) throw new Error("EL " + res.status);
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const audio = new Audio(url);
-    audio.onended = () => { speaking = false; URL.revokeObjectURL(url); updateMicState(); if (onEnd) onEnd(); };
-    audio.onerror = () => { speaking = false; updateMicState(); if (onEnd) onEnd(); };
-    await audio.play();
-  } catch(e) {
-    console.error("ElevenLabs error:", e);
-    speaking = false;
-    updateMicState();
-    if (onEnd) onEnd();
-  }
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "pl-PL";
+  u.rate = 0.88;
+  u.pitch = 1.0;
+  const voices = window.speechSynthesis.getVoices();
+  const pl = voices.find(v => v.lang && v.lang.startsWith("pl"));
+  if (pl) u.voice = pl;
+  u.onend = () => { speaking = false; updateMicState(); if (onEnd) onEnd(); };
+  u.onerror = () => { speaking = false; updateMicState(); if (onEnd) onEnd(); };
+  window.speechSynthesis.speak(u);
 }
 
 async function askClaude(userMessage) {
@@ -486,7 +459,7 @@ function removeTyping() {
 
 async function startCall() {
   if (digits !== "112") {
-    await speakEL("To nie jest numer alarmowy. Sprobuj wpisac sto dwanascie.");
+    await speakTTS("To nie jest numer alarmowy. Sprobuj wpisac sto dwanascie.");
     digits = "";
     updateDisplay();
     return;
@@ -513,7 +486,7 @@ async function startCall() {
     removeTyping();
     const clean = firstMsg.replace("[KONIEC_ROZMOWY]", "").trim();
     addMessage("operator", clean);
-    await speakEL(clean, () => { startVAD(); });
+    await speakTTS(clean, () => { startVAD(); });
   }, 2800);
 }
 
@@ -527,10 +500,10 @@ async function handleAnswer(answer) {
   const clean = reply.replace("[KONIEC_ROZMOWY]", "").trim();
   addMessage("operator", clean);
   if (reply.includes("[KONIEC_ROZMOWY]")) {
-    await speakEL(clean);
+    speakTTS(clean);
     setTimeout(() => finishCall(), 1500);
   } else {
-    await speakEL(clean, () => { startVAD(); });
+    speakTTS(clean, () => { startVAD(); });
   }
 }
 
