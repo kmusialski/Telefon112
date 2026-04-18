@@ -5,26 +5,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Zadzwoń pod 112</title>
 <style>
-  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-  body{background:#000 !important;min-height:100vh;display:flex;flex-direction:column;align-items:center;font-family:-apple-system,sans-serif;color:#fff;padding-bottom:40px}
-  html{background:#000 !important}
-  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
-  @keyframes ring{0%,100%{transform:scale(1)}40%{transform:scale(1.18)}70%{transform:scale(0.94)}}
-  .screen{width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center}
-  .hidden{display:none!important}
-  .key{background:#1c1c1e;border:none;border-radius:50%;width:76px;height:76px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;touch-action:manipulation;-webkit-user-select:none;user-select:none;}
-  .key-num{font-size:30px;line-height:1}
-  .key-sub{font-size:10px;color:#8e8e93;letter-spacing:2px;margin-top:2px}
-  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:0 20px;width:100%;margin-top:12px}
-  .call-btn{background:#34c759;border:none;border-radius:50%;width:76px;height:76px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation}
-  .end-btn{background:#ff3b30;border:none;border-radius:50%;width:56px;height:56px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-  .mic-btn{border:none;border-radius:50%;width:76px;height:76px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:none}
-  .bubble-op{align-self:flex-start;background:#1c1c1e;border-radius:16px;padding:10px 14px;max-width:82%;font-size:15px;line-height:1.4;color:#fff}
-  .bubble-me{align-self:flex-end;background:#0a84ff;border-radius:16px;padding:10px 14px;max-width:82%;font-size:15px;line-height:1.4;color:#fff}
-  .lbl{font-size:11px;color:#8e8e93;margin-bottom:3px}
-  .dots span{display:inline-block;width:7px;height:7px;border-radius:50%;background:#8e8e93;margin:0 3px;animation:pulse 0.6s infinite}
-  .dots span:nth-child(2){animation-delay:0.15s}
-  .dots span:nth-child(3){animation-delay:0.3s}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#000;min-height:100vh;display:flex;flex-direction:column;align-items:center;font-family:-apple-system,sans-serif;color:#fff;padding-bottom:40px}
+html{background:#000}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+@keyframes ring{0%,100%{transform:scale(1)}40%{transform:scale(1.18)}70%{transform:scale(0.94)}}
+.screen{width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center}
+.hidden{display:none!important}
+.key{background:#1c1c1e;border:none;border-radius:50%;width:76px;height:76px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.key-num{font-size:30px;line-height:1}
+.key-sub{font-size:10px;color:#8e8e93;letter-spacing:2px;margin-top:2px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:0 20px;width:100%;margin-top:12px}
+.call-btn{background:#34c759;border:none;border-radius:50%;width:76px;height:76px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation}
+.end-btn{background:#ff3b30;border:none;border-radius:50%;width:56px;height:56px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.mic-btn{border:none;border-radius:50%;width:76px;height:76px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:none;-webkit-user-select:none;user-select:none}
+.bubble-op{align-self:flex-start;background:#1c1c1e;border-radius:16px;padding:10px 14px;max-width:82%;font-size:15px;line-height:1.4;color:#fff}
+.bubble-me{align-self:flex-end;background:#0a84ff;border-radius:16px;padding:10px 14px;max-width:82%;font-size:15px;line-height:1.4;color:#fff}
+.lbl{font-size:11px;color:#8e8e93;margin-bottom:3px}
+.dots span{display:inline-block;width:7px;height:7px;border-radius:50%;background:#8e8e93;margin:0 3px;animation:pulse 0.6s infinite}
+.dots span:nth-child(2){animation-delay:0.15s}
+.dots span:nth-child(3){animation-delay:0.3s}
 </style>
 </head>
 <body>
@@ -92,8 +92,7 @@
   <div style="padding:16px 20px 32px;display:flex;flex-direction:column;align-items:center;gap:10px;border-top:0.5px solid #222;width:100%">
     <div id="transcript-box" style="font-size:13px;color:#8e8e93;font-style:italic;text-align:center;min-height:20px"></div>
     <div id="mic-hint" style="font-size:13px;color:#8e8e93;text-align:center">Przytrzymaj przycisk i mów</div>
-    <button id="mic-btn" class="mic-btn"
-      style="background:#34c759"
+    <button id="mic-btn" class="mic-btn" style="background:#34c759"
       ontouchstart="startListening(event)" ontouchend="stopListening(event)"
       onmousedown="startListening(event)" onmouseup="stopListening(event)">
       <svg width="32" height="32" viewBox="0 0 24 24" fill="white">
@@ -117,29 +116,41 @@
     <div>🤕 Czy ktoś jest ranny</div>
   </div>
   <div style="font-size:12px;color:#636366">Pamiętaj: dzwoń tylko w prawdziwej nagłej sytuacji!</div>
-  <button onclick="reset()" style="background:#0a84ff;color:#fff;border:none;border-radius:24px;padding:14px 44px;font-size:17px;cursor:pointer;margin-top:4px">Spróbuj jeszcze raz</button>
+  <button onclick="resetApp()" style="background:#0a84ff;color:#fff;border:none;border-radius:24px;padding:14px 44px;font-size:17px;cursor:pointer;margin-top:4px">Spróbuj jeszcze raz</button>
 </div>
 
 <script>
-window.onload = function() {
-  document.querySelectorAll('.key').forEach(btn => {
-    const digit = btn.querySelector('.key-num').textContent;
-    btn.addEventListener('click', () => pressDigit(digit));
-  });
-};
 const XI_KEY = "sk_412c43758a90750bc719cb9c75604b564ae9b8705803a57b";
 const VOICE_ID = "pqHfZKP75CvOlQylNhV4";
+const CLAUDE_KEY = "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";
 
-const QUESTIONS = [
-  "Halo, tu numer alarmowy sto dwanaście. Co się stało? Czy potrzebujesz pomocy?",
-  "Gdzie jesteś? Powiedz mi swój adres lub opisz to miejsce.",
-  "Jak masz na imię?",
-  "Czy wszyscy są bezpieczni? Czy ktoś jest ranny?",
-  "Dobrze. Pomoc już jedzie. Zostań na linii i nie rozłączaj się. Jesteś bardzo dzielny!"
-];
+const SYSTEM_PROMPT = `Jesteś dyspozytorem numeru alarmowego 112 w Polsce. Rozmawiasz z małym dzieckiem (przedszkolakiem lub uczniem klasy 1-3), które ćwiczy jak wzywać pomoc w nagłej sytuacji. To jest symulacja edukacyjna.
+
+ZASADY:
+- Mów bardzo prostym językiem — krótkie zdania, łatwe słowa
+- Zadawaj jedno pytanie na raz — nigdy kilka naraz
+- Bądź spokojny i ciepły — dziecko nie może się przestraszyć
+- Chwal dziecko gdy dobrze odpowiada ("Świetnie!", "Bardzo dobrze!", "Jesteś dzielny!")
+- Jeśli dziecko odpowiada niejasno — dopytaj spokojnie, nie krytykuj
+- Jeśli dziecko nie wie — naprowadź (np. "Czy jesteś w domu? Na ulicy?")
+- Odpowiedzi max 2-3 zdania
+
+KOLEJNOŚĆ:
+1. Pierwsze: "Halo, tu numer alarmowy 112. Co się stało?"
+2. Ustal co się stało (pożar / wypadek / zasłabnięcie / złodziej)
+3. Ustal gdzie (adres, miasto, opis miejsca)
+4. Ustal kto potrzebuje pomocy i czy są ranni
+5. Zapytaj o imię dziecka
+6. Potwierdź że pomoc jedzie i pochwal dziecko
+
+ZAKOŃCZENIE — gdy masz: co, gdzie, kto — powiedz:
+"Dobrze. Pomoc już jedzie! Jesteś bardzo dzielny/dzielna! [KONIEC_ROZMOWY]"
+
+Dodaj podsumowanie edukacyjne zaczynające się od słów "Brawo! W tej rozmowie powiedziałeś..."
+
+Używaj znacznika [KONIEC_ROZMOWY] tylko gdy rozmowa jest zakończona.`;
 
 let digits = "";
-let qIdx = 0;
 let callSecs = 0;
 let timerInt = null;
 let speaking = false;
@@ -147,6 +158,7 @@ let listening = false;
 let rec = null;
 let currentTranscript = "";
 let childAnswers = 0;
+let conversationHistory = [];
 
 function show(id) {
   ["s-dialer","s-calling","s-talking","s-summary"].forEach(s => {
@@ -168,9 +180,9 @@ function pressDelete() {
 function updateDisplay() {
   const el = document.getElementById("display");
   const hint = document.getElementById("dialer-hint");
-  el.textContent = digits || "";
-  if (!digits) el.innerHTML = '<span style="color:#2c2c2e">_ _ _</span>';
-  if (digits === "112") hint.innerHTML = '<span style="color:#34c759">✓ Numer alarmowy</span>';
+  if (!digits) { el.innerHTML = '<span style="color:#2c2c2e">_ _ _</span>'; }
+  else { el.textContent = digits; }
+  if (digits === "112") hint.innerHTML = '<span style="color:#34c759">Numer alarmowy</span>';
   else if (digits.length > 0) hint.innerHTML = '<span style="color:#ff9f0a">Wpisz: 1 – 1 – 2</span>';
   else hint.textContent = "";
 }
@@ -183,7 +195,7 @@ async function speakEL(text, onEnd) {
       method: "POST",
       headers: { "xi-api-key": XI_KEY, "Content-Type": "application/json" },
       body: JSON.stringify({
-        text,
+        text: text,
         model_id: "eleven_multilingual_v2",
         voice_settings: { stability: 0.5, similarity_boost: 0.75 }
       })
@@ -192,14 +204,43 @@ async function speakEL(text, onEnd) {
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
     const audio = new Audio(url);
-    audio.onended = () => { speaking = false; URL.revokeObjectURL(url); updateMicState(); onEnd && onEnd(); };
-    audio.onerror = () => { speaking = false; updateMicState(); onEnd && onEnd(); };
+    audio.onended = () => { speaking = false; URL.revokeObjectURL(url); updateMicState(); if (onEnd) onEnd(); };
+    audio.onerror = () => { speaking = false; updateMicState(); if (onEnd) onEnd(); };
     await audio.play();
   } catch(e) {
-    console.error(e);
+    console.error("ElevenLabs error:", e);
     speaking = false;
     updateMicState();
-    onEnd && onEnd();
+    if (onEnd) onEnd();
+  }
+}
+
+async function askClaude(userMessage) {
+  conversationHistory.push({ role: "user", content: userMessage });
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": CLAUDE_KEY,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 300,
+        system: SYSTEM_PROMPT,
+        messages: conversationHistory
+      })
+    });
+    if (!res.ok) throw new Error("Claude " + res.status);
+    const data = await res.json();
+    const reply = data.content[0].text;
+    conversationHistory.push({ role: "assistant", content: reply });
+    return reply;
+  } catch(e) {
+    console.error("Claude error:", e);
+    return "Przepraszam, mam problem z połączeniem. Spróbuj jeszcze raz.";
   }
 }
 
@@ -207,12 +248,13 @@ function updateMicState() {
   const btn = document.getElementById("mic-btn");
   const hint = document.getElementById("mic-hint");
   const status = document.getElementById("call-status");
+  if (!btn) return;
   if (speaking) {
     btn.style.background = "#34c759";
     btn.style.opacity = "0.4";
     btn.style.animation = "none";
     hint.style.color = "#ff9f0a";
-    hint.textContent = "Poczekaj, dyspozytor mówi...";
+    hint.textContent = "Dyspozytor mówi...";
     status.style.color = "#ff9f0a";
     status.textContent = "Dyspozytor mówi...";
   } else if (listening) {
@@ -220,16 +262,16 @@ function updateMicState() {
     btn.style.opacity = "1";
     btn.style.animation = "pulse 0.8s infinite";
     hint.style.color = "#34c759";
-    hint.textContent = "Słucham... (puść, żeby wysłać)";
+    hint.textContent = "Slucham... (pusc, zeby wyslac)";
   } else {
     btn.style.background = "#34c759";
     btn.style.opacity = "1";
     btn.style.animation = "none";
     hint.style.color = "#8e8e93";
-    hint.textContent = "Przytrzymaj przycisk i mów";
+    hint.textContent = "Przytrzymaj przycisk i mow";
     const m = Math.floor(callSecs/60), s = callSecs%60;
     status.style.color = "#34c759";
-    status.textContent = String(m).padStart(2,"0")+":"+String(s).padStart(2,"0")+" • Połączono";
+    status.textContent = String(m).padStart(2,"0")+":"+String(s).padStart(2,"0")+" Polaczono";
   }
 }
 
@@ -243,12 +285,12 @@ function addMessage(role, text) {
   lbl.textContent = role === "operator" ? "Dyspozytor 112" : "Ty";
   const bub = document.createElement("div");
   bub.className = role === "operator" ? "bubble-op" : "bubble-me";
-  bub.textContent = text;
+  // Usuń znacznik końca z wyświetlanego tekstu
+  bub.textContent = text.replace("[KONIEC_ROZMOWY]", "").trim();
   wrap.appendChild(lbl);
   wrap.appendChild(bub);
   msgs.appendChild(wrap);
   msgs.scrollTop = msgs.scrollHeight;
-  return wrap;
 }
 
 function showTyping() {
@@ -266,25 +308,32 @@ function removeTyping() {
   if (el) el.remove();
 }
 
-function startCall() {
+async function startCall() {
   if (digits !== "112") {
-    speakEL("To nie jest numer alarmowy. Spróbuj wpisać sto dwanaście.");
+    await speakEL("To nie jest numer alarmowy. Sprobuj wpisac sto dwanascie.");
     digits = "";
     updateDisplay();
     return;
   }
   show("s-calling");
-  setTimeout(() => {
+  conversationHistory = [];
+  childAnswers = 0;
+  callSecs = 0;
+
+  setTimeout(async () => {
     show("s-talking");
-    qIdx = 0; callSecs = 0; childAnswers = 0;
     document.getElementById("messages").innerHTML = "";
-    timerInt = setInterval(() => { callSecs++; if (!speaking && !listening) updateMicState(); }, 1000);
+    timerInt = setInterval(() => {
+      callSecs++;
+      if (!speaking && !listening) updateMicState();
+    }, 1000);
+
     showTyping();
-    setTimeout(() => {
-      removeTyping();
-      addMessage("operator", QUESTIONS[0]);
-      speakEL(QUESTIONS[0]);
-    }, 1200);
+    const firstMsg = await askClaude("[START] Dziecko właśnie zadzwoniło pod numer 112. Rozpocznij rozmowę.");
+    removeTyping();
+    const cleanFirst = firstMsg.replace("[KONIEC_ROZMOWY]", "").trim();
+    addMessage("operator", cleanFirst);
+    await speakEL(cleanFirst);
   }, 2800);
 }
 
@@ -292,7 +341,7 @@ function startListening(e) {
   e.preventDefault();
   if (speaking) return;
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { alert("Rozpoznawanie mowy działa w Safari (iOS) lub Chrome (Android)."); return; }
+  if (!SR) { alert("Rozpoznawanie mowy dziala w Safari (iOS) lub Chrome (Android)."); return; }
   rec = new SR();
   rec.lang = "pl-PL";
   rec.interimResults = true;
@@ -310,7 +359,7 @@ function startListening(e) {
     currentTranscript = "";
   };
   rec.onerror = () => { listening = false; updateMicState(); };
-  try { rec.start(); listening = true; updateMicState(); } catch(e) {}
+  try { rec.start(); listening = true; updateMicState(); } catch(err) { console.error(err); }
 }
 
 function stopListening(e) {
@@ -318,33 +367,46 @@ function stopListening(e) {
   if (rec) rec.stop();
 }
 
-function handleAnswer(answer) {
+async function handleAnswer(answer) {
   addMessage("child", answer);
   childAnswers++;
-  qIdx++;
-  if (qIdx >= QUESTIONS.length) {
-    setTimeout(() => endCall(true), 600);
-    return;
-  }
   showTyping();
-  setTimeout(() => {
-    removeTyping();
-    addMessage("operator", QUESTIONS[qIdx]);
-    speakEL(QUESTIONS[qIdx]);
-  }, 1000);
+  const reply = await askClaude(answer);
+  removeTyping();
+  const cleanReply = reply.replace("[KONIEC_ROZMOWY]", "").trim();
+  addMessage("operator", cleanReply);
+
+  if (reply.includes("[KONIEC_ROZMOWY]")) {
+    await speakEL(cleanReply);
+    setTimeout(() => finishCall(), 1500);
+  } else {
+    await speakEL(cleanReply);
+  }
 }
 
-function endCall(completed) {
+function finishCall() {
   clearInterval(timerInt);
   if (rec) rec.stop();
-  const stars = completed ? 3 : childAnswers >= 3 ? 3 : childAnswers >= 1 ? 2 : 1;
+  const stars = childAnswers >= 4 ? 3 : childAnswers >= 2 ? 2 : 1;
   const row = document.getElementById("stars-row");
-  row.innerHTML = [1,2,3].map(i => `<span style="color:${i<=stars?"#ffd60a":"#3a3a3c"}">★</span>`).join("");
+  row.innerHTML = [1,2,3].map(i => '<span style="color:' + (i<=stars?"#ffd60a":"#3a3a3c") + '">★</span>').join("");
   show("s-summary");
 }
 
-function reset() {
+function endCall() {
+  clearInterval(timerInt);
+  if (rec) rec.stop();
+  const stars = childAnswers >= 4 ? 3 : childAnswers >= 2 ? 2 : 1;
+  const row = document.getElementById("stars-row");
+  row.innerHTML = [1,2,3].map(i => '<span style="color:' + (i<=stars?"#ffd60a":"#3a3a3c") + '">★</span>').join("");
+  show("s-summary");
+}
+
+function resetApp() {
   digits = "";
+  conversationHistory = [];
+  childAnswers = 0;
+  callSecs = 0;
   updateDisplay();
   show("s-dialer");
 }
