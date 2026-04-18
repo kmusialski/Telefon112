@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Zadzwoń pod 112</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{background:#000;min-height:100vh;display:flex;flex-direction:column;align-items:center;font-family:-apple-system,sans-serif;color:#fff;padding-bottom:40px}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+  @keyframes ring{0%,100%{transform:scale(1)}40%{transform:scale(1.18)}70%{transform:scale(0.94)}}
+  .screen{width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center}
+  .hidden{display:none!important}
+  .key{background:#1c1c1e;border:none;border-radius:50%;width:76px;height:76px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;touch-action:manipulation}
+  .key-num{font-size:30px;line-height:1}
+  .key-sub{font-size:10px;color:#8e8e93;letter-spacing:2px;margin-top:2px}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:0 20px;width:100%;margin-top:12px}
+  .call-btn{background:#34c759;border:none;border-radius:50%;width:76px;height:76px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation}
+  .end-btn{background:#ff3b30;border:none;border-radius:50%;width:56px;height:56px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .mic-btn{border:none;border-radius:50%;width:76px;height:76px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:none}
+  .bubble-op{align-self:flex-start;background:#1c1c1e;border-radius:16px;padding:10px 14px;max-width:82%;font-size:15px;line-height:1.4;color:#fff}
+  .bubble-me{align-self:flex-end;background:#0a84ff;border-radius:16px;padding:10px 14px;max-width:82%;font-size:15px;line-height:1.4;color:#fff}
+  .lbl{font-size:11px;color:#8e8e93;margin-bottom:3px}
+  .dots span{display:inline-block;width:7px;height:7px;border-radius:50%;background:#8e8e93;margin:0 3px;animation:pulse 0.6s infinite}
+  .dots span:nth-child(2){animation-delay:0.15s}
+  .dots span:nth-child(3){animation-delay:0.3s}
+</style>
+</head>
+<body>
+
+<!-- DIALER -->
+<div id="s-dialer" class="screen">
+  <div style="margin-top:48px;font-size:11px;color:#636366;letter-spacing:2px">NUMER AWARYJNY</div>
+  <div id="display" style="margin-top:8px;font-size:40px;letter-spacing:12px;height:56px;text-align:center;color:#fff;min-width:160px">
+    <span style="color:#2c2c2e">_ _ _</span>
+  </div>
+  <div id="dialer-hint" style="height:22px;font-size:13px;margin-bottom:4px;text-align:center"></div>
+  <div class="grid">
+    <button class="key" onclick="pressDigit('1')"><span class="key-num">1</span></button>
+    <button class="key" onclick="pressDigit('2')"><span class="key-num">2</span><span class="key-sub">ABC</span></button>
+    <button class="key" onclick="pressDigit('3')"><span class="key-num">3</span><span class="key-sub">DEF</span></button>
+    <button class="key" onclick="pressDigit('4')"><span class="key-num">4</span><span class="key-sub">GHI</span></button>
+    <button class="key" onclick="pressDigit('5')"><span class="key-num">5</span><span class="key-sub">JKL</span></button>
+    <button class="key" onclick="pressDigit('6')"><span class="key-num">6</span><span class="key-sub">MNO</span></button>
+    <button class="key" onclick="pressDigit('7')"><span class="key-num">7</span><span class="key-sub">PQRS</span></button>
+    <button class="key" onclick="pressDigit('8')"><span class="key-num">8</span><span class="key-sub">TUV</span></button>
+    <button class="key" onclick="pressDigit('9')"><span class="key-num">9</span><span class="key-sub">WXYZ</span></button>
+    <button class="key" onclick="pressDigit('*')"><span class="key-num">*</span></button>
+    <button class="key" onclick="pressDigit('0')"><span class="key-num">0</span><span class="key-sub">+</span></button>
+    <button class="key" onclick="pressDigit('#')"><span class="key-num">#</span></button>
+  </div>
+  <div style="display:flex;align-items:center;gap:52px;margin-top:28px">
+    <div style="width:64px"></div>
+    <button class="call-btn" onclick="startCall()">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
+    </button>
+    <button onclick="pressDelete()" style="background:transparent;border:none;cursor:pointer;padding:8px">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="#8e8e93"><path d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3 12.59L17.59 17 14 13.41 10.41 17 9 15.59 12.59 12 9 8.41 10.41 7 14 10.59 17.59 7 19 8.41 15.41 12 19 15.59z"/></svg>
+    </button>
+  </div>
+  <div style="font-size:13px;color:#636366;margin-top:12px;text-align:center">Wpisz 1 – 1 – 2 i naciśnij zielony przycisk</div>
+</div>
+
+<!-- CALLING -->
+<div id="s-calling" class="screen hidden" style="justify-content:center;gap:20px;min-height:80vh">
+  <div style="width:100px;height:100px;border-radius:50%;background:#ff3b30;display:flex;align-items:center;justify-content:center;font-size:48px;animation:ring 1s infinite">🚨</div>
+  <div style="font-size:22px;font-weight:500">Numer alarmowy 112</div>
+  <div style="font-size:15px;color:#8e8e93">Łączenie...</div>
+  <div style="display:flex;gap:8px;margin-top:4px">
+    <div style="width:9px;height:9px;border-radius:50%;background:#34c759;animation:pulse 0.6s infinite"></div>
+    <div style="width:9px;height:9px;border-radius:50%;background:#34c759;animation:pulse 0.75s 0.15s infinite"></div>
+    <div style="width:9px;height:9px;border-radius:50%;background:#34c759;animation:pulse 0.9s 0.3s infinite"></div>
+  </div>
+</div>
+
+<!-- TALKING -->
+<div id="s-talking" class="screen hidden" style="min-height:100vh">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 10px;border-bottom:0.5px solid #222;width:100%">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div id="op-avatar" style="width:38px;height:38px;border-radius:50%;background:#ff3b30;display:flex;align-items:center;justify-content:center;font-size:20px">🚨</div>
+      <div>
+        <div style="font-size:15px;font-weight:500">Numer alarmowy 112</div>
+        <div id="call-status" style="font-size:12px;color:#34c759">00:00 • Połączono</div>
+      </div>
+    </div>
+    <button class="end-btn" onclick="endCall()">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="white" transform="rotate(135)"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
+    </button>
+  </div>
+  <div id="messages" style="flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:10px;width:100%;max-height:55vh"></div>
+  <div style="padding:16px 20px 32px;display:flex;flex-direction:column;align-items:center;gap:10px;border-top:0.5px solid #222;width:100%">
+    <div id="transcript-box" style="font-size:13px;color:#8e8e93;font-style:italic;text-align:center;min-height:20px"></div>
+    <div id="mic-hint" style="font-size:13px;color:#8e8e93;text-align:center">Przytrzymaj przycisk i mów</div>
+    <button id="mic-btn" class="mic-btn"
+      style="background:#34c759"
+      ontouchstart="startListening(event)" ontouchend="stopListening(event)"
+      onmousedown="startListening(event)" onmouseup="stopListening(event)">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="white">
+        <path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<!-- SUMMARY -->
+<div id="s-summary" class="screen hidden" style="justify-content:center;gap:18px;padding:28px;text-align:center;min-height:80vh">
+  <div style="font-size:72px">🦸</div>
+  <div style="font-size:26px;font-weight:600">Brawo! Jesteś bohaterem!</div>
+  <div style="font-size:15px;color:#8e8e93;line-height:1.7">Nauczyłeś się jak rozmawiać<br/>z operatorem numeru 112.</div>
+  <div id="stars-row" style="display:flex;gap:8px;font-size:44px"></div>
+  <div style="background:#1c1c1e;border-radius:16px;padding:18px 20px;width:100%;font-size:14px;color:#e5e5ea;line-height:2;text-align:left">
+    <div style="font-weight:600;margin-bottom:6px;color:#fff;font-size:15px">Co mówić pod 112:</div>
+    <div>🔴 Co się stało (pożar, wypadek)</div>
+    <div>📍 Gdzie jesteś (adres, miasto)</div>
+    <div>👦 Jak masz na imię</div>
+    <div>🤕 Czy ktoś jest ranny</div>
+  </div>
+  <div style="font-size:12px;color:#636366">Pamiętaj: dzwoń tylko w prawdziwej nagłej sytuacji!</div>
+  <button onclick="reset()" style="background:#0a84ff;color:#fff;border:none;border-radius:24px;padding:14px 44px;font-size:17px;cursor:pointer;margin-top:4px">Spróbuj jeszcze raz</button>
+</div>
+
+<script>
+const XI_KEY = "sk_412c43758a90750bc719cb9c75604b564ae9b8705803a57b";
+const VOICE_ID = "pqHfZKP75CvOlQylNhV4";
+
+const QUESTIONS = [
+  "Halo, tu numer alarmowy sto dwanaście. Co się stało? Czy potrzebujesz pomocy?",
+  "Gdzie jesteś? Powiedz mi swój adres lub opisz to miejsce.",
+  "Jak masz na imię?",
+  "Czy wszyscy są bezpieczni? Czy ktoś jest ranny?",
+  "Dobrze. Pomoc już jedzie. Zostań na linii i nie rozłączaj się. Jesteś bardzo dzielny!"
+];
+
+let digits = "";
+let qIdx = 0;
+let callSecs = 0;
+let timerInt = null;
+let speaking = false;
+let listening = false;
+let rec = null;
+let currentTranscript = "";
+let childAnswers = 0;
+
+function show(id) {
+  ["s-dialer","s-calling","s-talking","s-summary"].forEach(s => {
+    document.getElementById(s).classList.toggle("hidden", s !== id);
+  });
+}
+
+function pressDigit(d) {
+  if (digits.length >= 3) return;
+  digits += d;
+  updateDisplay();
+}
+
+function pressDelete() {
+  digits = digits.slice(0,-1);
+  updateDisplay();
+}
+
+function updateDisplay() {
+  const el = document.getElementById("display");
+  const hint = document.getElementById("dialer-hint");
+  el.textContent = digits || "";
+  if (!digits) el.innerHTML = '<span style="color:#2c2c2e">_ _ _</span>';
+  if (digits === "112") hint.innerHTML = '<span style="color:#34c759">✓ Numer alarmowy</span>';
+  else if (digits.length > 0) hint.innerHTML = '<span style="color:#ff9f0a">Wpisz: 1 – 1 – 2</span>';
+  else hint.textContent = "";
+}
+
+async function speakEL(text, onEnd) {
+  speaking = true;
+  updateMicState();
+  try {
+    const res = await fetch("https://api.elevenlabs.io/v1/text-to-speech/" + VOICE_ID, {
+      method: "POST",
+      headers: { "xi-api-key": XI_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text,
+        model_id: "eleven_multilingual_v2",
+        voice_settings: { stability: 0.5, similarity_boost: 0.75 }
+      })
+    });
+    if (!res.ok) throw new Error("EL " + res.status);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    audio.onended = () => { speaking = false; URL.revokeObjectURL(url); updateMicState(); onEnd && onEnd(); };
+    audio.onerror = () => { speaking = false; updateMicState(); onEnd && onEnd(); };
+    await audio.play();
+  } catch(e) {
+    console.error(e);
+    speaking = false;
+    updateMicState();
+    onEnd && onEnd();
+  }
+}
+
+function updateMicState() {
+  const btn = document.getElementById("mic-btn");
+  const hint = document.getElementById("mic-hint");
+  const status = document.getElementById("call-status");
+  if (speaking) {
+    btn.style.background = "#34c759";
+    btn.style.opacity = "0.4";
+    btn.style.animation = "none";
+    hint.style.color = "#ff9f0a";
+    hint.textContent = "Poczekaj, dyspozytor mówi...";
+    status.style.color = "#ff9f0a";
+    status.textContent = "Dyspozytor mówi...";
+  } else if (listening) {
+    btn.style.background = "#ff3b30";
+    btn.style.opacity = "1";
+    btn.style.animation = "pulse 0.8s infinite";
+    hint.style.color = "#34c759";
+    hint.textContent = "Słucham... (puść, żeby wysłać)";
+  } else {
+    btn.style.background = "#34c759";
+    btn.style.opacity = "1";
+    btn.style.animation = "none";
+    hint.style.color = "#8e8e93";
+    hint.textContent = "Przytrzymaj przycisk i mów";
+    const m = Math.floor(callSecs/60), s = callSecs%60;
+    status.style.color = "#34c759";
+    status.textContent = String(m).padStart(2,"0")+":"+String(s).padStart(2,"0")+" • Połączono";
+  }
+}
+
+function addMessage(role, text) {
+  const msgs = document.getElementById("messages");
+  const wrap = document.createElement("div");
+  wrap.style.cssText = "display:flex;flex-direction:column";
+  const lbl = document.createElement("div");
+  lbl.className = "lbl";
+  lbl.style.alignSelf = role === "operator" ? "flex-start" : "flex-end";
+  lbl.textContent = role === "operator" ? "Dyspozytor 112" : "Ty";
+  const bub = document.createElement("div");
+  bub.className = role === "operator" ? "bubble-op" : "bubble-me";
+  bub.textContent = text;
+  wrap.appendChild(lbl);
+  wrap.appendChild(bub);
+  msgs.appendChild(wrap);
+  msgs.scrollTop = msgs.scrollHeight;
+  return wrap;
+}
+
+function showTyping() {
+  const msgs = document.getElementById("messages");
+  const wrap = document.createElement("div");
+  wrap.id = "typing-indicator";
+  wrap.style.cssText = "display:flex;flex-direction:column";
+  wrap.innerHTML = '<div class="lbl">Dyspozytor 112</div><div class="bubble-op dots"><span></span><span></span><span></span></div>';
+  msgs.appendChild(wrap);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function removeTyping() {
+  const el = document.getElementById("typing-indicator");
+  if (el) el.remove();
+}
+
+function startCall() {
+  if (digits !== "112") {
+    speakEL("To nie jest numer alarmowy. Spróbuj wpisać sto dwanaście.");
+    digits = "";
+    updateDisplay();
+    return;
+  }
+  show("s-calling");
+  setTimeout(() => {
+    show("s-talking");
+    qIdx = 0; callSecs = 0; childAnswers = 0;
+    document.getElementById("messages").innerHTML = "";
+    timerInt = setInterval(() => { callSecs++; if (!speaking && !listening) updateMicState(); }, 1000);
+    showTyping();
+    setTimeout(() => {
+      removeTyping();
+      addMessage("operator", QUESTIONS[0]);
+      speakEL(QUESTIONS[0]);
+    }, 1200);
+  }, 2800);
+}
+
+function startListening(e) {
+  e.preventDefault();
+  if (speaking) return;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { alert("Rozpoznawanie mowy działa w Safari (iOS) lub Chrome (Android)."); return; }
+  rec = new SR();
+  rec.lang = "pl-PL";
+  rec.interimResults = true;
+  rec.maxAlternatives = 1;
+  currentTranscript = "";
+  rec.onresult = (ev) => {
+    currentTranscript = Array.from(ev.results).map(r => r[0].transcript).join("");
+    document.getElementById("transcript-box").textContent = "„" + currentTranscript + """;
+  };
+  rec.onend = () => {
+    listening = false;
+    document.getElementById("transcript-box").textContent = "";
+    updateMicState();
+    if (currentTranscript.trim()) handleAnswer(currentTranscript.trim());
+    currentTranscript = "";
+  };
+  rec.onerror = () => { listening = false; updateMicState(); };
+  try { rec.start(); listening = true; updateMicState(); } catch(e) {}
+}
+
+function stopListening(e) {
+  e.preventDefault();
+  if (rec) rec.stop();
+}
+
+function handleAnswer(answer) {
+  addMessage("child", answer);
+  childAnswers++;
+  qIdx++;
+  if (qIdx >= QUESTIONS.length) {
+    setTimeout(() => endCall(true), 600);
+    return;
+  }
+  showTyping();
+  setTimeout(() => {
+    removeTyping();
+    addMessage("operator", QUESTIONS[qIdx]);
+    speakEL(QUESTIONS[qIdx]);
+  }, 1000);
+}
+
+function endCall(completed) {
+  clearInterval(timerInt);
+  if (rec) rec.stop();
+  const stars = completed ? 3 : childAnswers >= 3 ? 3 : childAnswers >= 1 ? 2 : 1;
+  const row = document.getElementById("stars-row");
+  row.innerHTML = [1,2,3].map(i => `<span style="color:${i<=stars?"#ffd60a":"#3a3a3c"}">★</span>`).join("");
+  show("s-summary");
+}
+
+function reset() {
+  digits = "";
+  updateDisplay();
+  show("s-dialer");
+}
+</script>
+</body>
+</html>
