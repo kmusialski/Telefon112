@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8"/>
+<title>Test API</title>
+</head>
+<body style="background:#000;color:#fff;font-family:sans-serif;padding:40px">
+<h2>Test Claude API</h2>
+<button id="btn" onclick="testClaude()" style="background:#0a84ff;color:#fff;border:none;padding:16px 32px;font-size:18px;border-radius:12px;cursor:pointer">
+  Testuj połączenie z Claude
+</button>
+<div id="result" style="margin-top:24px;font-size:16px;line-height:1.6"></div>
+
+<script>
+async function testClaude() {
+  const result = document.getElementById("result");
+  result.textContent = "Łączenie...";
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": "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",
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 100,
+        messages: [{ role: "user", content: "Powiedz tylko: Połączenie działa!" }]
+      })
+    });
+    const data = await res.json();
+    console.log("Response:", data);
+    if (data.content && data.content[0]) {
+      result.innerHTML = '<span style="color:#34c759">✅ DZIAŁA: ' + data.content[0].text + '</span>';
+    } else {
+      result.innerHTML = '<span style="color:#ff3b30">❌ Błąd: ' + JSON.stringify(data) + '</span>';
+    }
+  } catch(e) {
+    console.error(e);
+    result.innerHTML = '<span style="color:#ff3b30">❌ CORS/Sieć: ' + e.message + '</span>';
+  }
+}
+</script>
+</body>
+</html>
