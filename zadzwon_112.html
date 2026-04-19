@@ -552,12 +552,7 @@ async function startCall() {
   conversationHistory = [];
   childAnswers = 0;
   callSecs = 0;
-  const vadOk = await initVAD();
-  if (!vadOk) {
-    alert("Brak dostepu do mikrofonu. Zezwol na mikrofon w przegladarce.");
-    show("s-dialer");
-    return;
-  }
+  // Mikrofon juz zainicjalizowany w saveKeys — od razu startujemy
   setTimeout(async () => {
     show("s-talking");
     document.getElementById("messages").innerHTML = "";
