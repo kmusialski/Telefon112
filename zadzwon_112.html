@@ -301,6 +301,7 @@ function startVAD() {
 function stopVAD() {
   vadActive = false;
   voiceDetected = false;
+  voiceDuration = 0;
   clearInterval(vadInterval);
   clearTimeout(silenceTimer);
   silenceTimer = null;
@@ -313,7 +314,8 @@ function stopVAD() {
   const hint = document.getElementById("mic-hint");
   hint.style.color = "#8e8e93";
   hint.textContent = "Czekaj na dyspozytora...";
-  if (rec) rec.stop();
+  // Zatrzymaj recognition — onend wywoła handleAnswer
+  if (rec) { try { rec.stop(); } catch(e) {} }
 }
 
 function startSpeechRecognition() {
@@ -322,7 +324,7 @@ function startSpeechRecognition() {
   rec = new SR();
   rec.lang = "pl-PL";
   rec.interimResults = true;
-  rec.continuous = true;
+  rec.continuous = false;
   rec.maxAlternatives = 1;
   currentTranscript = "";
   rec.onresult = (ev) => {
@@ -331,11 +333,21 @@ function startSpeechRecognition() {
   };
   rec.onend = () => {
     listening = false;
-    document.getElementById("transcript-box").textContent = "";
-    if (currentTranscript.trim()) handleAnswer(currentTranscript.trim());
+    const answer = currentTranscript.trim();
     currentTranscript = "";
+    document.getElementById("transcript-box").textContent = "";
+    if (vadActive) {
+      // Restart recognition jeśli VAD nadal aktywny
+      startSpeechRecognition();
+    } else if (answer) {
+      handleAnswer(answer);
+    }
   };
-  rec.onerror = (e) => { console.error("SR error:", e); listening = false; };
+  rec.onerror = (e) => {
+    console.error("SR error:", e.error);
+    listening = false;
+    if (vadActive && e.error !== "aborted") startSpeechRecognition();
+  };
   try { rec.start(); listening = true; } catch(e) { console.error(e); }
 }
 
@@ -419,12 +431,15 @@ async function speakTTS(text) {
         })
       });
       if (!res.ok) throw new Error("EL " + res.status);
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      audio.onended = () => { speaking = false; URL.revokeObjectURL(url); updateMicState(); resolve(); };
-      audio.onerror = () => { speaking = false; updateMicState(); resolve(); };
-      await audio.play();
+      const arrayBuf = await res.arrayBuffer();
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === "suspended") await audioCtx.resume();
+      const decoded = await audioCtx.decodeAudioData(arrayBuf);
+      const source = audioCtx.createBufferSource();
+      source.buffer = decoded;
+      source.connect(audioCtx.destination);
+      source.onended = () => { speaking = false; updateMicState(); resolve(); };
+      source.start(0);
     } catch(e) {
       console.error("ElevenLabs error:", e);
       speaking = false;
