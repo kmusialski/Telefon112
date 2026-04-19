@@ -421,7 +421,7 @@ async function speakTTS(text) {
   updateMicState();
   return new Promise(async (resolve) => {
     try {
-      const res = await fetch("https://api.elevenlabs.io/v1/text-to-speech/pqHfZKP75CvOlQylNhV4", {
+      const res = await fetch("https://api.elevenlabs.io/v1/text-to-speech/pqHfZKP75CvOlQylNhV4?output_format=mp3_44100_128", {
         method: "POST",
         headers: { "xi-api-key": XI_KEY, "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -430,16 +430,27 @@ async function speakTTS(text) {
           voice_settings: { stability: 0.5, similarity_boost: 0.75 }
         })
       });
-      if (!res.ok) throw new Error("EL " + res.status);
-      const arrayBuf = await res.arrayBuffer();
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      if (audioCtx.state === "suspended") await audioCtx.resume();
-      const decoded = await audioCtx.decodeAudioData(arrayBuf);
-      const source = audioCtx.createBufferSource();
-      source.buffer = decoded;
-      source.connect(audioCtx.destination);
-      source.onended = () => { speaking = false; updateMicState(); resolve(); };
-      source.start(0);
+      if (!res.ok) { console.error("EL status:", res.status); throw new Error("EL " + res.status); }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audio.volume = 1.0;
+      await new Promise(r => {
+        audio.oncanplaythrough = r;
+        audio.onerror = r;
+        audio.load();
+      });
+      audio.onended = () => { speaking = false; URL.revokeObjectURL(url); updateMicState(); resolve(); };
+      audio.onerror = (e) => { console.error("Audio error:", e); speaking = false; updateMicState(); resolve(); };
+      const playPromise = audio.play();
+      if (playPromise) {
+        playPromise.catch(e => {
+          console.error("Play failed:", e);
+          speaking = false;
+          updateMicState();
+          resolve();
+        });
+      }
     } catch(e) {
       console.error("ElevenLabs error:", e);
       speaking = false;
