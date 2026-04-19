@@ -46,7 +46,7 @@ html{background:#000}
   </div>
 
   <div style="width:100%;margin-top:16px">
-    <div style="font-size:13px;color:#8e8e93;margin-bottom:4px">Klucz ElevenLabs (lektor)</div>
+    <div style="font-size:13px;color:#8e8e93;margin-bottom:4px">Klucz ElevenLabs (TTS)</div>
     <input id="xi-key-input" class="api-input" type="password" placeholder="sk_..." oninput="checkKeys()"/>
     <div style="font-size:11px;color:#636366;margin-top:6px">elevenlabs.io → Profile → API Key</div>
   </div>
@@ -124,15 +124,14 @@ html{background:#000}
   <div id="messages" style="flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:10px;width:100%;max-height:55vh"></div>
   <div style="padding:16px 20px 32px;display:flex;flex-direction:column;align-items:center;gap:10px;border-top:0.5px solid #222;width:100%">
     <div id="transcript-box" style="font-size:13px;color:#8e8e93;font-style:italic;text-align:center;min-height:20px"></div>
-    <div id="mic-hint" style="font-size:13px;color:#8e8e93;text-align:center">Czekaj na dyspozytora...</div>
-    <div id="mic-btn" style="width:76px;height:76px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#34c759;opacity:0.4;transition:all 0.3s">
+    <div id="mic-hint" style="font-size:13px;color:#8e8e93;text-align:center">Przytrzymaj przycisk i mow</div>
+    <button id="mic-btn" class="mic-btn" style="background:#34c759"
+      ontouchstart="startListening(event)" ontouchend="stopListening(event)"
+      onmousedown="startListening(event)" onmouseup="stopListening(event)">
       <svg width="32" height="32" viewBox="0 0 24 24" fill="white">
         <path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/>
       </svg>
-    </div>
-    <div id="vad-bar" style="width:200px;height:6px;background:#2c2c2e;border-radius:3px;overflow:hidden">
-      <div id="vad-level" style="height:100%;width:0%;background:#34c759;transition:width 0.05s"></div>
-    </div>
+    </button>
   </div>
 </div>
 
@@ -187,177 +186,15 @@ let currentTranscript = "";
 let childAnswers = 0;
 let conversationHistory = [];
 
-// VAD
-let audioCtx = null;
-let analyser = null;
-let micStream = null;
-let vadInterval = null;
-let silenceTimer = null;
-let voiceDetected = false;
-let vadActive = false;
-let voiceDuration = 0;
-let noiseFloor = 10;
-const SILENCE_DELAY = 1800;
-const MIN_VOICE_MS = 800;
-
-async function initVAD() {
-  try {
-    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    analyser = audioCtx.createAnalyser();
-    analyser.fftSize = 512;
-    analyser.smoothingTimeConstant = 0.4;
-    const src = audioCtx.createMediaStreamSource(micStream);
-    src.connect(analyser);
-    await calibrateNoise();
-    return true;
-  } catch(e) {
-    console.error("Mikrofon niedostepny:", e);
-    return false;
-  }
-}
-
-async function calibrateNoise() {
-  return new Promise(resolve => {
-    const hint = document.getElementById("mic-hint");
-    if (hint) { hint.textContent = "Kalibracja mikrofonu..."; hint.style.color = "#ff9f0a"; }
-    const samples = [];
-    const interval = setInterval(() => {
-      samples.push(getVolume());
-      if (samples.length >= 20) {
-        clearInterval(interval);
-        const avg = samples.reduce((a,b) => a+b, 0) / samples.length;
-    noiseFloor = Math.max(avg * 3.5, 30);
-        console.log("Noise floor:", noiseFloor.toFixed(1));
-        if (hint) { hint.textContent = "Czekaj na dyspozytora..."; hint.style.color = "#8e8e93"; }
-        resolve();
-      }
-    }, 50);
-  });
-}
-
-function getVolume() {
-  if (!analyser) return 0;
-  const data = new Uint8Array(analyser.frequencyBinCount);
-  analyser.getByteFrequencyData(data);
-  const sum = data.reduce((a, b) => a + b, 0);
-  return sum / data.length;
-}
-
-function startVAD() {
-  if (!analyser || vadActive) return;
-  vadActive = true;
-  voiceDetected = false;
-  voiceDuration = 0;
-  clearTimeout(silenceTimer);
-  silenceTimer = null;
-
-  const btn = document.getElementById("mic-btn");
-  const hint = document.getElementById("mic-hint");
-  btn.style.opacity = "1";
-  btn.style.background = "#34c759";
-  hint.style.color = "#34c759";
-  hint.textContent = "Slucham...";
-
-  startSpeechRecognition();
-
-  vadInterval = setInterval(() => {
-    const vol = getVolume();
-    const VOICE_THRESH = noiseFloor * 1.8;
-    const SILENCE_THRESH = noiseFloor * 1.2;
-    const pct = Math.min(100, (vol / (noiseFloor * 4)) * 100);
-    document.getElementById("vad-level").style.width = pct + "%";
-
-    if (vol > VOICE_THRESH) {
-      voiceDetected = true;
-      voiceDuration += 50;
-      clearTimeout(silenceTimer);
-      silenceTimer = null;
-      btn.style.background = "#ff3b30";
-      btn.style.animation = "pulse 0.5s infinite";
-      hint.textContent = "Mowie...";
-      hint.style.color = "#ff3b30";
-    } else if (voiceDetected && vol < SILENCE_THRESH) {
-      if (!silenceTimer) {
-        silenceTimer = setTimeout(() => {
-          if (voiceDuration >= MIN_VOICE_MS) {
-            stopVAD();
-          } else {
-            // Za krotko — ignoruj i resetuj
-            voiceDetected = false;
-            voiceDuration = 0;
-            silenceTimer = null;
-            btn.style.background = "#34c759";
-            btn.style.animation = "none";
-            hint.textContent = "Slucham...";
-            hint.style.color = "#34c759";
-          }
-        }, SILENCE_DELAY);
-      }
-    }
-  }, 50);
-}
-
-function stopVAD() {
-  vadActive = false;
-  voiceDetected = false;
-  voiceDuration = 0;
-  clearInterval(vadInterval);
-  clearTimeout(silenceTimer);
-  silenceTimer = null;
-  vadInterval = null;
-  document.getElementById("vad-level").style.width = "0%";
-  const btn = document.getElementById("mic-btn");
-  btn.style.background = "#34c759";
-  btn.style.animation = "none";
-  btn.style.opacity = "0.4";
-  const hint = document.getElementById("mic-hint");
-  hint.style.color = "#8e8e93";
-  hint.textContent = "Czekaj na dyspozytora...";
-  // Zatrzymaj recognition — onend wywoła handleAnswer
-  if (rec) { try { rec.stop(); } catch(e) {} }
-}
-
-function startSpeechRecognition() {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) return;
-  rec = new SR();
-  rec.lang = "pl-PL";
-  rec.interimResults = true;
-  rec.continuous = false;
-  rec.maxAlternatives = 1;
-  currentTranscript = "";
-  rec.onresult = (ev) => {
-    currentTranscript = Array.from(ev.results).map(r => r[0].transcript).join("");
-    document.getElementById("transcript-box").textContent = '"' + currentTranscript + '"';
-  };
-  rec.onend = () => {
-    listening = false;
-    const answer = currentTranscript.trim();
-    currentTranscript = "";
-    document.getElementById("transcript-box").textContent = "";
-    if (vadActive) {
-      // Restart recognition jeśli VAD nadal aktywny
-      startSpeechRecognition();
-    } else if (answer) {
-      handleAnswer(answer);
-    }
-  };
-  rec.onerror = (e) => {
-    console.error("SR error:", e.error);
-    listening = false;
-    if (vadActive && e.error !== "aborted") startSpeechRecognition();
-  };
-  try { rec.start(); listening = true; } catch(e) { console.error(e); }
-}
-
 function checkKeys() {
   const ck = document.getElementById("claude-key-input").value.trim();
-  document.getElementById("start-btn").disabled = !(ck.length > 10);
+  const xk = document.getElementById("xi-key-input").value.trim();
+  document.getElementById("start-btn").disabled = !(ck.length > 10 && xk.length > 10);
 }
 
 async function saveKeys() {
   const ck = document.getElementById("claude-key-input").value.trim();
+  const xk = document.getElementById("xi-key-input").value.trim();
   const errEl = document.getElementById("setup-error");
   const btn = document.getElementById("start-btn");
   btn.textContent = "Sprawdzam...";
@@ -372,20 +209,27 @@ async function saveKeys() {
         "content-type": "application/json",
         "anthropic-dangerous-direct-browser-access": "true"
       },
-      body: JSON.stringify({ model:"claude-haiku-4-5-20251001", max_tokens:10, messages:[{role:"user",content:"test"}] })
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 10,
+        messages: [{ role: "user", content: "test" }]
+      })
     });
     const data = await res.json();
     if (data.error) {
-      errEl.textContent = "Blad klucza: " + data.error.message;
-      btn.textContent = "Rozpocznij"; btn.disabled = false; return;
+      errEl.textContent = "Blad klucza Anthropic: " + data.error.message;
+      btn.textContent = "Rozpocznij";
+      btn.disabled = false;
+      return;
     }
   } catch(e) {
     errEl.textContent = "Blad polaczenia: " + e.message;
-    btn.textContent = "Rozpocznij"; btn.disabled = false; return;
+    btn.textContent = "Rozpocznij";
+    btn.disabled = false;
+    return;
   }
   CLAUDE_KEY = ck;
-  // Zaladuj glosy TTS
-  window.speechSynthesis.getVoices();
+  XI_KEY = xk;
   show("s-dialer");
 }
 
@@ -416,48 +260,32 @@ function updateDisplay() {
   else hint.textContent = "";
 }
 
-async function speakTTS(text) {
+async function speakEL(text, onEnd) {
   speaking = true;
   updateMicState();
-  return new Promise(async (resolve) => {
-    try {
-      const res = await fetch("https://api.elevenlabs.io/v1/text-to-speech/pqHfZKP75CvOlQylNhV4?output_format=mp3_44100_128", {
-        method: "POST",
-        headers: { "xi-api-key": XI_KEY, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text,
-          model_id: "eleven_multilingual_v2",
-          voice_settings: { stability: 0.5, similarity_boost: 0.75 }
-        })
-      });
-      if (!res.ok) { console.error("EL status:", res.status); throw new Error("EL " + res.status); }
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      audio.volume = 1.0;
-      await new Promise(r => {
-        audio.oncanplaythrough = r;
-        audio.onerror = r;
-        audio.load();
-      });
-      audio.onended = () => { speaking = false; URL.revokeObjectURL(url); updateMicState(); resolve(); };
-      audio.onerror = (e) => { console.error("Audio error:", e); speaking = false; updateMicState(); resolve(); };
-      const playPromise = audio.play();
-      if (playPromise) {
-        playPromise.catch(e => {
-          console.error("Play failed:", e);
-          speaking = false;
-          updateMicState();
-          resolve();
-        });
-      }
-    } catch(e) {
-      console.error("ElevenLabs error:", e);
-      speaking = false;
-      updateMicState();
-      resolve();
-    }
-  });
+  try {
+    const res = await fetch("https://api.elevenlabs.io/v1/text-to-speech/" + VOICE_ID, {
+      method: "POST",
+      headers: { "xi-api-key": XI_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text: text,
+        model_id: "eleven_multilingual_v2",
+        voice_settings: { stability: 0.5, similarity_boost: 0.75 }
+      })
+    });
+    if (!res.ok) throw new Error("EL " + res.status);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    audio.onended = () => { speaking = false; URL.revokeObjectURL(url); updateMicState(); if (onEnd) onEnd(); };
+    audio.onerror = () => { speaking = false; updateMicState(); if (onEnd) onEnd(); };
+    await audio.play();
+  } catch(e) {
+    console.error("ElevenLabs error:", e);
+    speaking = false;
+    updateMicState();
+    if (onEnd) onEnd();
+  }
 }
 
 async function askClaude(userMessage) {
@@ -490,10 +318,10 @@ async function askClaude(userMessage) {
 }
 
 function updateMicState() {
+  const btn = document.getElementById("mic-btn");
   const hint = document.getElementById("mic-hint");
   const status = document.getElementById("call-status");
-  const btn = document.getElementById("mic-btn");
-  if (!hint) return;
+  if (!btn) return;
   if (speaking) {
     btn.style.background = "#34c759";
     btn.style.opacity = "0.4";
@@ -502,7 +330,18 @@ function updateMicState() {
     hint.textContent = "Dyspozytor mowi...";
     status.style.color = "#ff9f0a";
     status.textContent = "Dyspozytor mowi...";
+  } else if (listening) {
+    btn.style.background = "#ff3b30";
+    btn.style.opacity = "1";
+    btn.style.animation = "pulse 0.8s infinite";
+    hint.style.color = "#34c759";
+    hint.textContent = "Slucham... (pusc zeby wyslac)";
   } else {
+    btn.style.background = "#34c759";
+    btn.style.opacity = "1";
+    btn.style.animation = "none";
+    hint.style.color = "#8e8e93";
+    hint.textContent = "Przytrzymaj przycisk i mow";
     const m = Math.floor(callSecs/60), s = callSecs%60;
     status.style.color = "#34c759";
     status.textContent = String(m).padStart(2,"0")+":"+String(s).padStart(2,"0")+" Polaczono";
@@ -543,7 +382,7 @@ function removeTyping() {
 
 async function startCall() {
   if (digits !== "112") {
-    await speakTTS("To nie jest numer alarmowy. Sprobuj wpisac sto dwanascie.");
+    await speakEL("To nie jest numer alarmowy. Sprobuj wpisac sto dwanascie.");
     digits = "";
     updateDisplay();
     return;
@@ -552,26 +391,53 @@ async function startCall() {
   conversationHistory = [];
   childAnswers = 0;
   callSecs = 0;
-  // Mikrofon juz zainicjalizowany w saveKeys — od razu startujemy
   setTimeout(async () => {
     show("s-talking");
     document.getElementById("messages").innerHTML = "";
     timerInt = setInterval(() => {
       callSecs++;
-      if (!speaking) updateMicState();
+      if (!speaking && !listening) updateMicState();
     }, 1000);
     showTyping();
     const firstMsg = await askClaude("[START] Dziecko wlasnie zadzwonilo pod numer 112. Rozpocznij rozmowe.");
     removeTyping();
     const clean = firstMsg.replace("[KONIEC_ROZMOWY]", "").trim();
     addMessage("operator", clean);
-    await speakTTS(clean);
-    startVAD();
+    await speakEL(clean);
   }, 2800);
 }
 
+function startListening(e) {
+  e.preventDefault();
+  if (speaking) return;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { alert("Rozpoznawanie mowy dziala w Safari (iOS) lub Chrome (Android)."); return; }
+  rec = new SR();
+  rec.lang = "pl-PL";
+  rec.interimResults = true;
+  rec.maxAlternatives = 1;
+  currentTranscript = "";
+  rec.onresult = (ev) => {
+    currentTranscript = Array.from(ev.results).map(r => r[0].transcript).join("");
+    document.getElementById("transcript-box").textContent = '"' + currentTranscript + '"';
+  };
+  rec.onend = () => {
+    listening = false;
+    document.getElementById("transcript-box").textContent = "";
+    updateMicState();
+    if (currentTranscript.trim()) handleAnswer(currentTranscript.trim());
+    currentTranscript = "";
+  };
+  rec.onerror = () => { listening = false; updateMicState(); };
+  try { rec.start(); listening = true; updateMicState(); } catch(err) { console.error(err); }
+}
+
+function stopListening(e) {
+  e.preventDefault();
+  if (rec) rec.stop();
+}
+
 async function handleAnswer(answer) {
-  stopVAD();
   addMessage("child", answer);
   childAnswers++;
   showTyping();
@@ -580,16 +446,12 @@ async function handleAnswer(answer) {
   const clean = reply.replace("[KONIEC_ROZMOWY]", "").trim();
   addMessage("operator", clean);
   if (reply.includes("[KONIEC_ROZMOWY]")) {
-    await speakTTS(clean);
+    await speakEL(clean);
     setTimeout(() => finishCall(), 1500);
   } else {
-    await speakTTS(clean);
-    startVAD();
+    await speakEL(clean);
   }
 }
-
-function startListening(e) {}
-function stopListening(e) {}
 
 function finishCall() {
   clearInterval(timerInt);
