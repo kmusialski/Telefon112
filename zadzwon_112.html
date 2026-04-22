@@ -7,12 +7,12 @@
 <title>Zadzwon pod 112</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{background:#000;height:100%;overflow:hidden}
+html,body{background:#000;height:100%;overflow-x:hidden}
 body{display:flex;flex-direction:column;align-items:center;font-family:-apple-system,sans-serif;color:#fff}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
 @keyframes ring{0%,100%{transform:scale(1)}40%{transform:scale(1.18)}70%{transform:scale(0.94)}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.screen{width:100%;max-width:400px;height:100%;display:flex;flex-direction:column;align-items:center;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.screen{width:100%;max-width:400px;min-height:100dvh;display:flex;flex-direction:column;align-items:center;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .hidden{display:none!important}
 .key{background:#1c1c1e;border:none;border-radius:50%;width:72px;height:72px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;touch-action:manipulation;-webkit-user-select:none;user-select:none;transition:background 0.1s,transform 0.08s;flex-shrink:0}
 .key:active{background:#3a3a3c;transform:scale(0.93)}
@@ -37,9 +37,9 @@ body{display:flex;flex-direction:column;align-items:center;font-family:-apple-sy
 <body>
 
 <!-- LOCK SCREEN -->
-<div id="s-lock" class="screen" style="position:relative;overflow:hidden;justify-content:space-between;padding:0">
+<div id="s-lock" class="screen hidden" style="position:fixed;inset:0;overflow:hidden;justify-content:space-between;padding:0;max-width:100%;z-index:10">
   <!-- Tlo - zdjecie dziecka -->
-  <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.55) 0%,rgba(0,0,0,0.15) 40%,rgba(0,0,0,0.15) 70%,rgba(0,0,0,0.7) 100%),url('https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=600&q=80') center/cover no-repeat;z-index:0"></div>
+  <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.55) 0%,rgba(0,0,0,0.15) 40%,rgba(0,0,0,0.15) 70%,rgba(0,0,0,0.7) 100%),url('https://images.unsplash.com/photo-1540479859555-17af45c78602?w=600&q=80') center/cover no-repeat;z-index:0"></div>
 
   <!-- Gora: kłódka + Face ID -->
   <div style="position:relative;z-index:1;display:flex;justify-content:center;padding-top:52px;width:100%">
@@ -86,7 +86,7 @@ body{display:flex;flex-direction:column;align-items:center;font-family:-apple-sy
 </div>
 
 <!-- SETUP -->
-<div id="s-setup" class="screen hidden" style="padding:40px 24px;gap:0">
+<div id="s-setup" class="screen" style="padding:40px 24px;gap:0">
   <div style="font-size:48px;margin-bottom:16px;margin-top:20px">🚨</div>
   <div style="font-size:22px;font-weight:600;text-align:center">Zadzwon pod 112</div>
   <div style="font-size:14px;color:#8e8e93;text-align:center;margin-top:8px;line-height:1.6">Symulator rozmowy z dyspozytorem<br/>dla przedszkolakow</div>
@@ -580,8 +580,16 @@ const ALL_SCREENS = ["s-lock","s-setup","s-dialer","s-calling","s-talking","s-su
 
 function show(id) {
   ALL_SCREENS.forEach(s => {
-    document.getElementById(s).classList.toggle("hidden", s !== id);
+    const el = document.getElementById(s);
+    if (s === "s-lock") {
+      // Lock screen jest fixed - pokazujemy/ukrywamy przez hidden
+      el.classList.toggle("hidden", s !== id);
+    } else {
+      el.classList.toggle("hidden", s !== id);
+    }
   });
+  // Gdy lock screen ukryty - upewnij sie ze body scrolluje normalnie
+  document.body.style.overflow = (id === "s-lock") ? "hidden" : "";
 }
 
 // =============================================
