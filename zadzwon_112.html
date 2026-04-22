@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<link rel="icon" href="data:,"/>
 <title>Zadzwon pod 112</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -33,32 +34,31 @@ html{background:#000}
 </head>
 <body>
 
-<!-- SETUP — ekran klucza API -->
+<!-- SETUP -->
 <div id="s-setup" class="screen" style="padding:40px 24px;gap:0">
   <div style="font-size:48px;margin-bottom:16px;margin-top:20px">🚨</div>
   <div style="font-size:22px;font-weight:600;text-align:center">Zadzwon pod 112</div>
   <div style="font-size:14px;color:#8e8e93;text-align:center;margin-top:8px;line-height:1.6">Symulator rozmowy z dyspozytorem<br/>dla przedszkolakow</div>
-
   <div style="width:100%;margin-top:32px">
     <div style="font-size:13px;color:#8e8e93;margin-bottom:4px">Klucz Anthropic API</div>
     <input id="claude-key-input" class="api-input" type="password" placeholder="sk-ant-api03-..." oninput="checkKeys()"/>
     <div style="font-size:11px;color:#636366;margin-top:6px">console.anthropic.com → API Keys</div>
   </div>
-
   <div style="width:100%;margin-top:16px">
     <div style="font-size:13px;color:#8e8e93;margin-bottom:4px">Klucz ElevenLabs (TTS)</div>
     <input id="xi-key-input" class="api-input" type="password" placeholder="sk_..." oninput="checkKeys()"/>
     <div style="font-size:11px;color:#636366;margin-top:6px">elevenlabs.io → Profile → API Key</div>
   </div>
-
   <div id="setup-error" style="font-size:13px;color:#ff3b30;margin-top:12px;text-align:center;min-height:20px"></div>
-
-  <button id="start-btn" class="api-btn" onclick="saveKeys()" disabled>
-    Rozpocznij
-  </button>
-
+  <button id="start-btn" class="api-btn" onclick="saveKeys()" disabled>Rozpocznij</button>
   <div style="font-size:11px;color:#636366;text-align:center;margin-top:12px;line-height:1.6">
-    Klucze sa przechowywane tylko w pamieci przegladarki.<br/>Nie trafiaja do zadnego serwera ani pliku.
+    Klucze sa przechowywane tylko w pamieci przegladarki.
+  </div>
+
+  <div style="width:100%;margin-top:24px;padding-top:24px;border-top:0.5px solid #2c2c2e;text-align:center">
+    <button onclick="openAdminFromSetup()" style="background:transparent;border:0.5px solid #3a3a3c;border-radius:24px;padding:12px 24px;font-size:14px;color:#8e8e93;cursor:pointer;font-family:-apple-system,sans-serif;width:100%">
+      Panel administratora
+    </button>
   </div>
 </div>
 
@@ -97,7 +97,7 @@ html{background:#000}
 
 <!-- CALLING -->
 <div id="s-calling" class="screen hidden" style="justify-content:center;gap:20px;min-height:80vh">
-  <div style="width:100px;height:100px;border-radius:50%;background:#ff3b30;display:flex;align-items:center;justify-content:center;font-size:48px;animation:ring 1s infinite">🚨</div>
+  <div id="logo-tap" style="width:100px;height:100px;border-radius:50%;background:#ff3b30;display:flex;align-items:center;justify-content:center;font-size:48px;animation:ring 1s infinite;cursor:pointer">🚨</div>
   <div style="font-size:22px;font-weight:500">Numer alarmowy 112</div>
   <div style="font-size:15px;color:#8e8e93">Laczenie...</div>
   <div style="display:flex;gap:8px;margin-top:4px">
@@ -111,17 +111,22 @@ html{background:#000}
 <div id="s-talking" class="screen hidden" style="min-height:100vh">
   <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 10px;border-bottom:0.5px solid #222;width:100%">
     <div style="display:flex;align-items:center;gap:10px">
-      <div id="op-avatar" style="width:38px;height:38px;border-radius:50%;background:#ff3b30;display:flex;align-items:center;justify-content:center;font-size:20px">🚨</div>
+      <div style="width:38px;height:38px;border-radius:50%;background:#ff3b30;display:flex;align-items:center;justify-content:center;font-size:20px">🚨</div>
       <div>
         <div style="font-size:15px;font-weight:500">Numer alarmowy 112</div>
-        <div id="call-status" style="font-size:12px;color:#34c759">00:00 • Polaczono</div>
+        <div id="call-status" style="font-size:12px;color:#34c759">00:00 Polaczono</div>
       </div>
     </div>
     <button class="end-btn" onclick="endCall()">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="white" transform="rotate(135)"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
     </button>
   </div>
-  <div id="messages" style="flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:10px;width:100%;max-height:55vh"></div>
+  <div id="messages" style="flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:10px;width:100%;max-height:45vh"></div>
+
+  <!-- LOG PANEL -->
+  <div id="log-panel" style="width:100%;max-height:80px;overflow-y:auto;background:#0a0a0a;border-top:0.5px solid #1c1c1e;padding:6px 12px;display:none">
+    <div id="log-content" style="font-size:10px;color:#636366;font-family:monospace;line-height:1.6"></div>
+  </div>
   <div style="padding:16px 20px 32px;display:flex;flex-direction:column;align-items:center;gap:10px;border-top:0.5px solid #222;width:100%">
     <div id="transcript-box" style="font-size:13px;color:#8e8e93;font-style:italic;text-align:center;min-height:20px"></div>
     <div id="mic-hint" style="font-size:13px;color:#8e8e93;text-align:center">Przytrzymaj przycisk i mow</div>
@@ -132,6 +137,7 @@ html{background:#000}
         <path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/>
       </svg>
     </button>
+    <button onclick="toggleLog()" style="background:transparent;border:none;color:#3a3a3c;font-size:11px;cursor:pointer;font-family:monospace;margin-top:4px">[ log ]</button>
   </div>
 </div>
 
@@ -145,34 +151,173 @@ html{background:#000}
     <div style="font-weight:600;margin-bottom:6px;color:#fff;font-size:15px">Co mowic pod 112:</div>
     <div>🔴 Co sie stalo (pozar, wypadek)</div>
     <div>📍 Gdzie jestes (adres, miasto)</div>
-    <div>👦 Jak masz na imie</div>
+    <div>👦 Jak masz na imie i nazwisko</div>
     <div>🤕 Czy ktos jest ranny</div>
+    <div>🚪 Czy drzwi sa otwarte dla ratownikow</div>
   </div>
   <div style="font-size:12px;color:#636366">Pamietaj: dzwon tylko w prawdziwej naglej sytuacji!</div>
   <button onclick="resetApp()" style="background:#0a84ff;color:#fff;border:none;border-radius:24px;padding:14px 44px;font-size:17px;cursor:pointer;margin-top:4px">Sprobuj jeszcze raz</button>
+  <button onclick="openAdminFromSetup('s-summary')" style="background:transparent;border:0.5px solid #3a3a3c;border-radius:24px;padding:12px 24px;font-size:14px;color:#8e8e93;cursor:pointer;font-family:-apple-system,sans-serif;width:100%;margin-top:8px">Panel administratora</button>
+</div>
+
+<!-- ADMIN LOGIN -->
+<div id="s-admin-login" class="screen hidden" style="padding:40px 24px;gap:0;justify-content:center;min-height:60vh">
+  <div style="font-size:48px;text-align:center;margin-bottom:16px">🔐</div>
+  <div style="font-size:20px;font-weight:600;text-align:center;margin-bottom:6px">Panel administratora</div>
+  <div style="font-size:14px;color:#8e8e93;text-align:center;margin-bottom:24px;line-height:1.6">Dostep tylko dla nauczycieli i opiekunow</div>
+  <input id="admin-pass-input" class="api-input" type="password" placeholder="Haslo administratora"/>
+  <div id="admin-login-err" style="font-size:13px;color:#ff3b30;text-align:center;min-height:20px;margin-top:8px"></div>
+  <button onclick="checkAdminPass()" class="api-btn">Zaloguj sie</button>
+  <button onclick="show(window._adminReturnTo||'s-dialer')" style="background:transparent;border:none;color:#8e8e93;cursor:pointer;font-size:14px;margin-top:16px;font-family:-apple-system,sans-serif">Anuluj</button>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="s-admin" class="screen hidden" style="padding:24px;gap:0;min-height:100vh">
+  <div style="display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:20px;margin-bottom:16px">
+    <div style="font-size:18px;font-weight:600">Panel administratora</div>
+    <button onclick="show(window._adminReturnTo||'s-dialer')" style="background:transparent;border:none;color:#8e8e93;cursor:pointer;font-size:14px;font-family:-apple-system,sans-serif">Zamknij</button>
+  </div>
+
+  <!-- Baza - tylko podglad -->
+  <div style="width:100%;margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <div style="font-size:13px;color:#8e8e93">Baza systemu</div>
+      <div style="font-size:11px;color:#636366;background:#1c1c1e;padding:3px 8px;border-radius:6px">Stala - tylko odczyt</div>
+    </div>
+    <div style="background:#111;border:0.5px solid #2c2c2e;border-radius:12px;padding:12px;font-size:12px;color:#636366;line-height:1.6">
+      Dyspozytor 112 prowadzi rozmowe z dzieckiem. Pierwsza wiadomosc profesjonalna. Kolejne dostosowane do dziecka - z zacheta i odwaga. Zbiera: co sie stalo, imie i nazwisko, czy samo, bezpieczenstwo, adres, czy drzwi otwarte. Pozostaje na linii do przyjazdu sluzb.
+    </div>
+  </div>
+
+  <!-- Dodatkowe pytania -->
+  <div style="width:100%;margin-bottom:12px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <div style="font-size:13px;color:#8e8e93">Dodatkowe instrukcje</div>
+      <div style="font-size:11px;color:#34c759;background:#0d2818;padding:3px 8px;border-radius:6px">Edytowalne</div>
+    </div>
+    <div style="font-size:12px;color:#636366;margin-bottom:8px;line-height:1.5">Wpisz dodatkowe pytania lub scenariusze dla dyspozytora.</div>
+    <textarea id="admin-extra" style="background:#1c1c1e;border:0.5px solid #3a3a3c;border-radius:12px;color:#fff;font-size:13px;padding:14px;width:100%;height:220px;outline:none;font-family:-apple-system,sans-serif;line-height:1.6;resize:vertical" placeholder="Np:
+- Zapytaj czy dziecko czuje dym lub ogien
+- Zapytaj czy w domu jest zwierze
+- Scenariusz: dziecko znalazlo nieprzytomna osobe
+- Zapytaj czy dziecko ma przy sobie naladowany telefon
+..."></textarea>
+  </div>
+
+  <!-- Zmiana hasla -->
+  <div style="width:100%;margin-bottom:12px">
+    <div style="font-size:13px;color:#8e8e93;margin-bottom:6px">Zmiana hasla (opcjonalnie)</div>
+    <input id="admin-new-pass" class="api-input" type="password" placeholder="Nowe haslo (min. 4 znaki)"/>
+  </div>
+
+  <div id="admin-msg" style="font-size:13px;color:#34c759;text-align:center;min-height:20px;margin-bottom:8px"></div>
+  <button onclick="saveAdminSettings()" class="api-btn">Zapisz ustawienia</button>
+  <button onclick="clearExtra()" style="background:transparent;color:#ff9f0a;border:0.5px solid #ff9f0a;border-radius:24px;padding:12px;font-size:14px;cursor:pointer;width:100%;margin-top:10px;font-family:-apple-system,sans-serif">Wyczysc dodatkowe instrukcje</button>
 </div>
 
 <script>
 const VOICE_ID = "pqHfZKP75CvOlQylNhV4";
-const SYSTEM_PROMPT = `Jestes dyspozytorem numeru alarmowego 112 w Polsce. Rozmawiasz z malym dzieckiem (przedszkolakiem lub uczniem klasy 1-3), ktore cwiczy jak wzywac pomoc w naglej sytuacji. To jest symulacja edukacyjna.
+const ADMIN_DEFAULT_PASS = "admin112";
 
-ZASADY:
-- Mow bardzo prostym jezykiem - krotkie zdania, latwe slowa
-- Zadawaj jedno pytanie na raz - nigdy kilka naraz
-- Badz spokojny i ciepły - dziecko nie moze sie przestraszyc
-- Chwal dziecko gdy dobrze odpowiada
-- Jesli dziecko odpowiada niejas nie - dopytaj spokojnie
+const BASE_PROMPT = `Symulujesz dyspozytora numeru alarmowego 112. To jest symulacja edukacyjna dla dzieci w wieku przedszkolnym i wczesnoszkolnym.
+
+PIERWSZA WIADOMOSC (zawsze dokladnie taka):
+"Tu dyspozytor numeru alarmowego 112, prosze powiedziec co sie stalo."
+
+ZASADY ROZMOWY:
+- Mow krotko i prosto - jedno zdanie, jedno pytanie na raz
+- Uzywaj zwrotow dodajacych odwagi: "Swietnie!", "Dobrze sobie radzisz!", "Jestes bardzo dzielny!", "Nie boj sie, jestem z Toba", "Rozumiem cie, poradze sobie z tym"
+- Po kazdej odpowiedzi dziecka potwierdz ze dobrze rozumiesz: "Czyli rozumiem, ze..." albo "Dobrze, czyli..."
+- Gdy dziecko mowi NIE WIEM przy adresie - nie akceptuj, szukaj inaczej:
+  * "Czy widzisz przez okno jakis sklep, kosciol albo szkole?"
+  * "Jaki numer jest na Waszych drzwiach wejsciowych?"
+  * "Jak nazywa sie ulica? Moze widziałes tabliczke?"
+  * "W jakim miescie mieszkasz?"
+  * "Jak nazywa sie Twoja szkola lub przedszkole?"
+- Nigdy nie okazuj zdenerwowania
+- Nigdy nie uzywaj emoji ani znakow specjalnych
 - Odpowiedzi max 2-3 zdania po polsku
 
-KOLEJNOSC:
-1. Pierwsze: "Halo, tu numer alarmowy 112. Co sie stalo?"
-2. Ustal co sie stalo (pozar, wypadek, zasłabniecie, zlodziej)
-3. Ustal gdzie (adres, miasto, opis miejsca)
-4. Ustal kto potrzebuje pomocy i czy sa ranni
-5. Zapytaj o imie dziecka
-6. Potwierdz ze pomoc jedzie i pochwal dziecko
+KOLEJNOSC PYTAN (jedno na raz):
+1. Ustal CO sie stalo - szczegoly zdarzenia (pozar, wypadek, zaslabnięcie, wlamanie)
+2. Imie i nazwisko dziecka
+3. Czy dziecko jest samo - czy sa dorosli w poblizu
+4. Czy dziecko jest w bezpiecznym miejscu
+5. Adres - ulica i numer, miasto (bądz bardzo cierpliwy, stosuj naprowadzanie)
+6. Czy drzwi do mieszkania sa otwarte - "Ratownicy beda musieli wejsc, czy mozesz otworzyc drzwi?"
+7. Poinformuj: "Juz wysylam pomoc, przyjada bardzo szybko"
+8. Pozostan na linii - "Zostane z Toba przez telefon. Mow mi co sie dzieje."
+9. Uspokajaj i monitoruj sytuacje az do przyjazdu sluzb
 
-Gdy masz: co, gdzie, kto - zakoncz rozmowe slowami zawierajacymi [KONIEC_ROZMOWY] i pochwal dziecko.`;
+ZAKONCZENIE - tylko gdy sluzby dotarly:
+Powiedz: "Ratownicy juz sa przy Tobie. Jestes bardzo dzielny, swietnie sobie poradziles!" i dodaj [KONIEC_ROZMOWY]`;
+
+function getActivePrompt() {
+  const extra = localStorage.getItem("admin_extra") || "";
+  if (extra.trim()) return BASE_PROMPT + "\n\nDODATKOWE INSTRUKCJE OD NAUCZYCIELA:\n" + extra;
+  return BASE_PROMPT;
+}
+
+function getAdminPass() {
+  return localStorage.getItem("admin_pass") || ADMIN_DEFAULT_PASS;
+}
+
+// Potrojne tapniecie w logo = panel admina
+let tapCount = 0, tapTimer = null;
+document.getElementById("logo-tap").addEventListener("click", () => {
+  tapCount++;
+  clearTimeout(tapTimer);
+  tapTimer = setTimeout(() => { tapCount = 0; }, 800);
+  if (tapCount >= 3) {
+    tapCount = 0;
+    document.getElementById("admin-pass-input").value = "";
+    document.getElementById("admin-login-err").textContent = "";
+    show("s-admin-login");
+  }
+});
+
+function openAdminFromSetup() {
+  document.getElementById("admin-pass-input").value = "";
+  document.getElementById("admin-login-err").textContent = "";
+  // Po zalogowaniu wracamy do setup zamiast dialera
+  window._adminReturnTo = "s-setup";
+  show("s-admin-login");
+}
+
+function checkAdminPass() {
+  const v = document.getElementById("admin-pass-input").value;
+  if (v === getAdminPass()) {
+    document.getElementById("admin-extra").value = localStorage.getItem("admin_extra") || "";
+    document.getElementById("admin-new-pass").value = "";
+    document.getElementById("admin-msg").textContent = "";
+    show("s-admin");
+  } else {
+    document.getElementById("admin-login-err").textContent = "Nieprawidlowe haslo!";
+  }
+}
+
+function saveAdminSettings() {
+  const extra = document.getElementById("admin-extra").value.trim();
+  const newPass = document.getElementById("admin-new-pass").value.trim();
+  localStorage.setItem("admin_extra", extra);
+  if (newPass.length >= 4) localStorage.setItem("admin_pass", newPass);
+  const msg = document.getElementById("admin-msg");
+  msg.style.color = "#34c759";
+  msg.textContent = "Zapisano pomyslnie!";
+  setTimeout(() => { msg.textContent = ""; }, 2000);
+}
+
+function clearExtra() {
+  if (!confirm("Wyczyscic dodatkowe instrukcje?")) return;
+  localStorage.removeItem("admin_extra");
+  document.getElementById("admin-extra").value = "";
+  const msg = document.getElementById("admin-msg");
+  msg.style.color = "#ff9f0a";
+  msg.textContent = "Wyczyszczono.";
+  setTimeout(() => { msg.textContent = ""; }, 2000);
+}
+
+// ---- reszta kodu bez zmian ----
 
 let CLAUDE_KEY = "";
 let XI_KEY = "";
@@ -185,6 +330,42 @@ let rec = null;
 let currentTranscript = "";
 let childAnswers = 0;
 let conversationHistory = [];
+let audioCtx = null;
+const logs = [];
+
+function log(type, msg) {
+  const t = new Date().toLocaleTimeString("pl-PL", {hour:"2-digit",minute:"2-digit",second:"2-digit"});
+  const colors = {OK:"#34c759", ERR:"#ff3b30", INFO:"#8e8e93", API:"#0a84ff", EL:"#ff9f0a"};
+  const entry = `[${t}] [${type}] ${msg}`;
+  logs.push(entry);
+  const el = document.getElementById("log-content");
+  if (el) {
+    const line = document.createElement("div");
+    line.style.color = colors[type] || "#8e8e93";
+    line.textContent = entry;
+    el.appendChild(line);
+    el.parentElement.scrollTop = el.parentElement.scrollHeight;
+  }
+  console.log(entry);
+}
+
+function toggleLog() {
+  const p = document.getElementById("log-panel");
+  p.style.display = p.style.display === "none" ? "block" : "none";
+}
+
+function copyLog() {
+  navigator.clipboard.writeText(logs.join("\n")).catch(()=>{});
+}
+
+function unlockAudioContext() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === "suspended") {
+    audioCtx.resume();
+  }
+}
 
 function checkKeys() {
   const ck = document.getElementById("claude-key-input").value.trim();
@@ -209,32 +390,25 @@ async function saveKeys() {
         "content-type": "application/json",
         "anthropic-dangerous-direct-browser-access": "true"
       },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 10,
-        messages: [{ role: "user", content: "test" }]
-      })
+      body: JSON.stringify({ model:"claude-haiku-4-5-20251001", max_tokens:10, messages:[{role:"user",content:"test"}] })
     });
     const data = await res.json();
     if (data.error) {
-      errEl.textContent = "Blad klucza Anthropic: " + data.error.message;
-      btn.textContent = "Rozpocznij";
-      btn.disabled = false;
-      return;
+      errEl.textContent = "Blad klucza: " + data.error.message;
+      btn.textContent = "Rozpocznij"; btn.disabled = false; return;
     }
   } catch(e) {
     errEl.textContent = "Blad polaczenia: " + e.message;
-    btn.textContent = "Rozpocznij";
-    btn.disabled = false;
-    return;
+    btn.textContent = "Rozpocznij"; btn.disabled = false; return;
   }
   CLAUDE_KEY = ck;
   XI_KEY = xk;
+  unlockAudioContext();
   show("s-dialer");
 }
 
 function show(id) {
-  ["s-setup","s-dialer","s-calling","s-talking","s-summary"].forEach(s => {
+  ["s-setup","s-dialer","s-calling","s-talking","s-summary","s-admin-login","s-admin"].forEach(s => {
     document.getElementById(s).classList.toggle("hidden", s !== id);
   });
 }
@@ -263,25 +437,34 @@ function updateDisplay() {
 async function speakEL(text, onEnd) {
   speaking = true;
   updateMicState();
+  log("EL", "Requesting TTS: " + text.substring(0,40) + "...");
   try {
     const res = await fetch("https://api.elevenlabs.io/v1/text-to-speech/" + VOICE_ID, {
       method: "POST",
       headers: { "xi-api-key": XI_KEY, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        text: text,
-        model_id: "eleven_multilingual_v2",
-        voice_settings: { stability: 0.5, similarity_boost: 0.75 }
-      })
+      body: JSON.stringify({ text, model_id:"eleven_multilingual_v2", voice_settings:{stability:0.5,similarity_boost:0.75} })
     });
+    log(res.ok ? "OK" : "ERR", "EL response: " + res.status);
     if (!res.ok) throw new Error("EL " + res.status);
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const audio = new Audio(url);
-    audio.onended = () => { speaking = false; URL.revokeObjectURL(url); updateMicState(); if (onEnd) onEnd(); };
-    audio.onerror = () => { speaking = false; updateMicState(); if (onEnd) onEnd(); };
-    await audio.play();
+    const arrayBuffer = await res.arrayBuffer();
+    log("OK", "EL audio received: " + arrayBuffer.byteLength + " bytes");
+    if (!audioCtx) unlockAudioContext();
+    if (audioCtx.state === "suspended") await audioCtx.resume();
+    log("INFO", "AudioContext state: " + audioCtx.state);
+    const decoded = await audioCtx.decodeAudioData(arrayBuffer);
+    const source = audioCtx.createBufferSource();
+    source.buffer = decoded;
+    source.connect(audioCtx.destination);
+    source.onended = () => {
+      log("OK", "EL playback ended");
+      speaking = false;
+      updateMicState();
+      if (onEnd) onEnd();
+    };
+    source.start(0);
+    log("OK", "EL playback started");
   } catch(e) {
-    console.error("ElevenLabs error:", e);
+    log("ERR", "ElevenLabs error: " + e.message);
     speaking = false;
     updateMicState();
     if (onEnd) onEnd();
@@ -289,7 +472,8 @@ async function speakEL(text, onEnd) {
 }
 
 async function askClaude(userMessage) {
-  conversationHistory.push({ role: "user", content: userMessage });
+  conversationHistory.push({ role:"user", content:userMessage });
+  log("API", "Claude request: " + userMessage.substring(0,40));
   try {
     const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -302,17 +486,19 @@ async function askClaude(userMessage) {
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
         max_tokens: 300,
-        system: SYSTEM_PROMPT,
+        system: getActivePrompt(),
         messages: conversationHistory
       })
     });
+    log(res.ok ? "OK" : "ERR", "Claude response: " + res.status);
     if (!res.ok) throw new Error("Claude " + res.status);
     const data = await res.json();
     const reply = data.content[0].text;
-    conversationHistory.push({ role: "assistant", content: reply });
+    log("OK", "Claude reply: " + reply.substring(0,60));
+    conversationHistory.push({ role:"assistant", content:reply });
     return reply;
   } catch(e) {
-    console.error("Claude error:", e);
+    log("ERR", "Claude error: " + e.message);
     return "Przepraszam, mam chwilowy problem. Sprobuj jeszcze raz.";
   }
 }
@@ -323,25 +509,15 @@ function updateMicState() {
   const status = document.getElementById("call-status");
   if (!btn) return;
   if (speaking) {
-    btn.style.background = "#34c759";
-    btn.style.opacity = "0.4";
-    btn.style.animation = "none";
-    hint.style.color = "#ff9f0a";
-    hint.textContent = "Dyspozytor mowi...";
-    status.style.color = "#ff9f0a";
-    status.textContent = "Dyspozytor mowi...";
+    btn.style.background = "#34c759"; btn.style.opacity = "0.4"; btn.style.animation = "none";
+    hint.style.color = "#ff9f0a"; hint.textContent = "Dyspozytor mowi...";
+    status.style.color = "#ff9f0a"; status.textContent = "Dyspozytor mowi...";
   } else if (listening) {
-    btn.style.background = "#ff3b30";
-    btn.style.opacity = "1";
-    btn.style.animation = "pulse 0.8s infinite";
-    hint.style.color = "#34c759";
-    hint.textContent = "Slucham... (pusc zeby wyslac)";
+    btn.style.background = "#ff3b30"; btn.style.opacity = "1"; btn.style.animation = "pulse 0.8s infinite";
+    hint.style.color = "#34c759"; hint.textContent = "Slucham... (pusc zeby wyslac)";
   } else {
-    btn.style.background = "#34c759";
-    btn.style.opacity = "1";
-    btn.style.animation = "none";
-    hint.style.color = "#8e8e93";
-    hint.textContent = "Przytrzymaj przycisk i mow";
+    btn.style.background = "#34c759"; btn.style.opacity = "1"; btn.style.animation = "none";
+    hint.style.color = "#8e8e93"; hint.textContent = "Przytrzymaj przycisk i mow";
     const m = Math.floor(callSecs/60), s = callSecs%60;
     status.style.color = "#34c759";
     status.textContent = String(m).padStart(2,"0")+":"+String(s).padStart(2,"0")+" Polaczono";
@@ -359,8 +535,7 @@ function addMessage(role, text) {
   const bub = document.createElement("div");
   bub.className = role === "operator" ? "bubble-op" : "bubble-me";
   bub.textContent = text.replace("[KONIEC_ROZMOWY]", "").trim();
-  wrap.appendChild(lbl);
-  wrap.appendChild(bub);
+  wrap.appendChild(lbl); wrap.appendChild(bub);
   msgs.appendChild(wrap);
   msgs.scrollTop = msgs.scrollHeight;
 }
@@ -383,14 +558,10 @@ function removeTyping() {
 async function startCall() {
   if (digits !== "112") {
     await speakEL("To nie jest numer alarmowy. Sprobuj wpisac sto dwanascie.");
-    digits = "";
-    updateDisplay();
-    return;
+    digits = ""; updateDisplay(); return;
   }
   show("s-calling");
-  conversationHistory = [];
-  childAnswers = 0;
-  callSecs = 0;
+  conversationHistory = []; childAnswers = 0; callSecs = 0;
   setTimeout(async () => {
     show("s-talking");
     document.getElementById("messages").innerHTML = "";
@@ -413,9 +584,7 @@ function startListening(e) {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) { alert("Rozpoznawanie mowy dziala w Safari (iOS) lub Chrome (Android)."); return; }
   rec = new SR();
-  rec.lang = "pl-PL";
-  rec.interimResults = true;
-  rec.maxAlternatives = 1;
+  rec.lang = "pl-PL"; rec.interimResults = true; rec.maxAlternatives = 1;
   currentTranscript = "";
   rec.onresult = (ev) => {
     currentTranscript = Array.from(ev.results).map(r => r[0].transcript).join("");
@@ -457,8 +626,8 @@ function finishCall() {
   clearInterval(timerInt);
   if (rec) rec.stop();
   const stars = childAnswers >= 4 ? 3 : childAnswers >= 2 ? 2 : 1;
-  const row = document.getElementById("stars-row");
-  row.innerHTML = [1,2,3].map(i => '<span style="color:' + (i<=stars ? "#ffd60a" : "#3a3a3c") + '">★</span>').join("");
+  document.getElementById("stars-row").innerHTML = [1,2,3].map(i =>
+    '<span style="color:' + (i<=stars?"#ffd60a":"#3a3a3c") + '">★</span>').join("");
   show("s-summary");
 }
 
@@ -466,16 +635,13 @@ function endCall() {
   clearInterval(timerInt);
   if (rec) rec.stop();
   const stars = childAnswers >= 4 ? 3 : childAnswers >= 2 ? 2 : 1;
-  const row = document.getElementById("stars-row");
-  row.innerHTML = [1,2,3].map(i => '<span style="color:' + (i<=stars ? "#ffd60a" : "#3a3a3c") + '">★</span>').join("");
+  document.getElementById("stars-row").innerHTML = [1,2,3].map(i =>
+    '<span style="color:' + (i<=stars?"#ffd60a":"#3a3a3c") + '">★</span>').join("");
   show("s-summary");
 }
 
 function resetApp() {
-  digits = "";
-  conversationHistory = [];
-  childAnswers = 0;
-  callSecs = 0;
+  digits = ""; conversationHistory = []; childAnswers = 0; callSecs = 0;
   updateDisplay();
   show("s-dialer");
 }
