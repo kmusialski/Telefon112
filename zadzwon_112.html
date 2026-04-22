@@ -324,6 +324,16 @@ let rec = null;
 let currentTranscript = "";
 let childAnswers = 0;
 let conversationHistory = [];
+let audioCtx = null;
+
+function unlockAudioContext() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === "suspended") {
+    audioCtx.resume();
+  }
+}
 
 function checkKeys() {
   const ck = document.getElementById("claude-key-input").value.trim();
@@ -361,6 +371,7 @@ async function saveKeys() {
   }
   CLAUDE_KEY = ck;
   XI_KEY = xk;
+  unlockAudioContext();
   show("s-dialer");
 }
 
@@ -401,12 +412,19 @@ async function speakEL(text, onEnd) {
       body: JSON.stringify({ text, model_id:"eleven_multilingual_v2", voice_settings:{stability:0.5,similarity_boost:0.75} })
     });
     if (!res.ok) throw new Error("EL " + res.status);
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const audio = new Audio(url);
-    audio.onended = () => { speaking = false; URL.revokeObjectURL(url); updateMicState(); if (onEnd) onEnd(); };
-    audio.onerror = () => { speaking = false; updateMicState(); if (onEnd) onEnd(); };
-    await audio.play();
+    const arrayBuffer = await res.arrayBuffer();
+    if (!audioCtx) unlockAudioContext();
+    if (audioCtx.state === "suspended") await audioCtx.resume();
+    const decoded = await audioCtx.decodeAudioData(arrayBuffer);
+    const source = audioCtx.createBufferSource();
+    source.buffer = decoded;
+    source.connect(audioCtx.destination);
+    source.onended = () => {
+      speaking = false;
+      updateMicState();
+      if (onEnd) onEnd();
+    };
+    source.start(0);
   } catch(e) {
     console.error("ElevenLabs error:", e);
     speaking = false;
