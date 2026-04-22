@@ -358,7 +358,40 @@ function copyLog() {
   navigator.clipboard.writeText(logs.join("\n")).catch(()=>{});
 }
 
-function unlockAudioContext() {
+function autoStartListening() {
+  if (speaking) return;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return;
+  rec = new SR();
+  rec.lang = "pl-PL";
+  rec.interimResults = true;
+  rec.maxAlternatives = 1;
+  currentTranscript = "";
+  rec.onresult = (ev) => {
+    currentTranscript = Array.from(ev.results).map(r => r[0].transcript).join("");
+    document.getElementById("transcript-box").textContent = '"' + currentTranscript + '"';
+  };
+  rec.onend = () => {
+    listening = false;
+    document.getElementById("transcript-box").textContent = "";
+    updateMicState();
+    if (currentTranscript.trim()) handleAnswer(currentTranscript.trim());
+    currentTranscript = "";
+  };
+  rec.onerror = (e) => {
+    log("ERR", "SR auto error: " + e.error);
+    listening = false;
+    updateMicState();
+  };
+  try {
+    rec.start();
+    listening = true;
+    log("OK", "Auto-listen started");
+    updateMicState();
+  } catch(err) {
+    log("ERR", "Auto-listen failed: " + err.message);
+  }
+}
   if (!audioCtx) {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   }
@@ -460,6 +493,7 @@ async function speakEL(text, onEnd) {
       speaking = false;
       updateMicState();
       if (onEnd) onEnd();
+      else autoStartListening();
     };
     source.start(0);
     log("OK", "EL playback started");
@@ -514,7 +548,7 @@ function updateMicState() {
     status.style.color = "#ff9f0a"; status.textContent = "Dyspozytor mowi...";
   } else if (listening) {
     btn.style.background = "#ff3b30"; btn.style.opacity = "1"; btn.style.animation = "pulse 0.8s infinite";
-    hint.style.color = "#34c759"; hint.textContent = "Slucham... (pusc zeby wyslac)";
+    hint.style.color = "#34c759"; hint.textContent = "Mow teraz! (zwolnij gdy skonczysz)";
   } else {
     btn.style.background = "#34c759"; btn.style.opacity = "1"; btn.style.animation = "none";
     hint.style.color = "#8e8e93"; hint.textContent = "Przytrzymaj przycisk i mow";
@@ -574,7 +608,7 @@ async function startCall() {
     removeTyping();
     const clean = firstMsg.replace("[KONIEC_ROZMOWY]", "").trim();
     addMessage("operator", clean);
-    await speakEL(clean);
+    await speakEL(clean); // auto-listen uruchomi sie po zakonczeniu
   }, 2800);
 }
 
@@ -615,10 +649,9 @@ async function handleAnswer(answer) {
   const clean = reply.replace("[KONIEC_ROZMOWY]", "").trim();
   addMessage("operator", clean);
   if (reply.includes("[KONIEC_ROZMOWY]")) {
-    await speakEL(clean);
-    setTimeout(() => finishCall(), 1500);
+    await speakEL(clean, () => setTimeout(() => finishCall(), 1500));
   } else {
-    await speakEL(clean);
+    await speakEL(clean); // auto-listen uruchomi sie po zakonczeniu
   }
 }
 
