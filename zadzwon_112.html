@@ -358,6 +358,15 @@ function copyLog() {
   navigator.clipboard.writeText(logs.join("\n")).catch(()=>{});
 }
 
+function unlockAudioContext() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === "suspended") {
+    audioCtx.resume();
+  }
+}
+
 function autoStartListening() {
   if (speaking) return;
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
