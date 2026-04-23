@@ -2,26 +2,28 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <link rel="icon" href="data:,"/>
 <title>Zadzwon pod 112</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{background:#000;min-height:100vh;display:flex;flex-direction:column;align-items:center;font-family:-apple-system,sans-serif;color:#fff;padding-bottom:40px}
-html{background:#000}
+html,body{background:#000;height:100%;overflow-x:hidden}
+body{display:flex;flex-direction:column;align-items:center;font-family:-apple-system,sans-serif;color:#fff}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
 @keyframes ring{0%,100%{transform:scale(1)}40%{transform:scale(1.18)}70%{transform:scale(0.94)}}
-.screen{width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.screen{width:100%;max-width:400px;min-height:100dvh;display:flex;flex-direction:column;align-items:center;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .hidden{display:none!important}
-.key{background:#1c1c1e;border:none;border-radius:50%;width:76px;height:76px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;touch-action:manipulation;-webkit-user-select:none;user-select:none}
-.key-num{font-size:30px;line-height:1}
+.key{background:#1c1c1e;border:none;border-radius:50%;width:72px;height:72px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;touch-action:manipulation;-webkit-user-select:none;user-select:none;transition:background 0.1s,transform 0.08s;flex-shrink:0}
+.key:active{background:#3a3a3c;transform:scale(0.93)}
+.key-num{font-size:28px;line-height:1}
 .key-sub{font-size:10px;color:#8e8e93;letter-spacing:2px;margin-top:2px}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:0 20px;width:100%;margin-top:12px}
-.call-btn{background:#34c759;border:none;border-radius:50%;width:76px;height:76px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:0 20px;width:100%}
+.call-btn{background:#34c759;border:none;border-radius:50%;width:72px;height:72px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation;flex-shrink:0}
 .end-btn{background:#ff3b30;border:none;border-radius:50%;width:56px;height:56px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .mic-btn{border:none;border-radius:50%;width:76px;height:76px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:none;-webkit-user-select:none;user-select:none}
-.bubble-op{align-self:flex-start;background:#1c1c1e;border-radius:16px;padding:10px 14px;max-width:82%;font-size:15px;line-height:1.4;color:#fff}
-.bubble-me{align-self:flex-end;background:#0a84ff;border-radius:16px;padding:10px 14px;max-width:82%;font-size:15px;line-height:1.4;color:#fff}
+.bubble-op{align-self:flex-start;background:#1c1c1e;border-radius:16px;padding:10px 14px;max-width:82%;font-size:15px;line-height:1.4;color:#fff;animation:fadeIn 0.2s ease}
+.bubble-me{align-self:flex-end;background:#0a84ff;border-radius:16px;padding:10px 14px;max-width:82%;font-size:15px;line-height:1.4;color:#fff;animation:fadeIn 0.2s ease}
 .lbl{font-size:11px;color:#8e8e93;margin-bottom:3px}
 .dots span{display:inline-block;width:7px;height:7px;border-radius:50%;background:#8e8e93;margin:0 3px;animation:pulse 0.6s infinite}
 .dots span:nth-child(2){animation-delay:0.15s}
@@ -33,6 +35,55 @@ html{background:#000}
 </style>
 </head>
 <body>
+
+<!-- LOCK SCREEN -->
+<div id="s-lock" class="screen hidden" style="position:fixed;inset:0;overflow:hidden;justify-content:space-between;padding:0;max-width:100%;z-index:10">
+  <!-- Tlo - zdjecie dziecka -->
+  <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.55) 0%,rgba(0,0,0,0.15) 40%,rgba(0,0,0,0.15) 70%,rgba(0,0,0,0.7) 100%),url('https://images.unsplash.com/photo-1540479859555-17af45c78602?w=600&q=80') center/cover no-repeat;z-index:0"></div>
+
+  <!-- Gora: kłódka + Face ID -->
+  <div style="position:relative;z-index:1;display:flex;justify-content:center;padding-top:52px;width:100%">
+    <div style="background:rgba(0,0,0,0.75);border-radius:24px;padding:8px 20px;display:flex;align-items:center;gap:28px">
+      <svg width="22" height="26" viewBox="0 0 22 26" fill="white"><rect x="3" y="11" width="16" height="13" rx="3" fill="white"/><path d="M6 11V7.5a5 5 0 0110 0V11" stroke="white" stroke-width="2" fill="none"/></svg>
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <path d="M4 9V5a1 1 0 011-1h4" stroke="#34c759" stroke-width="2" stroke-linecap="round"/>
+        <path d="M24 9V5a1 1 0 00-1-1h-4" stroke="#34c759" stroke-width="2" stroke-linecap="round"/>
+        <path d="M4 19v4a1 1 0 001 1h4" stroke="#34c759" stroke-width="2" stroke-linecap="round"/>
+        <path d="M24 19v4a1 1 0 01-1 1h-4" stroke="#34c759" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="9" cy="12" r="1.5" fill="#34c759"/>
+        <circle cx="19" cy="12" r="1.5" fill="#34c759"/>
+        <path d="M9 18c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="#34c759" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Srodek: czas i komunikat -->
+  <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:32px">
+    <div id="lock-time" style="font-size:72px;font-weight:200;letter-spacing:-2px;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,0.5)">00:00</div>
+    <div id="lock-date" style="font-size:17px;color:rgba(255,255,255,0.85)">sroda, 22 kwietnia</div>
+    <div style="font-size:15px;color:rgba(255,255,255,0.75);text-align:center;margin-top:16px;line-height:1.7;padding:0 24px">Przesuń palcem w górę i użyj Face ID,<br/>lub podaj kod</div>
+    <!-- Kropki kodu -->
+    <div style="display:flex;gap:18px;margin-top:8px">
+      <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.7)"></div>
+      <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.7)"></div>
+      <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.7)"></div>
+      <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.7)"></div>
+      <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.7)"></div>
+      <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.7)"></div>
+    </div>
+  </div>
+
+  <!-- Dol: Alarmowe / Anuluj -->
+  <div style="position:relative;z-index:1;display:flex;justify-content:space-between;align-items:flex-end;padding:0 32px 44px;width:100%">
+    <button onclick="goToEmergency()" style="background:rgba(30,30,30,0.75);backdrop-filter:blur(12px);border:none;border-radius:20px;padding:12px 22px;color:#fff;font-size:16px;cursor:pointer;font-family:-apple-system,sans-serif;display:flex;flex-direction:column;align-items:center;gap:6px">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
+      Alarmowe
+    </button>
+    <button onclick="show('s-setup')" style="background:rgba(30,30,30,0.75);backdrop-filter:blur(12px);border:none;border-radius:20px;padding:12px 22px;color:#fff;font-size:16px;cursor:pointer;font-family:-apple-system,sans-serif">
+      Anuluj
+    </button>
+  </div>
+</div>
 
 <!-- SETUP -->
 <div id="s-setup" class="screen" style="padding:40px 24px;gap:0">
@@ -54,7 +105,6 @@ html{background:#000}
   <div style="font-size:11px;color:#636366;text-align:center;margin-top:12px;line-height:1.6">
     Klucze sa przechowywane tylko w pamieci przegladarki.
   </div>
-
   <div style="width:100%;margin-top:24px;padding-top:24px;border-top:0.5px solid #2c2c2e;text-align:center">
     <button onclick="openAdminFromSetup()" style="background:transparent;border:0.5px solid #3a3a3c;border-radius:24px;padding:12px 24px;font-size:14px;color:#8e8e93;cursor:pointer;font-family:-apple-system,sans-serif;width:100%">
       Panel administratora
@@ -63,40 +113,42 @@ html{background:#000}
 </div>
 
 <!-- DIALER -->
-<div id="s-dialer" class="screen hidden">
-  <div style="margin-top:48px;font-size:11px;color:#636366;letter-spacing:2px">NUMER AWARYJNY</div>
-  <div id="display" style="margin-top:8px;font-size:40px;letter-spacing:12px;height:56px;text-align:center;color:#fff;min-width:160px">
-    <span style="color:#2c2c2e">_ _ _</span>
+<div id="s-dialer" class="screen hidden" style="justify-content:flex-start">
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;padding:16px 0 0">
+    <div style="font-size:11px;color:#636366;letter-spacing:2px">NUMER AWARYJNY</div>
+    <div id="display" style="margin-top:8px;font-size:40px;letter-spacing:12px;height:52px;text-align:center;color:#fff;min-width:160px">
+      <span style="color:#2c2c2e">_ _ _</span>
+    </div>
+    <div id="dialer-hint" style="height:22px;font-size:13px;margin-bottom:8px;text-align:center"></div>
+    <div class="grid">
+      <button class="key" onclick="pressDigit('1')"><span class="key-num">1</span></button>
+      <button class="key" onclick="pressDigit('2')"><span class="key-num">2</span><span class="key-sub">ABC</span></button>
+      <button class="key" onclick="pressDigit('3')"><span class="key-num">3</span><span class="key-sub">DEF</span></button>
+      <button class="key" onclick="pressDigit('4')"><span class="key-num">4</span><span class="key-sub">GHI</span></button>
+      <button class="key" onclick="pressDigit('5')"><span class="key-num">5</span><span class="key-sub">JKL</span></button>
+      <button class="key" onclick="pressDigit('6')"><span class="key-num">6</span><span class="key-sub">MNO</span></button>
+      <button class="key" onclick="pressDigit('7')"><span class="key-num">7</span><span class="key-sub">PQRS</span></button>
+      <button class="key" onclick="pressDigit('8')"><span class="key-num">8</span><span class="key-sub">TUV</span></button>
+      <button class="key" onclick="pressDigit('9')"><span class="key-num">9</span><span class="key-sub">WXYZ</span></button>
+      <button class="key" onclick="pressDigit('*')"><span class="key-num" style="font-size:22px">*</span></button>
+      <button class="key" onclick="pressDigit('0')"><span class="key-num">0</span><span class="key-sub">+</span></button>
+      <button class="key" onclick="pressDigit('#')"><span class="key-num" style="font-size:22px">#</span></button>
+    </div>
+    <div style="display:flex;align-items:center;gap:52px;margin-top:20px">
+      <div style="width:64px"></div>
+      <button class="call-btn" onclick="startCall()">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
+      </button>
+      <button onclick="pressDelete()" style="background:transparent;border:none;cursor:pointer;padding:8px">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="#8e8e93"><path d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3 12.59L17.59 17 14 13.41 10.41 17 9 15.59 12.59 12 9 8.41 10.41 7 14 10.59 17.59 7 19 8.41 15.41 12 19 15.59z"/></svg>
+      </button>
+    </div>
+    <div style="font-size:13px;color:#636366;margin-top:10px;text-align:center;padding-bottom:16px">Wpisz 1 - 1 - 2 i nacisnij zielony przycisk</div>
   </div>
-  <div id="dialer-hint" style="height:22px;font-size:13px;margin-bottom:4px;text-align:center"></div>
-  <div class="grid">
-    <button class="key" onclick="pressDigit('1')"><span class="key-num">1</span></button>
-    <button class="key" onclick="pressDigit('2')"><span class="key-num">2</span><span class="key-sub">ABC</span></button>
-    <button class="key" onclick="pressDigit('3')"><span class="key-num">3</span><span class="key-sub">DEF</span></button>
-    <button class="key" onclick="pressDigit('4')"><span class="key-num">4</span><span class="key-sub">GHI</span></button>
-    <button class="key" onclick="pressDigit('5')"><span class="key-num">5</span><span class="key-sub">JKL</span></button>
-    <button class="key" onclick="pressDigit('6')"><span class="key-num">6</span><span class="key-sub">MNO</span></button>
-    <button class="key" onclick="pressDigit('7')"><span class="key-num">7</span><span class="key-sub">PQRS</span></button>
-    <button class="key" onclick="pressDigit('8')"><span class="key-num">8</span><span class="key-sub">TUV</span></button>
-    <button class="key" onclick="pressDigit('9')"><span class="key-num">9</span><span class="key-sub">WXYZ</span></button>
-    <button class="key" onclick="pressDigit('*')"><span class="key-num">*</span></button>
-    <button class="key" onclick="pressDigit('0')"><span class="key-num">0</span><span class="key-sub">+</span></button>
-    <button class="key" onclick="pressDigit('#')"><span class="key-num">#</span></button>
-  </div>
-  <div style="display:flex;align-items:center;gap:52px;margin-top:28px">
-    <div style="width:64px"></div>
-    <button class="call-btn" onclick="startCall()">
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
-    </button>
-    <button onclick="pressDelete()" style="background:transparent;border:none;cursor:pointer;padding:8px">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="#8e8e93"><path d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3 12.59L17.59 17 14 13.41 10.41 17 9 15.59 12.59 12 9 8.41 10.41 7 14 10.59 17.59 7 19 8.41 15.41 12 19 15.59z"/></svg>
-    </button>
-  </div>
-  <div style="font-size:13px;color:#636366;margin-top:12px;text-align:center">Wpisz 1 - 1 - 2 i nacisnij zielony przycisk</div>
 </div>
 
 <!-- CALLING -->
-<div id="s-calling" class="screen hidden" style="justify-content:center;gap:20px;min-height:80vh">
+<div id="s-calling" class="screen hidden" style="justify-content:center;gap:20px">
   <div id="logo-tap" style="width:100px;height:100px;border-radius:50%;background:#ff3b30;display:flex;align-items:center;justify-content:center;font-size:48px;animation:ring 1s infinite;cursor:pointer">🚨</div>
   <div style="font-size:22px;font-weight:500">Numer alarmowy 112</div>
   <div style="font-size:15px;color:#8e8e93">Laczenie...</div>
@@ -108,8 +160,8 @@ html{background:#000}
 </div>
 
 <!-- TALKING -->
-<div id="s-talking" class="screen hidden" style="min-height:100vh">
-  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 10px;border-bottom:0.5px solid #222;width:100%">
+<div id="s-talking" class="screen hidden" style="height:100%">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 10px;border-bottom:0.5px solid #222;width:100%;flex-shrink:0">
     <div style="display:flex;align-items:center;gap:10px">
       <div style="width:38px;height:38px;border-radius:50%;background:#ff3b30;display:flex;align-items:center;justify-content:center;font-size:20px">🚨</div>
       <div>
@@ -121,14 +173,22 @@ html{background:#000}
       <svg width="24" height="24" viewBox="0 0 24 24" fill="white" transform="rotate(135)"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
     </button>
   </div>
-  <div id="messages" style="flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:10px;width:100%;max-height:45vh"></div>
+  <div id="messages" style="flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:10px;width:100%"></div>
 
   <!-- LOG PANEL -->
-  <div id="log-panel" style="width:100%;max-height:80px;overflow-y:auto;background:#0a0a0a;border-top:0.5px solid #1c1c1e;padding:6px 12px;display:none">
+  <div id="log-panel" style="width:100%;max-height:120px;overflow-y:auto;background:#0a0a0a;border-top:0.5px solid #1c1c1e;padding:6px 12px;display:none;flex-shrink:0">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <span style="font-size:10px;color:#636366;font-family:monospace">LOG</span>
+      <div style="display:flex;gap:8px">
+        <button onclick="copyLog()" style="background:#1c1c1e;border:0.5px solid #3a3a3c;border-radius:8px;color:#8e8e93;font-size:10px;cursor:pointer;padding:3px 8px;font-family:monospace">Kopiuj</button>
+        <button onclick="sendLogToSheets()" style="background:#0d2818;border:0.5px solid #34c759;border-radius:8px;color:#34c759;font-size:10px;cursor:pointer;padding:3px 8px;font-family:monospace">Wyslij</button>
+      </div>
+    </div>
     <div id="log-content" style="font-size:10px;color:#636366;font-family:monospace;line-height:1.6"></div>
   </div>
-  <div style="padding:16px 20px 32px;display:flex;flex-direction:column;align-items:center;gap:10px;border-top:0.5px solid #222;width:100%">
-    <div id="transcript-box" style="font-size:13px;color:#8e8e93;font-style:italic;text-align:center;min-height:20px"></div>
+
+  <div style="padding:12px 20px 28px;display:flex;flex-direction:column;align-items:center;gap:8px;border-top:0.5px solid #222;width:100%;flex-shrink:0">
+    <div id="transcript-box" style="font-size:13px;color:#8e8e93;font-style:italic;text-align:center;min-height:18px"></div>
     <div id="mic-hint" style="font-size:13px;color:#8e8e93;text-align:center">Przytrzymaj przycisk i mow</div>
     <button id="mic-btn" class="mic-btn" style="background:#34c759"
       ontouchstart="startListening(event)" ontouchend="stopListening(event)"
@@ -137,12 +197,12 @@ html{background:#000}
         <path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/>
       </svg>
     </button>
-    <button onclick="toggleLog()" style="background:transparent;border:none;color:#3a3a3c;font-size:11px;cursor:pointer;font-family:monospace;margin-top:4px">[ log ]</button>
+    <button onclick="toggleLog()" style="background:transparent;border:none;color:#3a3a3c;font-size:11px;cursor:pointer;font-family:monospace;margin-top:2px">[ log ]</button>
   </div>
 </div>
 
 <!-- SUMMARY -->
-<div id="s-summary" class="screen hidden" style="justify-content:center;gap:18px;padding:28px;text-align:center;min-height:80vh">
+<div id="s-summary" class="screen hidden" style="justify-content:center;gap:18px;padding:28px;text-align:center">
   <div style="font-size:72px">🦸</div>
   <div style="font-size:26px;font-weight:600">Brawo! Jestes bohaterem!</div>
   <div style="font-size:15px;color:#8e8e93;line-height:1.7">Nauczyłes sie jak rozmawiac<br/>z operatorem numeru 112.</div>
@@ -161,24 +221,22 @@ html{background:#000}
 </div>
 
 <!-- ADMIN LOGIN -->
-<div id="s-admin-login" class="screen hidden" style="padding:40px 24px;gap:0;justify-content:center;min-height:60vh">
+<div id="s-admin-login" class="screen hidden" style="padding:40px 24px;gap:0;justify-content:center">
   <div style="font-size:48px;text-align:center;margin-bottom:16px">🔐</div>
   <div style="font-size:20px;font-weight:600;text-align:center;margin-bottom:6px">Panel administratora</div>
   <div style="font-size:14px;color:#8e8e93;text-align:center;margin-bottom:24px;line-height:1.6">Dostep tylko dla nauczycieli i opiekunow</div>
   <input id="admin-pass-input" class="api-input" type="password" placeholder="Haslo administratora"/>
   <div id="admin-login-err" style="font-size:13px;color:#ff3b30;text-align:center;min-height:20px;margin-top:8px"></div>
   <button onclick="checkAdminPass()" class="api-btn">Zaloguj sie</button>
-  <button onclick="show(window._adminReturnTo||'s-dialer')" style="background:transparent;border:none;color:#8e8e93;cursor:pointer;font-size:14px;margin-top:16px;font-family:-apple-system,sans-serif">Anuluj</button>
+  <button onclick="show(window._adminReturnTo||'s-lock')" style="background:transparent;border:none;color:#8e8e93;cursor:pointer;font-size:14px;margin-top:16px;font-family:-apple-system,sans-serif">Anuluj</button>
 </div>
 
 <!-- ADMIN PANEL -->
-<div id="s-admin" class="screen hidden" style="padding:24px;gap:0;min-height:100vh">
+<div id="s-admin" class="screen hidden" style="padding:24px;gap:0">
   <div style="display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:20px;margin-bottom:16px">
     <div style="font-size:18px;font-weight:600">Panel administratora</div>
-    <button onclick="show(window._adminReturnTo||'s-dialer')" style="background:transparent;border:none;color:#8e8e93;cursor:pointer;font-size:14px;font-family:-apple-system,sans-serif">Zamknij</button>
+    <button onclick="show(window._adminReturnTo||'s-lock')" style="background:transparent;border:none;color:#8e8e93;cursor:pointer;font-size:14px;font-family:-apple-system,sans-serif">Zamknij</button>
   </div>
-
-  <!-- Baza - tylko podglad -->
   <div style="width:100%;margin-bottom:16px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
       <div style="font-size:13px;color:#8e8e93">Baza systemu</div>
@@ -188,45 +246,54 @@ html{background:#000}
       Dyspozytor 112 prowadzi rozmowe z dzieckiem. Pierwsza wiadomosc profesjonalna. Kolejne dostosowane do dziecka - z zacheta i odwaga. Zbiera: co sie stalo, imie i nazwisko, czy samo, bezpieczenstwo, adres, czy drzwi otwarte. Pozostaje na linii do przyjazdu sluzb.
     </div>
   </div>
-
-  <!-- Dodatkowe pytania -->
   <div style="width:100%;margin-bottom:12px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
       <div style="font-size:13px;color:#8e8e93">Dodatkowe instrukcje</div>
       <div style="font-size:11px;color:#34c759;background:#0d2818;padding:3px 8px;border-radius:6px">Edytowalne</div>
     </div>
     <div style="font-size:12px;color:#636366;margin-bottom:8px;line-height:1.5">Wpisz dodatkowe pytania lub scenariusze dla dyspozytora.</div>
-    <textarea id="admin-extra" style="background:#1c1c1e;border:0.5px solid #3a3a3c;border-radius:12px;color:#fff;font-size:13px;padding:14px;width:100%;height:220px;outline:none;font-family:-apple-system,sans-serif;line-height:1.6;resize:vertical" placeholder="Np:
+    <textarea id="admin-extra" style="background:#1c1c1e;border:0.5px solid #3a3a3c;border-radius:12px;color:#fff;font-size:13px;padding:14px;width:100%;height:200px;outline:none;font-family:-apple-system,sans-serif;line-height:1.6;resize:vertical" placeholder="Np:
 - Zapytaj czy dziecko czuje dym lub ogien
 - Zapytaj czy w domu jest zwierze
 - Scenariusz: dziecko znalazlo nieprzytomna osobe
-- Zapytaj czy dziecko ma przy sobie naladowany telefon
 ..."></textarea>
   </div>
-
-  <!-- Zmiana hasla -->
   <div style="width:100%;margin-bottom:12px">
     <div style="font-size:13px;color:#8e8e93;margin-bottom:6px">Zmiana hasla (opcjonalnie)</div>
     <input id="admin-new-pass" class="api-input" type="password" placeholder="Nowe haslo (min. 4 znaki)"/>
   </div>
-
   <div id="admin-msg" style="font-size:13px;color:#34c759;text-align:center;min-height:20px;margin-bottom:8px"></div>
   <button onclick="saveAdminSettings()" class="api-btn">Zapisz ustawienia</button>
   <button onclick="clearExtra()" style="background:transparent;color:#ff9f0a;border:0.5px solid #ff9f0a;border-radius:24px;padding:12px;font-size:14px;cursor:pointer;width:100%;margin-top:10px;font-family:-apple-system,sans-serif">Wyczysc dodatkowe instrukcje</button>
 </div>
 
 <script>
+// =============================================
+// KONFIGURACJA
+// =============================================
 const VOICE_ID = "pqHfZKP75CvOlQylNhV4";
 const ADMIN_DEFAULT_PASS = "admin112";
+const SHEETS_WEBHOOK = "https://script.google.com/macros/s/AKfycbwHynTg18VM4IG7A0v2ICzxMj8agWbg66D8--UyjM_N2B6qqoB8Dzw02qivmPV4uVsD/exec";
 
+// =============================================
+// PROMPT — FIX: cyrylica + detekcja doroslego
+// =============================================
 const BASE_PROMPT = `Symulujesz dyspozytora numeru alarmowego 112. To jest symulacja edukacyjna dla dzieci w wieku przedszkolnym i wczesnoszkolnym.
+
+JEZYK:
+- Odpowiadaj WYLACZNIE po polsku, uzywajac tylko liter alfabetu polskiego (a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,r,s,t,u,w,y,z oraz polskie znaki)
+- Nigdy nie uzywaj cyrylicy, liter greckich ani zadnego innego alfabetu
+- Zamiast "nazywasz" pisz zawsze "masz na imie" lub "jak sie nazywa"
+
+DETEKCJA UZYTKOWNIKA:
+- Jesli rozmowca uzywa zlozonego jezyka dorosłego, pyta o techniczne aspekty symulatora lub wyraznie nie jest dzieckiem, odpowiedz: "Witam, to symulator edukacyjny dla dzieci. Czy chce Pan lub Pani przetestowac aplikacje?" i prowadz rozmowe w trybie testowym.
 
 PIERWSZA WIADOMOSC (zawsze dokladnie taka):
 "Tu dyspozytor numeru alarmowego 112, prosze powiedziec co sie stalo."
 
 ZASADY ROZMOWY:
 - Mow krotko i prosto - jedno zdanie, jedno pytanie na raz
-- Uzywaj zwrotow dodajacych odwagi: "Swietnie!", "Dobrze sobie radzisz!", "Jestes bardzo dzielny!", "Nie boj sie, jestem z Toba", "Rozumiem cie, poradze sobie z tym"
+- Uzywaj zwrotow dodajacych odwagi: "Swietnie!", "Dobrze sobie radzisz!", "Jestes bardzo dzielny!", "Nie boj sie, jestem z Toba"
 - Po kazdej odpowiedzi dziecka potwierdz ze dobrze rozumiesz: "Czyli rozumiem, ze..." albo "Dobrze, czyli..."
 - Gdy dziecko mowi NIE WIEM przy adresie - nie akceptuj, szukaj inaczej:
   * "Czy widzisz przez okno jakis sklep, kosciol albo szkole?"
@@ -239,15 +306,15 @@ ZASADY ROZMOWY:
 - Odpowiedzi max 2-3 zdania po polsku
 
 KOLEJNOSC PYTAN (jedno na raz):
-1. Ustal CO sie stalo - szczegoly zdarzenia (pozar, wypadek, zaslabnięcie, wlamanie)
+1. Ustal CO sie stalo - szczegoly zdarzenia
 2. Imie i nazwisko dziecka
-3. Czy dziecko jest samo - czy sa dorosli w poblizu
+3. Czy dziecko jest samo
 4. Czy dziecko jest w bezpiecznym miejscu
-5. Adres - ulica i numer, miasto (bądz bardzo cierpliwy, stosuj naprowadzanie)
-6. Czy drzwi do mieszkania sa otwarte - "Ratownicy beda musieli wejsc, czy mozesz otworzyc drzwi?"
+5. Adres - ulica i numer, miasto
+6. Czy drzwi do mieszkania sa otwarte
 7. Poinformuj: "Juz wysylam pomoc, przyjada bardzo szybko"
-8. Pozostan na linii - "Zostane z Toba przez telefon. Mow mi co sie dzieje."
-9. Uspokajaj i monitoruj sytuacje az do przyjazdu sluzb
+8. Pozostan na linii - "Zostane z Toba przez telefon."
+9. Uspokajaj i monitoruj sytuacje
 
 ZAKONCZENIE - tylko gdy sluzby dotarly:
 Powiedz: "Ratownicy juz sa przy Tobie. Jestes bardzo dzielny, swietnie sobie poradziles!" i dodaj [KONIEC_ROZMOWY]`;
@@ -262,7 +329,74 @@ function getAdminPass() {
   return localStorage.getItem("admin_pass") || ADMIN_DEFAULT_PASS;
 }
 
-// Potrojne tapniecie w logo = panel admina
+// =============================================
+// ZEGAR NA EKRANIE BLOKADY
+// =============================================
+function updateLockClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,"0");
+  const m = String(now.getMinutes()).padStart(2,"0");
+  document.getElementById("lock-time").textContent = h + ":" + m;
+  const days = ["niedziela","poniedzialek","wtorek","sroda","czwartek","piatek","sobota"];
+  const months = ["stycznia","lutego","marca","kwietnia","maja","czerwca","lipca","sierpnia","wrzesnia","pazdziernika","listopada","grudnia"];
+  document.getElementById("lock-date").textContent =
+    days[now.getDay()] + ", " + now.getDate() + " " + months[now.getMonth()];
+}
+updateLockClock();
+setInterval(updateLockClock, 10000);
+
+function goToEmergency() {
+  show("s-dialer");
+}
+
+// =============================================
+// AUDIO — dzwieki UI
+// =============================================
+let audioCtx = null;
+
+function unlockAudioContext() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === "suspended") audioCtx.resume();
+}
+
+function playTone(freq, duration, type = "sine", gain = 0.15) {
+  if (!audioCtx) return;
+  try {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(0, audioCtx.currentTime);
+    g.gain.linearRampToValueAtTime(gain, audioCtx.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+    o.start(audioCtx.currentTime);
+    o.stop(audioCtx.currentTime + duration);
+  } catch(e) {}
+}
+
+function playKeyClick() {
+  // Krotki, czysty dzwiek klawisza jak w iOS
+  playTone(1200, 0.06, "sine", 0.12);
+}
+
+function playDialTone() {
+  // Dzwiek laczenia - tone jak w telefonie
+  if (!audioCtx) return;
+  let count = 0;
+  const interval = setInterval(() => {
+    if (count >= 4 || !document.getElementById("s-calling") ||
+        document.getElementById("s-calling").classList.contains("hidden")) {
+      clearInterval(interval); return;
+    }
+    playTone(440, 0.4, "sine", 0.1);
+    setTimeout(() => playTone(480, 0.4, "sine", 0.08), 20);
+    count++;
+  }, 1000);
+}
+
+// =============================================
+// ADMIN
+// =============================================
 let tapCount = 0, tapTimer = null;
 document.getElementById("logo-tap").addEventListener("click", () => {
   tapCount++;
@@ -270,6 +404,7 @@ document.getElementById("logo-tap").addEventListener("click", () => {
   tapTimer = setTimeout(() => { tapCount = 0; }, 800);
   if (tapCount >= 3) {
     tapCount = 0;
+    window._adminReturnTo = "s-calling";
     document.getElementById("admin-pass-input").value = "";
     document.getElementById("admin-login-err").textContent = "";
     show("s-admin-login");
@@ -279,7 +414,6 @@ document.getElementById("logo-tap").addEventListener("click", () => {
 function openAdminFromSetup() {
   document.getElementById("admin-pass-input").value = "";
   document.getElementById("admin-login-err").textContent = "";
-  // Po zalogowaniu wracamy do setup zamiast dialera
   window._adminReturnTo = "s-setup";
   show("s-admin-login");
 }
@@ -317,8 +451,9 @@ function clearExtra() {
   setTimeout(() => { msg.textContent = ""; }, 2000);
 }
 
-// ---- reszta kodu bez zmian ----
-
+// =============================================
+// STAN APLIKACJI
+// =============================================
 let CLAUDE_KEY = "";
 let XI_KEY = "";
 let digits = "";
@@ -330,9 +465,11 @@ let rec = null;
 let currentTranscript = "";
 let childAnswers = 0;
 let conversationHistory = [];
-let audioCtx = null;
 const logs = [];
 
+// =============================================
+// LOG
+// =============================================
 function log(type, msg) {
   const t = new Date().toLocaleTimeString("pl-PL", {hour:"2-digit",minute:"2-digit",second:"2-digit"});
   const colors = {OK:"#34c759", ERR:"#ff3b30", INFO:"#8e8e93", API:"#0a84ff", EL:"#ff9f0a"};
@@ -355,60 +492,47 @@ function toggleLog() {
 }
 
 function copyLog() {
-  navigator.clipboard.writeText(logs.join("\n")).catch(()=>{});
+  navigator.clipboard.writeText(logs.join("\n"))
+    .then(() => {
+      const btn = event.target;
+      btn.textContent = "Skopiowano!";
+      setTimeout(() => { btn.textContent = "Kopiuj"; }, 2000);
+    })
+    .catch(() => {});
 }
 
-function unlockAudioContext() {
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }
-  if (audioCtx.state === "suspended") {
-    audioCtx.resume();
-  }
-}
-
-function autoStartListening() {
-  if (speaking) return;
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) return;
-  rec = new SR();
-  rec.lang = "pl-PL";
-  rec.interimResults = true;
-  rec.maxAlternatives = 1;
-  currentTranscript = "";
-  rec.onresult = (ev) => {
-    currentTranscript = Array.from(ev.results).map(r => r[0].transcript).join("");
-    document.getElementById("transcript-box").textContent = '"' + currentTranscript + '"';
-  };
-  rec.onend = () => {
-    listening = false;
-    document.getElementById("transcript-box").textContent = "";
-    updateMicState();
-    if (currentTranscript.trim()) handleAnswer(currentTranscript.trim());
-    currentTranscript = "";
-  };
-  rec.onerror = (e) => {
-    log("ERR", "SR auto error: " + e.error);
-    listening = false;
-    updateMicState();
-  };
+async function sendLogToSheets() {
+  const btn = event.target;
+  btn.textContent = "Wysylam...";
+  btn.disabled = true;
   try {
-    rec.start();
-    listening = true;
-    log("OK", "Auto-listen started");
-    updateMicState();
-  } catch(err) {
-    log("ERR", "Auto-listen failed: " + err.message);
+    await fetch(SHEETS_WEBHOOK, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        log: logs.join("\n"),
+        komentarz: "Dev " + new Date().toLocaleString("pl-PL")
+      })
+    });
+    btn.textContent = "Wyslano!";
+    btn.style.color = "#34c759";
+    btn.style.borderColor = "#34c759";
+  } catch(e) {
+    btn.textContent = "Blad!";
+    btn.style.color = "#ff3b30";
   }
+  setTimeout(() => {
+    btn.textContent = "Wyslij";
+    btn.disabled = false;
+    btn.style.color = "#34c759";
+    btn.style.borderColor = "#34c759";
+  }, 3000);
 }
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }
-  if (audioCtx.state === "suspended") {
-    audioCtx.resume();
-  }
 
-
+// =============================================
+// SETUP
+// =============================================
 function checkKeys() {
   const ck = document.getElementById("claude-key-input").value.trim();
   const xk = document.getElementById("xi-key-input").value.trim();
@@ -446,22 +570,40 @@ async function saveKeys() {
   CLAUDE_KEY = ck;
   XI_KEY = xk;
   unlockAudioContext();
-  show("s-dialer");
+  show("s-lock");
 }
+
+// =============================================
+// NAWIGACJA
+// =============================================
+const ALL_SCREENS = ["s-lock","s-setup","s-dialer","s-calling","s-talking","s-summary","s-admin-login","s-admin"];
 
 function show(id) {
-  ["s-setup","s-dialer","s-calling","s-talking","s-summary","s-admin-login","s-admin"].forEach(s => {
-    document.getElementById(s).classList.toggle("hidden", s !== id);
+  ALL_SCREENS.forEach(s => {
+    const el = document.getElementById(s);
+    if (s === "s-lock") {
+      // Lock screen jest fixed - pokazujemy/ukrywamy przez hidden
+      el.classList.toggle("hidden", s !== id);
+    } else {
+      el.classList.toggle("hidden", s !== id);
+    }
   });
+  // Gdy lock screen ukryty - upewnij sie ze body scrolluje normalnie
+  document.body.style.overflow = (id === "s-lock") ? "hidden" : "";
 }
 
+// =============================================
+// DIALER
+// =============================================
 function pressDigit(d) {
   if (digits.length >= 3) return;
+  playKeyClick();
   digits += d;
   updateDisplay();
 }
 
 function pressDelete() {
+  if (digits.length > 0) playKeyClick();
   digits = digits.slice(0,-1);
   updateDisplay();
 }
@@ -476,15 +618,23 @@ function updateDisplay() {
   else hint.textContent = "";
 }
 
+// =============================================
+// TTS — ElevenLabs
+// =============================================
 async function speakEL(text, onEnd) {
   speaking = true;
   updateMicState();
   log("EL", "Requesting TTS: " + text.substring(0,40) + "...");
   try {
+    const isChildMode = childAnswers >= 1;
+    const voiceSettings = isChildMode
+      ? { stability: 0.35, similarity_boost: 0.80, style: 0.45, use_speaker_boost: true }
+      : { stability: 0.75, similarity_boost: 0.75, style: 0.0, use_speaker_boost: true };
+
     const res = await fetch("https://api.elevenlabs.io/v1/text-to-speech/" + VOICE_ID, {
       method: "POST",
       headers: { "xi-api-key": XI_KEY, "Content-Type": "application/json" },
-      body: JSON.stringify({ text, model_id:"eleven_multilingual_v2", voice_settings:{stability:0.5,similarity_boost:0.75} })
+      body: JSON.stringify({ text, model_id:"eleven_multilingual_v2", voice_settings: voiceSettings })
     });
     log(res.ok ? "OK" : "ERR", "EL response: " + res.status);
     if (!res.ok) throw new Error("EL " + res.status);
@@ -514,6 +664,9 @@ async function speakEL(text, onEnd) {
   }
 }
 
+// =============================================
+// CLAUDE API
+// =============================================
 async function askClaude(userMessage) {
   conversationHistory.push({ role:"user", content:userMessage });
   log("API", "Claude request: " + userMessage.substring(0,40));
@@ -546,6 +699,9 @@ async function askClaude(userMessage) {
   }
 }
 
+// =============================================
+// MIC STATE
+// =============================================
 function updateMicState() {
   const btn = document.getElementById("mic-btn");
   const hint = document.getElementById("mic-hint");
@@ -554,7 +710,7 @@ function updateMicState() {
   if (speaking) {
     btn.style.background = "#34c759"; btn.style.opacity = "0.4"; btn.style.animation = "none";
     hint.style.color = "#ff9f0a"; hint.textContent = "Dyspozytor mowi...";
-    status.style.color = "#ff9f0a"; status.textContent = "Dyspozytor mowi...";
+    if (status) { status.style.color = "#ff9f0a"; status.textContent = "Dyspozytor mowi..."; }
   } else if (listening) {
     btn.style.background = "#ff3b30"; btn.style.opacity = "1"; btn.style.animation = "pulse 0.8s infinite";
     hint.style.color = "#34c759"; hint.textContent = "Mow teraz! (zwolnij gdy skonczysz)";
@@ -562,11 +718,13 @@ function updateMicState() {
     btn.style.background = "#34c759"; btn.style.opacity = "1"; btn.style.animation = "none";
     hint.style.color = "#8e8e93"; hint.textContent = "Przytrzymaj przycisk i mow";
     const m = Math.floor(callSecs/60), s = callSecs%60;
-    status.style.color = "#34c759";
-    status.textContent = String(m).padStart(2,"0")+":"+String(s).padStart(2,"0")+" Polaczono";
+    if (status) { status.style.color = "#34c759"; status.textContent = String(m).padStart(2,"0")+":"+String(s).padStart(2,"0")+" Polaczono"; }
   }
 }
 
+// =============================================
+// CHAT UI
+// =============================================
 function addMessage(role, text) {
   const msgs = document.getElementById("messages");
   const wrap = document.createElement("div");
@@ -598,13 +756,19 @@ function removeTyping() {
   if (el) el.remove();
 }
 
+// =============================================
+// POLACZENIE
+// =============================================
 async function startCall() {
   if (digits !== "112") {
+    unlockAudioContext();
     await speakEL("To nie jest numer alarmowy. Sprobuj wpisac sto dwanascie.");
     digits = ""; updateDisplay(); return;
   }
   show("s-calling");
   conversationHistory = []; childAnswers = 0; callSecs = 0;
+  unlockAudioContext();
+  playDialTone();
   setTimeout(async () => {
     show("s-talking");
     document.getElementById("messages").innerHTML = "";
@@ -617,8 +781,64 @@ async function startCall() {
     removeTyping();
     const clean = firstMsg.replace("[KONIEC_ROZMOWY]", "").trim();
     addMessage("operator", clean);
-    await speakEL(clean); // auto-listen uruchomi sie po zakonczeniu
+    await speakEL(clean);
   }, 2800);
+}
+
+// =============================================
+// STT — rozpoznawanie mowy
+// =============================================
+function autoStartListening() {
+  if (speaking) return;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return;
+  rec = new SR();
+  rec.lang = "pl-PL";
+  rec.interimResults = true;
+  rec.maxAlternatives = 1;
+  currentTranscript = "";
+  rec.onresult = (ev) => {
+    currentTranscript = Array.from(ev.results).map(r => r[0].transcript).join("");
+    document.getElementById("transcript-box").textContent = '"' + currentTranscript + '"';
+  };
+  rec.onend = () => {
+    listening = false;
+    document.getElementById("transcript-box").textContent = "";
+    updateMicState();
+    if (currentTranscript.trim()) handleAnswer(currentTranscript.trim());
+    currentTranscript = "";
+  };
+  rec.onerror = (e) => {
+    log("ERR", "SR auto error: " + e.error);
+    listening = false;
+    updateMicState();
+    // FIX: restart po aborted — iOS zabija mikrofon po ciszy
+    if (e.error === "aborted" && !speaking) {
+      setTimeout(() => {
+        if (!speaking && !listening) autoStartListening();
+      }, 500);
+      return;
+    }
+    if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+      const hint = document.getElementById("mic-hint");
+      if (hint) { hint.textContent = "Nacisnij przycisk i mow"; hint.style.color = "#ff9f0a"; }
+    }
+  };
+  rec.onstart = () => {
+    log("OK", "Auto-listen started");
+    listening = true;
+    updateMicState();
+  };
+  try {
+    rec.start();
+  } catch(err) {
+    log("ERR", "Auto-listen failed: " + err.message);
+    listening = false;
+    const btn = document.getElementById("mic-btn");
+    const hint = document.getElementById("mic-hint");
+    if (btn) { btn.style.background = "#ff9f0a"; btn.style.animation = "pulse 1s infinite"; btn.style.opacity = "1"; }
+    if (hint) { hint.textContent = "Nacisnij i mow"; hint.style.color = "#ff9f0a"; }
+  }
 }
 
 function startListening(e) {
@@ -626,6 +846,7 @@ function startListening(e) {
   if (speaking) return;
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) { alert("Rozpoznawanie mowy dziala w Safari (iOS) lub Chrome (Android)."); return; }
+  if (rec) { try { rec.abort(); } catch(x) {} }
   rec = new SR();
   rec.lang = "pl-PL"; rec.interimResults = true; rec.maxAlternatives = 1;
   currentTranscript = "";
@@ -640,7 +861,7 @@ function startListening(e) {
     if (currentTranscript.trim()) handleAnswer(currentTranscript.trim());
     currentTranscript = "";
   };
-  rec.onerror = () => { listening = false; updateMicState(); };
+  rec.onerror = (e) => { listening = false; updateMicState(); };
   try { rec.start(); listening = true; updateMicState(); } catch(err) { console.error(err); }
 }
 
@@ -649,6 +870,9 @@ function stopListening(e) {
   if (rec) rec.stop();
 }
 
+// =============================================
+// ODPOWIEDZ DZIECKA
+// =============================================
 async function handleAnswer(answer) {
   addMessage("child", answer);
   childAnswers++;
@@ -660,13 +884,16 @@ async function handleAnswer(answer) {
   if (reply.includes("[KONIEC_ROZMOWY]")) {
     await speakEL(clean, () => setTimeout(() => finishCall(), 1500));
   } else {
-    await speakEL(clean); // auto-listen uruchomi sie po zakonczeniu
+    await speakEL(clean);
   }
 }
 
+// =============================================
+// ZAKONCZENIE
+// =============================================
 function finishCall() {
   clearInterval(timerInt);
-  if (rec) rec.stop();
+  if (rec) { try { rec.stop(); } catch(x) {} }
   const stars = childAnswers >= 4 ? 3 : childAnswers >= 2 ? 2 : 1;
   document.getElementById("stars-row").innerHTML = [1,2,3].map(i =>
     '<span style="color:' + (i<=stars?"#ffd60a":"#3a3a3c") + '">★</span>').join("");
@@ -675,7 +902,7 @@ function finishCall() {
 
 function endCall() {
   clearInterval(timerInt);
-  if (rec) rec.stop();
+  if (rec) { try { rec.stop(); } catch(x) {} }
   const stars = childAnswers >= 4 ? 3 : childAnswers >= 2 ? 2 : 1;
   document.getElementById("stars-row").innerHTML = [1,2,3].map(i =>
     '<span style="color:' + (i<=stars?"#ffd60a":"#3a3a3c") + '">★</span>').join("");
@@ -685,7 +912,7 @@ function endCall() {
 function resetApp() {
   digits = ""; conversationHistory = []; childAnswers = 0; callSecs = 0;
   updateDisplay();
-  show("s-dialer");
+  show("s-lock");
 }
 </script>
 </body>
