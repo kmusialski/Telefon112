@@ -1,3 +1,3 @@
 # Telefon112
 Apkac cloude
-Wersja 1.3.1 25042026
+Wersja 1.2 25042026
