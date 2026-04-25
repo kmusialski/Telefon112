@@ -64,7 +64,7 @@ body{display:flex;flex-direction:column;align-items:center;font-family:-apple-sy
       </a>
     </div>
   </div>
-  <button onclick="show('s-lock')" id="rodo-start-btn" class="api-btn" style="margin-top:28px;font-size:18px;padding:16px"></button>
+  <button onclick="unlockAudioContext();show('s-lock')" id="rodo-start-btn" class="api-btn" style="margin-top:28px;font-size:18px;padding:16px"></button>
   <div id="rodo-note" style="font-size:11px;color:#636366;text-align:center;margin-top:12px;line-height:1.6"></div>
 </div>
 
@@ -257,7 +257,7 @@ body{display:flex;flex-direction:column;align-items:center;font-family:-apple-sy
       onmousedown="startListening(event)" onmouseup="stopListening(event)">
       <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
     </button>
-    <button onclick="toggleLog()" style="background:transparent;border:none;color:#3a3a3c;font-size:11px;cursor:pointer;font-family:monospace;margin-top:2px">[ log ]</button>
+    <button onclick="toggleLog()" id="log-toggle-btn" style="display:none"></button>
   </div>
 </div>
 
@@ -328,6 +328,13 @@ body{display:flex;flex-direction:column;align-items:center;font-family:-apple-sy
       <button onclick="adminSendSession()" id="admin-session-send-btn" style="flex:1;background:transparent;border:0.5px solid #34c759;border-radius:20px;color:#34c759;font-size:13px;padding:10px;cursor:pointer;font-family:-apple-system,sans-serif;opacity:0.4" disabled></button>
     </div>
     <div id="admin-session-msg" style="font-size:12px;color:#8e8e93;text-align:center;min-height:18px;margin-top:6px"></div>
+    <!-- Komentarz nauczyciela -->
+    <div style="margin-top:10px">
+      <div id="admin-comment-label" style="font-size:13px;color:#8e8e93;margin-bottom:6px"></div>
+      <textarea id="admin-session-comment" style="background:#1c1c1e;border:0.5px solid #3a3a3c;border-radius:12px;color:#fff;font-size:13px;padding:10px 12px;width:100%;height:80px;outline:none;font-family:-apple-system,sans-serif;line-height:1.5;resize:vertical" id="admin-session-comment"></textarea>
+    </div>
+    <!-- Przycisk podglądu logu (przeniesiony z ekranu rozmowy) -->
+    <button onclick="toggleLog()" style="background:transparent;border:0.5px solid #3a3a3c;border-radius:20px;color:#3a3a3c;font-size:12px;cursor:pointer;width:100%;padding:8px;margin-top:8px;font-family:monospace" id="admin-log-toggle-btn"></button>
   </div>
 
   <div style="width:100%;margin-bottom:12px">
@@ -429,7 +436,10 @@ const LOCALES = {
     adminSessionErrAnon:"Błąd anonimizacji.",
     adminSessionErrSend:"Błąd wysyłki.",
     adminSessionDelConfirm:"Usunąć log sesji?",
-    adminSessionDelDone:"Log usunięty."
+    adminSessionDelDone:"Log usunięty.",
+    adminCommentLabel:"Komentarz nauczyciela (dołączany do logu)",
+    adminCommentPh:"Wpisz swoje obserwacje z tej sesji...",
+    adminLogToggleBtn:"[ podgląd logu bieżącej sesji ]"
   },
   de: {
     code:"de", sttLang:"de-DE", voiceId:VOICE_ID_DE,
@@ -508,7 +518,10 @@ const LOCALES = {
     adminSessionErrAnon:"Anonymisierungsfehler.",
     adminSessionErrSend:"Sendefehler.",
     adminSessionDelConfirm:"Sitzungslog löschen?",
-    adminSessionDelDone:"Log gelöscht."
+    adminSessionDelDone:"Log gelöscht.",
+    adminCommentLabel:"Kommentar des Lehrers (wird dem Log beigefügt)",
+    adminCommentPh:"Notizen aus dieser Sitzung...",
+    adminLogToggleBtn:"[ aktuellen Sitzungslog anzeigen ]"
   }
 };
 
@@ -717,6 +730,9 @@ function applyLocale() {
   setText("admin-session-delete-btn", L.adminSessionDeleteBtn);
   setText("admin-session-anon-btn", L.adminSessionAnonBtn);
   setText("admin-session-send-btn", L.adminSessionSendBtn);
+  setText("admin-comment-label", L.adminCommentLabel);
+  setPH("admin-session-comment", L.adminCommentPh);
+  setText("admin-log-toggle-btn", L.adminLogToggleBtn);
 
   updateLockClock();
   updateDisplay();
@@ -738,7 +754,7 @@ function updateLockClock() {
 updateLockClock();
 setInterval(updateLockClock, 10000);
 
-function goToEmergency() { show("s-dialer"); }
+function goToEmergency() { unlockAudioContext(); show("s-dialer"); }
 
 // ============================================================
 // AUDIO
@@ -778,7 +794,9 @@ let sessionAnonymized = null; // zanonimizowany log (po anonimizacji)
 
 function saveSessionLog(){
   if (!logs.length) return;
-  sessionLog = logs.join("\n");
+  const comment = (document.getElementById("admin-session-comment")||{}).value || "";
+  const commentLine = comment.trim() ? "\n\n--- KOMENTARZ NAUCZYCIELA ---\n" + comment.trim() : "";
+  sessionLog = logs.join("\n") + commentLine;
   sessionAnonymized = null;
   localStorage.setItem("last_session_log", sessionLog);
   localStorage.removeItem("last_session_anon");
@@ -940,6 +958,7 @@ let CLAUDE_KEY="", XI_KEY="", digits="", callSecs=0, timerInt=null;
 let speaking=false, listening=false, rec=null, currentTranscript="";
 let childAnswers=0, conversationHistory=[];
 let callActive=false; // flaga chroniaca przed race condition
+let autoListenScheduled=false; // zapobiega pętleniu recovery SR aborted (v1.3.1)
 const logs=[];
 
 // ============================================================
@@ -1019,12 +1038,15 @@ function updateDisplay(){
 // TTS
 // ============================================================
 async function speakEL(text, onEnd){
+  if (speaking) { log("WARN","TTS skipped — already speaking"); if(onEnd)onEnd(); return; }
+  // Bug 5: ogranicz długość tekstu do TTS (max ~500 znaków = ~30s audio)
+  const safeText = text.length > 500 ? text.substring(0, 497) + "..." : text;
   speaking=true; updateMicState();
-  const L=getLoc(); log("EL","TTS ["+L.code+"]: "+text.substring(0,40)+"...");
+  const L=getLoc(); log("EL","TTS ["+L.code+"]: "+safeText.substring(0,40)+"...");
   try {
     const isChild=childAnswers>=1;
     const vs=isChild?{stability:0.35,similarity_boost:0.80,style:0.45,use_speaker_boost:true}:{stability:0.75,similarity_boost:0.75,style:0.0,use_speaker_boost:true};
-    const res=await fetch("https://api.elevenlabs.io/v1/text-to-speech/"+L.voiceId,{method:"POST",headers:{"xi-api-key":XI_KEY,"Content-Type":"application/json"},body:JSON.stringify({text,model_id:"eleven_multilingual_v2",voice_settings:vs})});
+    const res=await fetch("https://api.elevenlabs.io/v1/text-to-speech/"+L.voiceId,{method:"POST",headers:{"xi-api-key":XI_KEY,"Content-Type":"application/json"},body:JSON.stringify({text:safeText,model_id:"eleven_multilingual_v2",voice_settings:vs})});
     log(res.ok?"OK":"ERR","EL response: "+res.status);
     if (!res.ok) throw new Error("EL "+res.status);
     const ab=await res.arrayBuffer();
@@ -1046,7 +1068,7 @@ async function askClaude(userMessage){
   conversationHistory.push({role:"user",content:userMessage});
   log("API","Claude ["+currentLang+"]: "+userMessage.substring(0,40));
   try {
-    const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"x-api-key":CLAUDE_KEY,"anthropic-version":"2023-06-01","content-type":"application/json","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:300,system:getActivePrompt(),messages:conversationHistory})});
+    const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"x-api-key":CLAUDE_KEY,"anthropic-version":"2023-06-01","content-type":"application/json","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:150,system:getActivePrompt(),messages:conversationHistory})});
     log(res.ok?"OK":"ERR","Claude: "+res.status);
     if (!res.ok) throw new Error("Claude "+res.status);
     const data=await res.json();
@@ -1136,7 +1158,13 @@ function autoStartListening(){
   rec.onend=()=>{listening=false;document.getElementById("transcript-box").textContent="";updateMicState();if(currentTranscript.trim())handleAnswer(currentTranscript.trim());currentTranscript="";};
   rec.onerror=(e)=>{
     log("ERR","SR: "+e.error); listening=false; updateMicState();
-    if(e.error==="aborted"&&!speaking){setTimeout(()=>{if(!speaking&&!listening)autoStartListening();},500);return;}
+    if(e.error==="aborted"&&!speaking){
+      if(!autoListenScheduled){
+        autoListenScheduled=true;
+        setTimeout(()=>{autoListenScheduled=false;if(!speaking&&!listening)autoStartListening();},800);
+      }
+      return;
+    }
     if(e.error==="not-allowed"||e.error==="service-not-allowed"){const hint=document.getElementById("mic-hint");if(hint){hint.textContent=L.micPressToTalk;hint.style.color="#ff9f0a";}}
   };
   rec.onstart=()=>{log("OK","Auto-listen ["+L.sttLang+"]");listening=true;updateMicState();};
