@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <link rel="icon" href="data:,"/>
-<title>Zadzwon pod 112</title>
+<title>Zadzwon pod 112 / Notruf 112</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{background:#000;height:100%;overflow-x:hidden}
@@ -32,37 +32,55 @@ body{display:flex;flex-direction:column;align-items:center;font-family:-apple-sy
 .api-input::placeholder{color:#636366}
 .api-btn{background:#0a84ff;color:#fff;border:none;border-radius:24px;padding:14px;font-size:16px;cursor:pointer;width:100%;margin-top:12px;font-family:-apple-system,sans-serif}
 .api-btn:disabled{opacity:0.4}
+.lang-btn{border:none;border-radius:16px;padding:10px 0;font-size:16px;cursor:pointer;flex:1;transition:background 0.15s,transform 0.1s;touch-action:manipulation;font-family:-apple-system,sans-serif;color:#fff}
+.lang-btn:active{transform:scale(0.94)}
+.lang-btn.active{background:#0a84ff}
+.lang-btn.inactive{background:#1c1c1e;color:#8e8e93}
 </style>
 </head>
 <body>
 
-<!-- LOCK SCREEN -->
-<div id="s-lock" class="screen hidden" style="position:fixed;inset:0;overflow:hidden;justify-content:space-between;padding:0;max-width:100%;z-index:10">
-  <!-- Tlo - zdjecie dziecka -->
-  <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.55) 0%,rgba(0,0,0,0.15) 40%,rgba(0,0,0,0.15) 70%,rgba(0,0,0,0.7) 100%),url('https://images.unsplash.com/photo-1540479859555-17af45c78602?w=600&q=80') center/cover no-repeat;z-index:0"></div>
-
-  <!-- Gora: kłódka + Face ID -->
-  <div style="position:relative;z-index:1;display:flex;justify-content:center;padding-top:52px;width:100%">
-    <div style="background:rgba(0,0,0,0.75);border-radius:24px;padding:8px 20px;display:flex;align-items:center;gap:28px">
-      <svg width="22" height="26" viewBox="0 0 22 26" fill="white"><rect x="3" y="11" width="16" height="13" rx="3" fill="white"/><path d="M6 11V7.5a5 5 0 0110 0V11" stroke="white" stroke-width="2" fill="none"/></svg>
-      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-        <path d="M4 9V5a1 1 0 011-1h4" stroke="#34c759" stroke-width="2" stroke-linecap="round"/>
-        <path d="M24 9V5a1 1 0 00-1-1h-4" stroke="#34c759" stroke-width="2" stroke-linecap="round"/>
-        <path d="M4 19v4a1 1 0 001 1h4" stroke="#34c759" stroke-width="2" stroke-linecap="round"/>
-        <path d="M24 19v4a1 1 0 01-1 1h-4" stroke="#34c759" stroke-width="2" stroke-linecap="round"/>
-        <circle cx="9" cy="12" r="1.5" fill="#34c759"/>
-        <circle cx="19" cy="12" r="1.5" fill="#34c759"/>
-        <path d="M9 18c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="#34c759" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
+<!-- RODO / START SCREEN -->
+<div id="s-rodo" class="screen hidden" style="padding:40px 24px;justify-content:center;gap:0">
+  <div style="font-size:52px;text-align:center;margin-bottom:16px">🚨</div>
+  <div id="rodo-title" style="font-size:24px;font-weight:700;text-align:center;color:#fff"></div>
+  <div id="rodo-subtitle" style="font-size:14px;color:#8e8e93;text-align:center;margin-top:6px;line-height:1.6"></div>
+  <div style="width:100%;background:#1c1c1e;border-radius:16px;padding:20px;margin-top:28px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <div style="width:32px;height:32px;border-radius:50%;background:#0a84ff;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+      </div>
+      <div id="rodo-shield-title" style="font-size:15px;font-weight:600;color:#fff"></div>
+    </div>
+    <div id="rodo-text" style="font-size:13px;color:#aeaeb2;line-height:1.7"></div>
+    <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px">
+      <a id="rodo-link-anthropic" href="https://www.anthropic.com/privacy" target="_blank" style="font-size:12px;color:#0a84ff;text-decoration:none;display:flex;align-items:center;gap:6px">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="#0a84ff"><path d="M19 19H5V5h7V3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+        <span id="rodo-link-anthropic-label"></span>
+      </a>
+      <a id="rodo-link-elevenlabs" href="https://elevenlabs.io/privacy" target="_blank" style="font-size:12px;color:#0a84ff;text-decoration:none;display:flex;align-items:center;gap:6px">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="#0a84ff"><path d="M19 19H5V5h7V3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+        <span id="rodo-link-el-label"></span>
+      </a>
     </div>
   </div>
+  <button onclick="unlockAudioContext();show('s-lock')" id="rodo-start-btn" class="api-btn" style="margin-top:28px;font-size:18px;padding:16px"></button>
+  <div id="rodo-note" style="font-size:11px;color:#636366;text-align:center;margin-top:12px;line-height:1.6"></div>
+</div>
 
-  <!-- Srodek: czas i komunikat -->
+<!-- LOCK SCREEN -->
+<div id="s-lock" class="screen hidden" style="position:fixed;inset:0;overflow:hidden;justify-content:space-between;padding:0;max-width:100%;z-index:10">
+  <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.55) 0%,rgba(0,0,0,0.15) 40%,rgba(0,0,0,0.15) 70%,rgba(0,0,0,0.7) 100%),url('https://images.unsplash.com/photo-1540479859555-17af45c78602?w=600&q=80') center/cover no-repeat;z-index:0"></div>
+  <div style="position:relative;z-index:1;display:flex;justify-content:center;padding-top:52px;width:100%">
+    <div style="background:rgba(0,0,0,0.75);border-radius:24px;padding:8px 20px;display:flex;align-items:center;gap:28px">
+      <svg onclick="openAdminFromSetup('s-rodo')" width="22" height="26" viewBox="0 0 22 26" fill="white" style="cursor:pointer"><rect x="3" y="11" width="16" height="13" rx="3" fill="white"/><path d="M6 11V7.5a5 5 0 0110 0V11" stroke="white" stroke-width="2" fill="none"/></svg>
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M4 9V5a1 1 0 011-1h4" stroke="#34c759" stroke-width="2" stroke-linecap="round"/><path d="M24 9V5a1 1 0 00-1-1h-4" stroke="#34c759" stroke-width="2" stroke-linecap="round"/><path d="M4 19v4a1 1 0 001 1h4" stroke="#34c759" stroke-width="2" stroke-linecap="round"/><path d="M24 19v4a1 1 0 01-1 1h-4" stroke="#34c759" stroke-width="2" stroke-linecap="round"/><circle cx="9" cy="12" r="1.5" fill="#34c759"/><circle cx="19" cy="12" r="1.5" fill="#34c759"/><path d="M9 18c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="#34c759" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </div>
+  </div>
   <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:32px">
     <div id="lock-time" style="font-size:72px;font-weight:200;letter-spacing:-2px;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,0.5)">00:00</div>
-    <div id="lock-date" style="font-size:17px;color:rgba(255,255,255,0.85)">sroda, 22 kwietnia</div>
-    <div style="font-size:15px;color:rgba(255,255,255,0.75);text-align:center;margin-top:16px;line-height:1.7;padding:0 24px">Przesuń palcem w górę i użyj Face ID,<br/>lub podaj kod</div>
-    <!-- Kropki kodu -->
+    <div id="lock-date" style="font-size:17px;color:rgba(255,255,255,0.85)"></div>
+    <div id="lock-hint" style="font-size:15px;color:rgba(255,255,255,0.75);text-align:center;margin-top:16px;line-height:1.7;padding:0 24px"></div>
     <div style="display:flex;gap:18px;margin-top:8px">
       <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.7)"></div>
       <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.7)"></div>
@@ -72,53 +90,50 @@ body{display:flex;flex-direction:column;align-items:center;font-family:-apple-sy
       <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.7)"></div>
     </div>
   </div>
-
-  <!-- Dol: Alarmowe / Anuluj -->
   <div style="position:relative;z-index:1;display:flex;justify-content:space-between;align-items:flex-end;padding:0 32px 44px;width:100%">
     <button onclick="goToEmergency()" style="background:rgba(30,30,30,0.75);backdrop-filter:blur(12px);border:none;border-radius:20px;padding:12px 22px;color:#fff;font-size:16px;cursor:pointer;font-family:-apple-system,sans-serif;display:flex;flex-direction:column;align-items:center;gap:6px">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
-      Alarmowe
+      <span id="lock-emergency-label"></span>
     </button>
-    <button onclick="show('s-setup')" style="background:rgba(30,30,30,0.75);backdrop-filter:blur(12px);border:none;border-radius:20px;padding:12px 22px;color:#fff;font-size:16px;cursor:pointer;font-family:-apple-system,sans-serif">
-      Anuluj
-    </button>
+    <button onclick="show('s-setup')" style="background:rgba(30,30,30,0.75);backdrop-filter:blur(12px);border:none;border-radius:20px;padding:12px 22px;color:#fff;font-size:16px;cursor:pointer;font-family:-apple-system,sans-serif"><span id="lock-cancel-label"></span></button>
   </div>
 </div>
 
 <!-- SETUP -->
 <div id="s-setup" class="screen" style="padding:40px 24px;gap:0">
   <div style="font-size:48px;margin-bottom:16px;margin-top:20px">🚨</div>
-  <div style="font-size:22px;font-weight:600;text-align:center">Zadzwon pod 112</div>
-  <div style="font-size:14px;color:#8e8e93;text-align:center;margin-top:8px;line-height:1.6">Symulator rozmowy z dyspozytorem<br/>dla przedszkolakow</div>
-  <div style="width:100%;margin-top:32px">
-    <div style="font-size:13px;color:#8e8e93;margin-bottom:4px">Klucz Anthropic API</div>
+  <div id="setup-title" style="font-size:22px;font-weight:600;text-align:center"></div>
+  <div id="setup-subtitle" style="font-size:14px;color:#8e8e93;text-align:center;margin-top:8px;line-height:1.6"></div>
+  <div style="width:100%;margin-top:24px">
+    <div id="setup-lang-label" style="font-size:13px;color:#8e8e93;margin-bottom:8px"></div>
+    <div style="display:flex;gap:8px;width:100%">
+      <button id="lang-btn-pl" class="lang-btn active" onclick="setLang('pl')">🇵🇱 Polski</button>
+      <button id="lang-btn-de" class="lang-btn inactive" onclick="setLang('de')">🇩🇪 Deutsch</button>
+    </div>
+  </div>
+  <div style="width:100%;margin-top:20px">
+    <div id="setup-claude-label" style="font-size:13px;color:#8e8e93;margin-bottom:4px"></div>
     <input id="claude-key-input" class="api-input" type="password" placeholder="sk-ant-api03-..." oninput="checkKeys()"/>
     <div style="font-size:11px;color:#636366;margin-top:6px">console.anthropic.com → API Keys</div>
   </div>
   <div style="width:100%;margin-top:16px">
-    <div style="font-size:13px;color:#8e8e93;margin-bottom:4px">Klucz ElevenLabs (TTS)</div>
+    <div id="setup-xi-label" style="font-size:13px;color:#8e8e93;margin-bottom:4px"></div>
     <input id="xi-key-input" class="api-input" type="password" placeholder="sk_..." oninput="checkKeys()"/>
     <div style="font-size:11px;color:#636366;margin-top:6px">elevenlabs.io → Profile → API Key</div>
   </div>
   <div id="setup-error" style="font-size:13px;color:#ff3b30;margin-top:12px;text-align:center;min-height:20px"></div>
-  <button id="start-btn" class="api-btn" onclick="saveKeys()" disabled>Rozpocznij</button>
-  <div style="font-size:11px;color:#636366;text-align:center;margin-top:12px;line-height:1.6">
-    Klucze sa przechowywane tylko w pamieci przegladarki.
-  </div>
+  <button id="start-btn" class="api-btn" onclick="saveKeys()" disabled></button>
+  <div id="setup-keys-note" style="font-size:11px;color:#636366;text-align:center;margin-top:12px;line-height:1.6"></div>
   <div style="width:100%;margin-top:24px;padding-top:24px;border-top:0.5px solid #2c2c2e;text-align:center">
-    <button onclick="openAdminFromSetup()" style="background:transparent;border:0.5px solid #3a3a3c;border-radius:24px;padding:12px 24px;font-size:14px;color:#8e8e93;cursor:pointer;font-family:-apple-system,sans-serif;width:100%">
-      Panel administratora
-    </button>
+    <button onclick="openAdminFromSetup()" style="background:transparent;border:0.5px solid #3a3a3c;border-radius:24px;padding:12px 24px;font-size:14px;color:#8e8e93;cursor:pointer;font-family:-apple-system,sans-serif;width:100%" id="setup-admin-btn"></button>
   </div>
 </div>
 
 <!-- DIALER -->
 <div id="s-dialer" class="screen hidden" style="justify-content:flex-start">
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;padding:16px 0 0">
-    <div style="font-size:11px;color:#636366;letter-spacing:2px">NUMER AWARYJNY</div>
-    <div id="display" style="margin-top:8px;font-size:40px;letter-spacing:12px;height:52px;text-align:center;color:#fff;min-width:160px">
-      <span style="color:#2c2c2e">_ _ _</span>
-    </div>
+    <div id="dialer-top-label" style="font-size:11px;color:#636666;letter-spacing:2px"></div>
+    <div id="display" style="margin-top:8px;font-size:40px;letter-spacing:12px;height:52px;text-align:center;color:#fff;min-width:160px"><span style="color:#2c2c2e">_ _ _</span></div>
     <div id="dialer-hint" style="height:22px;font-size:13px;margin-bottom:8px;text-align:center"></div>
     <div class="grid">
       <button class="key" onclick="pressDigit('1')"><span class="key-num">1</span></button>
@@ -143,19 +158,69 @@ body{display:flex;flex-direction:column;align-items:center;font-family:-apple-sy
         <svg width="28" height="28" viewBox="0 0 24 24" fill="#8e8e93"><path d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3 12.59L17.59 17 14 13.41 10.41 17 9 15.59 12.59 12 9 8.41 10.41 7 14 10.59 17.59 7 19 8.41 15.41 12 19 15.59z"/></svg>
       </button>
     </div>
-    <div style="font-size:13px;color:#636366;margin-top:10px;text-align:center;padding-bottom:16px">Wpisz 1 - 1 - 2 i nacisnij zielony przycisk</div>
+    <div id="dialer-hint-bottom" style="font-size:13px;color:#636366;margin-top:10px;text-align:center;padding-bottom:16px"></div>
   </div>
 </div>
 
-<!-- CALLING -->
-<div id="s-calling" class="screen hidden" style="justify-content:center;gap:20px">
-  <div id="logo-tap" style="width:100px;height:100px;border-radius:50%;background:#ff3b30;display:flex;align-items:center;justify-content:center;font-size:48px;animation:ring 1s infinite;cursor:pointer">🚨</div>
-  <div style="font-size:22px;font-weight:500">Numer alarmowy 112</div>
-  <div style="font-size:15px;color:#8e8e93">Laczenie...</div>
-  <div style="display:flex;gap:8px;margin-top:4px">
-    <div style="width:9px;height:9px;border-radius:50%;background:#34c759;animation:pulse 0.6s infinite"></div>
-    <div style="width:9px;height:9px;border-radius:50%;background:#34c759;animation:pulse 0.75s 0.15s infinite"></div>
-    <div style="width:9px;height:9px;border-radius:50%;background:#34c759;animation:pulse 0.9s 0.3s infinite"></div>
+<!-- CALLING — styl natywnego iOS -->
+<div id="s-calling" class="screen hidden" style="background:#000;justify-content:space-between;padding:60px 0 48px;position:relative">
+  <!-- Górna część: status + nazwa -->
+  <div style="display:flex;flex-direction:column;align-items:center;gap:12px;width:100%">
+    <div id="calling-status" style="font-size:15px;color:rgba(255,255,255,0.55);letter-spacing:0.2px"></div>
+    <div id="calling-title" style="font-size:42px;font-weight:700;color:#fff;text-align:center;line-height:1.15;padding:0 24px"></div>
+    <div id="logo-tap" style="cursor:pointer;margin-top:4px;width:40px;height:40px;opacity:0" onclick=""></div><!-- tap target dla admina -->
+  </div>
+
+  <!-- Siatka przycisków 3x2 (iOS) -->
+  <div style="width:100%;padding:0 32px">
+    <!-- Rząd 1 -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px">
+      <!-- Głośnik -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div style="width:72px;height:72px;border-radius:50%;background:#2c2c2e;display:flex;align-items:center;justify-content:center">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="white" opacity="0.9"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+        </div>
+        <span id="ios-btn-speaker" style="font-size:12px;color:rgba(255,255,255,0.7)"></span>
+      </div>
+      <!-- FaceTime (nieaktywny) -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div style="width:72px;height:72px;border-radius:50%;background:#2c2c2e;display:flex;align-items:center;justify-content:center;opacity:0.4">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M17 10.5V7a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h12a1 1 0 001-1v-3.5l4 4v-11l-4 4z"/></svg>
+        </div>
+        <span id="ios-btn-facetime" style="font-size:12px;color:rgba(255,255,255,0.3)"></span>
+      </div>
+      <!-- Wycisz -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div style="width:72px;height:72px;border-radius:50%;background:#2c2c2e;display:flex;align-items:center;justify-content:center;opacity:0.4">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5zm6.5 6c0 3-2.54 5.1-5.5 5.1S6.5 14 6.5 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.5z"/><line x1="3" y1="3" x2="21" y2="21" stroke="white" stroke-width="2"/></svg>
+        </div>
+        <span id="ios-btn-mute" style="font-size:12px;color:rgba(255,255,255,0.3)"></span>
+      </div>
+    </div>
+    <!-- Rząd 2 -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+      <!-- Więcej -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div style="width:72px;height:72px;border-radius:50%;background:#2c2c2e;display:flex;align-items:center;justify-content:center;opacity:0.4">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+        </div>
+        <span id="ios-btn-more" style="font-size:12px;color:rgba(255,255,255,0.3)"></span>
+      </div>
+      <!-- Zakończ (czerwony, aktywny) -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+        <button onclick="endCall()" style="width:72px;height:72px;border-radius:50%;background:#ff3b30;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="white" transform="rotate(135)"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
+        </button>
+        <span id="ios-btn-end" style="font-size:12px;color:rgba(255,255,255,0.7)"></span>
+      </div>
+      <!-- Klawiatura -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div style="width:72px;height:72px;border-radius:50%;background:#2c2c2e;display:flex;align-items:center;justify-content:center;opacity:0.4">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="white"><path d="M3 3h2v2H3zm4 0h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2zM3 7h2v2H3zm4 0h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2zM3 11h2v2H3zm4 0h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2zM7 15h2v2H7zm4 0h2v2h-2z"/></svg>
+        </div>
+        <span id="ios-btn-keypad" style="font-size:12px;color:rgba(255,255,255,0.3)"></span>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -165,8 +230,8 @@ body{display:flex;flex-direction:column;align-items:center;font-family:-apple-sy
     <div style="display:flex;align-items:center;gap:10px">
       <div style="width:38px;height:38px;border-radius:50%;background:#ff3b30;display:flex;align-items:center;justify-content:center;font-size:20px">🚨</div>
       <div>
-        <div style="font-size:15px;font-weight:500">Numer alarmowy 112</div>
-        <div id="call-status" style="font-size:12px;color:#34c759">00:00 Polaczono</div>
+        <div id="talking-title" style="font-size:15px;font-weight:500"></div>
+        <div id="call-status" style="font-size:12px;color:#34c759">00:00</div>
       </div>
     </div>
     <button class="end-btn" onclick="endCall()">
@@ -174,746 +239,1011 @@ body{display:flex;flex-direction:column;align-items:center;font-family:-apple-sy
     </button>
   </div>
   <div id="messages" style="flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:10px;width:100%"></div>
-
-  <!-- LOG PANEL -->
   <div id="log-panel" style="width:100%;max-height:120px;overflow-y:auto;background:#0a0a0a;border-top:0.5px solid #1c1c1e;padding:6px 12px;display:none;flex-shrink:0">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
       <span style="font-size:10px;color:#636366;font-family:monospace">LOG</span>
       <div style="display:flex;gap:8px">
-        <button onclick="copyLog()" style="background:#1c1c1e;border:0.5px solid #3a3a3c;border-radius:8px;color:#8e8e93;font-size:10px;cursor:pointer;padding:3px 8px;font-family:monospace">Kopiuj</button>
-        <button onclick="sendLogToSheets()" style="background:#0d2818;border:0.5px solid #34c759;border-radius:8px;color:#34c759;font-size:10px;cursor:pointer;padding:3px 8px;font-family:monospace">Wyslij</button>
+        <button onclick="copyLog()" style="background:#1c1c1e;border:0.5px solid #3a3a3c;border-radius:8px;color:#8e8e93;font-size:10px;cursor:pointer;padding:3px 8px;font-family:monospace" id="log-copy-btn">Kopiuj</button>
+        <button onclick="sendLogToSheets()" style="background:#0d2818;border:0.5px solid #34c759;border-radius:8px;color:#34c759;font-size:10px;cursor:pointer;padding:3px 8px;font-family:monospace" id="log-send-btn">Wyslij</button>
       </div>
     </div>
     <div id="log-content" style="font-size:10px;color:#636366;font-family:monospace;line-height:1.6"></div>
   </div>
-
   <div style="padding:12px 20px 28px;display:flex;flex-direction:column;align-items:center;gap:8px;border-top:0.5px solid #222;width:100%;flex-shrink:0">
     <div id="transcript-box" style="font-size:13px;color:#8e8e93;font-style:italic;text-align:center;min-height:18px"></div>
-    <div id="mic-hint" style="font-size:13px;color:#8e8e93;text-align:center">Przytrzymaj przycisk i mow</div>
+    <div id="mic-hint" style="font-size:13px;color:#8e8e93;text-align:center"></div>
     <button id="mic-btn" class="mic-btn" style="background:#34c759"
       ontouchstart="startListening(event)" ontouchend="stopListening(event)"
       onmousedown="startListening(event)" onmouseup="stopListening(event)">
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="white">
-        <path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/>
-      </svg>
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
     </button>
-    <button onclick="toggleLog()" style="background:transparent;border:none;color:#3a3a3c;font-size:11px;cursor:pointer;font-family:monospace;margin-top:2px">[ log ]</button>
+    <button onclick="toggleLog()" id="log-toggle-btn" style="display:none"></button>
   </div>
 </div>
 
 <!-- SUMMARY -->
 <div id="s-summary" class="screen hidden" style="justify-content:center;gap:18px;padding:28px;text-align:center">
   <div style="font-size:72px">🦸</div>
-  <div style="font-size:26px;font-weight:600">Brawo! Jestes bohaterem!</div>
-  <div style="font-size:15px;color:#8e8e93;line-height:1.7">Nauczyłes sie jak rozmawiac<br/>z operatorem numeru 112.</div>
+  <div id="summary-title" style="font-size:26px;font-weight:600"></div>
+  <div id="summary-subtitle" style="font-size:15px;color:#8e8e93;line-height:1.7"></div>
   <div id="stars-row" style="display:flex;gap:8px;font-size:44px"></div>
-  <div style="background:#1c1c1e;border-radius:16px;padding:18px 20px;width:100%;font-size:14px;color:#e5e5ea;line-height:2;text-align:left">
-    <div style="font-weight:600;margin-bottom:6px;color:#fff;font-size:15px">Co mowic pod 112:</div>
-    <div>🔴 Co sie stalo (pozar, wypadek)</div>
-    <div>📍 Gdzie jestes (adres, miasto)</div>
-    <div>👦 Jak masz na imie i nazwisko</div>
-    <div>🤕 Czy ktos jest ranny</div>
-    <div>🚪 Czy drzwi sa otwarte dla ratownikow</div>
-  </div>
-  <div style="font-size:12px;color:#636366">Pamietaj: dzwon tylko w prawdziwej naglej sytuacji!</div>
-  <button onclick="resetApp()" style="background:#0a84ff;color:#fff;border:none;border-radius:24px;padding:14px 44px;font-size:17px;cursor:pointer;margin-top:4px">Sprobuj jeszcze raz</button>
-  <button onclick="openAdminFromSetup('s-summary')" style="background:transparent;border:0.5px solid #3a3a3c;border-radius:24px;padding:12px 24px;font-size:14px;color:#8e8e93;cursor:pointer;font-family:-apple-system,sans-serif;width:100%;margin-top:8px">Panel administratora</button>
+  <div id="summary-tips-box" style="background:#1c1c1e;border-radius:16px;padding:18px 20px;width:100%;font-size:14px;color:#e5e5ea;line-height:2;text-align:left"></div>
+  <div id="summary-disclaimer" style="font-size:12px;color:#636366"></div>
+  <button onclick="resetApp()" id="summary-retry-btn" style="background:#0a84ff;color:#fff;border:none;border-radius:24px;padding:14px 44px;font-size:17px;cursor:pointer;margin-top:4px"></button>
+  <button onclick="openAdminFromSetup('s-summary')" id="summary-admin-btn" style="background:transparent;border:0.5px solid #3a3a3c;border-radius:24px;padding:12px 24px;font-size:14px;color:#8e8e93;cursor:pointer;font-family:-apple-system,sans-serif;width:100%;margin-top:8px"></button>
 </div>
 
 <!-- ADMIN LOGIN -->
 <div id="s-admin-login" class="screen hidden" style="padding:40px 24px;gap:0;justify-content:center">
   <div style="font-size:48px;text-align:center;margin-bottom:16px">🔐</div>
-  <div style="font-size:20px;font-weight:600;text-align:center;margin-bottom:6px">Panel administratora</div>
-  <div style="font-size:14px;color:#8e8e93;text-align:center;margin-bottom:24px;line-height:1.6">Dostep tylko dla nauczycieli i opiekunow</div>
-  <input id="admin-pass-input" class="api-input" type="password" placeholder="Haslo administratora"/>
+  <div id="admin-login-title" style="font-size:20px;font-weight:600;text-align:center;margin-bottom:6px"></div>
+  <div id="admin-login-subtitle" style="font-size:14px;color:#8e8e93;text-align:center;margin-bottom:24px;line-height:1.6"></div>
+  <input id="admin-pass-input" class="api-input" type="password" placeholder="..."/>
   <div id="admin-login-err" style="font-size:13px;color:#ff3b30;text-align:center;min-height:20px;margin-top:8px"></div>
-  <button onclick="checkAdminPass()" class="api-btn">Zaloguj sie</button>
-  <button onclick="show(window._adminReturnTo||'s-lock')" style="background:transparent;border:none;color:#8e8e93;cursor:pointer;font-size:14px;margin-top:16px;font-family:-apple-system,sans-serif">Anuluj</button>
+  <button onclick="checkAdminPass()" class="api-btn" id="admin-login-btn"></button>
+  <button onclick="show(window._adminReturnTo||'s-lock')" style="background:transparent;border:none;color:#8e8e93;cursor:pointer;font-size:14px;margin-top:16px;font-family:-apple-system,sans-serif" id="admin-login-cancel"></button>
 </div>
 
 <!-- ADMIN PANEL -->
 <div id="s-admin" class="screen hidden" style="padding:24px;gap:0">
   <div style="display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:20px;margin-bottom:16px">
-    <div style="font-size:18px;font-weight:600">Panel administratora</div>
-    <button onclick="show(window._adminReturnTo||'s-lock')" style="background:transparent;border:none;color:#8e8e93;cursor:pointer;font-size:14px;font-family:-apple-system,sans-serif">Zamknij</button>
+    <div id="admin-panel-title" style="font-size:18px;font-weight:600"></div>
+    <button onclick="show(window._adminReturnTo||'s-lock')" style="background:transparent;border:none;color:#8e8e93;cursor:pointer;font-size:14px;font-family:-apple-system,sans-serif" id="admin-panel-close"></button>
+  </div>
+  <!-- Selektor języka w adminie -->
+  <div style="width:100%;margin-bottom:20px">
+    <div id="admin-lang-section-title" style="font-size:13px;color:#8e8e93;margin-bottom:8px"></div>
+    <div style="display:flex;gap:8px;width:100%">
+      <button id="admin-lang-btn-pl" class="lang-btn active" onclick="setLang('pl');refreshAdminExtra()">🇵🇱 Polski</button>
+      <button id="admin-lang-btn-de" class="lang-btn inactive" onclick="setLang('de');refreshAdminExtra()">🇩🇪 Deutsch</button>
+    </div>
+    <div id="admin-lang-note" style="font-size:11px;color:#636366;margin-top:8px;line-height:1.5"></div>
   </div>
   <div style="width:100%;margin-bottom:16px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-      <div style="font-size:13px;color:#8e8e93">Baza systemu</div>
-      <div style="font-size:11px;color:#636366;background:#1c1c1e;padding:3px 8px;border-radius:6px">Stala - tylko odczyt</div>
+      <div id="admin-base-label" style="font-size:13px;color:#8e8e93"></div>
+      <div id="admin-readonly-badge" style="font-size:11px;color:#636366;background:#1c1c1e;padding:3px 8px;border-radius:6px"></div>
     </div>
-    <div style="background:#111;border:0.5px solid #2c2c2e;border-radius:12px;padding:12px;font-size:12px;color:#636366;line-height:1.6">
-      Dyspozytor 112 prowadzi rozmowe z dzieckiem. Pierwsza wiadomosc profesjonalna. Kolejne dostosowane do dziecka - z zacheta i odwaga. Zbiera: co sie stalo, imie i nazwisko, czy samo, bezpieczenstwo, adres, czy drzwi otwarte. Pozostaje na linii do przyjazdu sluzb.
-    </div>
+    <div id="admin-base-desc" style="background:#111;border:0.5px solid #2c2c2e;border-radius:12px;padding:12px;font-size:12px;color:#636366;line-height:1.6"></div>
   </div>
   <div style="width:100%;margin-bottom:12px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-      <div style="font-size:13px;color:#8e8e93">Dodatkowe instrukcje</div>
-      <div style="font-size:11px;color:#34c759;background:#0d2818;padding:3px 8px;border-radius:6px">Edytowalne</div>
+      <div id="admin-extra-label" style="font-size:13px;color:#8e8e93"></div>
+      <div id="admin-editable-badge" style="font-size:11px;color:#34c759;background:#0d2818;padding:3px 8px;border-radius:6px"></div>
     </div>
-    <div style="font-size:12px;color:#636366;margin-bottom:8px;line-height:1.5">Wpisz dodatkowe pytania lub scenariusze dla dyspozytora.</div>
-    <textarea id="admin-extra" style="background:#1c1c1e;border:0.5px solid #3a3a3c;border-radius:12px;color:#fff;font-size:13px;padding:14px;width:100%;height:200px;outline:none;font-family:-apple-system,sans-serif;line-height:1.6;resize:vertical" placeholder="Np:
-- Zapytaj czy dziecko czuje dym lub ogien
-- Zapytaj czy w domu jest zwierze
-- Scenariusz: dziecko znalazlo nieprzytomna osobe
-..."></textarea>
+    <div id="admin-extra-hint" style="font-size:12px;color:#636366;margin-bottom:8px;line-height:1.5"></div>
+    <textarea id="admin-extra" style="background:#1c1c1e;border:0.5px solid #3a3a3c;border-radius:12px;color:#fff;font-size:13px;padding:14px;width:100%;height:200px;outline:none;font-family:-apple-system,sans-serif;line-height:1.6;resize:vertical"></textarea>
   </div>
+  <!-- SEKCJA SESJI (8.2) -->
+  <div style="width:100%;margin-bottom:16px;padding-bottom:16px;border-bottom:0.5px solid #2c2c2e">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div id="admin-session-label" style="font-size:13px;color:#8e8e93"></div>
+      <div id="admin-session-badge" style="font-size:11px;color:#636366;background:#1c1c1e;padding:3px 8px;border-radius:6px"></div>
+    </div>
+    <div id="admin-session-empty" style="font-size:12px;color:#3a3a3c;text-align:center;padding:16px 0;display:none"></div>
+    <div id="admin-session-box" style="background:#0a0a0a;border:0.5px solid #2c2c2e;border-radius:12px;padding:10px 12px;font-size:11px;color:#636366;font-family:monospace;line-height:1.6;max-height:140px;overflow-y:auto;display:none"></div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button onclick="adminDeleteSession()" id="admin-session-delete-btn" style="flex:1;background:transparent;border:0.5px solid #ff3b30;border-radius:20px;color:#ff3b30;font-size:13px;padding:10px;cursor:pointer;font-family:-apple-system,sans-serif;opacity:0.4" disabled></button>
+      <button onclick="adminAnonymizeSession()" id="admin-session-anon-btn" style="flex:1;background:transparent;border:0.5px solid #ff9f0a;border-radius:20px;color:#ff9f0a;font-size:13px;padding:10px;cursor:pointer;font-family:-apple-system,sans-serif;opacity:0.4" disabled></button>
+      <button onclick="adminSendSession()" id="admin-session-send-btn" style="flex:1;background:transparent;border:0.5px solid #34c759;border-radius:20px;color:#34c759;font-size:13px;padding:10px;cursor:pointer;font-family:-apple-system,sans-serif;opacity:0.4" disabled></button>
+    </div>
+    <div id="admin-session-msg" style="font-size:12px;color:#8e8e93;text-align:center;min-height:18px;margin-top:6px"></div>
+    <!-- Komentarz nauczyciela -->
+    <div style="margin-top:10px">
+      <div id="admin-comment-label" style="font-size:13px;color:#8e8e93;margin-bottom:6px"></div>
+      <textarea id="admin-session-comment" style="background:#1c1c1e;border:0.5px solid #3a3a3c;border-radius:12px;color:#fff;font-size:13px;padding:10px 12px;width:100%;height:80px;outline:none;font-family:-apple-system,sans-serif;line-height:1.5;resize:vertical" id="admin-session-comment"></textarea>
+    </div>
+    <!-- Przycisk podglądu logu (przeniesiony z ekranu rozmowy) -->
+    <button onclick="toggleLog()" style="background:transparent;border:0.5px solid #3a3a3c;border-radius:20px;color:#3a3a3c;font-size:12px;cursor:pointer;width:100%;padding:8px;margin-top:8px;font-family:monospace" id="admin-log-toggle-btn"></button>
+  </div>
+
   <div style="width:100%;margin-bottom:12px">
-    <div style="font-size:13px;color:#8e8e93;margin-bottom:6px">Zmiana hasla (opcjonalnie)</div>
-    <input id="admin-new-pass" class="api-input" type="password" placeholder="Nowe haslo (min. 4 znaki)"/>
+    <div id="admin-pass-label" style="font-size:13px;color:#8e8e93;margin-bottom:6px"></div>
+    <input id="admin-new-pass" class="api-input" type="password" placeholder="..."/>
   </div>
   <div id="admin-msg" style="font-size:13px;color:#34c759;text-align:center;min-height:20px;margin-bottom:8px"></div>
-  <button onclick="saveAdminSettings()" class="api-btn">Zapisz ustawienia</button>
-  <button onclick="clearExtra()" style="background:transparent;color:#ff9f0a;border:0.5px solid #ff9f0a;border-radius:24px;padding:12px;font-size:14px;cursor:pointer;width:100%;margin-top:10px;font-family:-apple-system,sans-serif">Wyczysc dodatkowe instrukcje</button>
+  <button onclick="saveAdminSettings()" class="api-btn" id="admin-save-btn"></button>
+  <button onclick="clearExtra()" style="background:transparent;color:#ff9f0a;border:0.5px solid #ff9f0a;border-radius:24px;padding:12px;font-size:14px;cursor:pointer;width:100%;margin-top:10px;font-family:-apple-system,sans-serif" id="admin-clear-btn"></button>
 </div>
 
 <script>
-// =============================================
+// ============================================================
 // KONFIGURACJA
-// =============================================
-const VOICE_ID = "pqHfZKP75CvOlQylNhV4";
+// ============================================================
+const VOICE_ID_PL = "pqHfZKP75CvOlQylNhV4";
+const VOICE_ID_DE = "EXAVITQu4vr4xnSDxMaL"; // Sarah — ElevenLabs multilingual DE
 const ADMIN_DEFAULT_PASS = "admin112";
 const SHEETS_WEBHOOK = "https://script.google.com/macros/s/AKfycbwHynTg18VM4IG7A0v2ICzxMj8agWbg66D8--UyjM_N2B6qqoB8Dzw02qivmPV4uVsD/exec";
 
-// =============================================
-// PROMPT — FIX: cyrylica + detekcja doroslego
-// =============================================
-const BASE_PROMPT = `Symulujesz dyspozytora numeru alarmowego 112. To jest symulacja edukacyjna dla dzieci w wieku przedszkolnym i wczesnoszkolnym.
+// ============================================================
+// LOKALIZACJE
+// ============================================================
+const LOCALES = {
+  pl: {
+    code:"pl", sttLang:"pl-PL", voiceId:VOICE_ID_PL,
+    setupTitle:"Zadzwoń pod 112",
+    setupSubtitle:"Symulator rozmowy z dyspozytorem\ndla przedszkolaków",
+    setupLangLabel:"Język aplikacji / App-Sprache",
+    setupClaudeLabel:"Klucz Anthropic API",
+    setupXiLabel:"Klucz ElevenLabs (TTS)",
+    setupStartBtn:"Rozpocznij", setupCheckingBtn:"Sprawdzam...",
+    setupKeysNote:"Klucze są przechowywane tylko w pamięci przeglądarki.",
+    setupAdminBtn:"Panel administratora",
+    setupErrConn:"Błąd połączenia: ", setupErrKey:"Błąd klucza: ",
+    lockHint:"Przesuń palcem w górę i użyj Face ID,\nlub podaj kod",
+    lockEmergency:"Alarmowe", lockCancel:"Anuluj",
+    lockDays:["niedziela","poniedziałek","wtorek","środa","czwartek","piątek","sobota"],
+    lockMonths:["stycznia","lutego","marca","kwietnia","maja","czerwca","lipca","sierpnia","września","października","listopada","grudnia"],
+    dialerTopLabel:"NUMER AWARYJNY",
+    dialerHintOk:"Numer alarmowy", dialerHintWrong:"Wpisz: 1 - 1 - 2",
+    dialerHintBottom:"Wpisz 1 - 1 - 2 i naciśnij zielony przycisk",
+    callingTitle:"Numer alarmowy 112", callingStatus:"Łączenie...",
+    talkingTitle:"Numer alarmowy 112", talkingConnected:"Połączono",
+    micHoldToTalk:"Przytrzymaj przycisk i mów",
+    micSpeaking:"Dyspozytor mówi...",
+    micListening:"Mów teraz! (zwolnij gdy skończysz)",
+    micPressToTalk:"Naciśnij przycisk i mów",
+    operatorLabel:"Dyspozytor 112", youLabel:"Ty",
+    summaryTitle:"Brawo! Jesteś bohaterem!",
+    summarySubtitle:"Nauczyłeś się jak rozmawiać\nz operatorem numeru 112.",
+    summaryTipsTitle:"Co mówić pod 112:",
+    summaryTips:["🔴 Co się stało (pożar, wypadek)","📍 Gdzie jesteś (adres, miasto)","👦 Jak masz na imię i nazwisko","🤕 Czy ktoś jest ranny","🚪 Czy drzwi są otwarte dla ratowników"],
+    summaryDisclaimer:"Pamiętaj: dzwoń tylko w prawdziwej nagłej sytuacji!",
+    summaryRetryBtn:"Spróbuj jeszcze raz", summaryAdminBtn:"Panel administratora",
+    adminLoginTitle:"Panel administratora",
+    adminLoginSubtitle:"Dostęp tylko dla nauczycieli i opiekunów",
+    adminLoginPassPh:"Hasło administratora", adminLoginBtn:"Zaloguj się",
+    adminLoginCancel:"Anuluj", adminLoginErr:"Nieprawidłowe hasło!",
+    adminPanelTitle:"Panel administratora", adminPanelClose:"Zamknij",
+    adminLangSectionTitle:"Język aplikacji",
+    adminLangNote:"Zmiana języka wpływa na interfejs, głos TTS oraz język rozmowy z dyspozytorem.",
+    adminBaseLabel:"Baza systemu", adminReadonlyBadge:"Stała - tylko odczyt",
+    adminBaseDesc:"Dyspozytor 112 prowadzi rozmowę z dzieckiem. Pierwsza wiadomość profesjonalna. Kolejne dostosowane do dziecka - z zachętą i odwagą. Zbiera: co się stało, imię i nazwisko, czy samo, bezpieczeństwo, adres, czy drzwi otwarte. Pozostaje na linii do przyjazdu służb.",
+    adminExtraLabel:"Dodatkowe instrukcje", adminEditableBadge:"Edytowalne",
+    adminExtraHint:"Wpisz dodatkowe pytania lub scenariusze dla dyspozytora.",
+    adminExtraPh:"Np:\n- Zapytaj czy dziecko czuje dym lub ogień\n- Zapytaj czy w domu jest zwierzę\n- Scenariusz: dziecko znalazło nieprzytomną osobę\n...",
+    adminPassLabel:"Zmiana hasła (opcjonalnie)", adminPassPh:"Nowe hasło (min. 4 znaki)",
+    adminSaveBtn:"Zapisz ustawienia", adminClearBtn:"Wyczyść dodatkowe instrukcje",
+    adminSavedMsg:"Zapisano pomyślnie!", adminClearedMsg:"Wyczyszczono.",
+    adminClearConfirm:"Wyczyścić dodatkowe instrukcje?",
+    logCopyBtn:"Kopiuj", logCopiedBtn:"Skopiowano!",
+    logSendBtn:"Wyślij", logSendingBtn:"Wysyłam...", logSentBtn:"Wysłano!", logErrBtn:"Błąd!",
+    wrongNumberMsg:"To nie jest numer alarmowy. Spróbuj wpisać sto dwanaście.",
+    startMsg:"[START] Dziecko właśnie zadzwoniło pod numer 112. Rozpocznij rozmowę.",
+    errorMsg:"Przepraszam, mam chwilowy problem. Spróbuj jeszcze raz.",
+    srAlert:"Rozpoznawanie mowy działa w Safari (iOS) lub Chrome (Android).",
+    extraHeader:"DODATKOWE INSTRUKCJE OD NAUCZYCIELA:",
+    rodoTitle:"Zadzwoń pod 112",
+    rodoSubtitle:"Symulator rozmowy z dyspozytorem dla przedszkolaków",
+    rodoShieldTitle:"Ochrona danych osobowych (RODO)",
+    rodoText:"Aplikacja nie przechowuje żadnych danych osobowych dzieci — żadnych imion, nazwisk ani adresów. Wszystkie rozmowy są przetwarzane wyłącznie w czasie rzeczywistym i nie są nigdzie zapisywane bez Twojej wiedzy.",
+    rodoLinkAnthropic:"Polityka prywatności Anthropic",
+    rodoLinkElevenLabs:"Polityka prywatności ElevenLabs",
+    rodoStartBtn:"Rozpocznij ćwiczenie",
+    rodoNote:"Przeznaczone dla dzieci w wieku 4–10 lat pod opieką nauczyciela lub rodzica.",
+    iosCallingStatus:"Połączenie alarmowe — łączę...",
+    iosCallingTitle:"Numer Alarmowy 112",
+    iosBtnSpeaker:"Głośnik", iosBtnFaceTime:"FaceTime", iosBtnMute:"Wycisz",
+    iosBtnMore:"Więcej", iosBtnEnd:"Zakończ", iosBtnKeypad:"Przyciski",
+    adminSessionLabel:"Ostatnia sesja rozmowy",
+    adminSessionBadge:"Podgląd",
+    adminSessionEmpty:"Brak zapisanej sesji",
+    adminSessionDeleteBtn:"Skasuj",
+    adminSessionAnonBtn:"Anonimizuj",
+    adminSessionSendBtn:"Wyślij",
+    adminSessionAnonDone:"Zanonimizowano — możesz wysłać.",
+    adminSessionSentOk:"Wysłano do Google Sheets!",
+    adminSessionErrAnon:"Błąd anonimizacji.",
+    adminSessionErrSend:"Błąd wysyłki.",
+    adminSessionDelConfirm:"Usunąć log sesji?",
+    adminSessionDelDone:"Log usunięty.",
+    adminCommentLabel:"Komentarz nauczyciela (dołączany do logu)",
+    adminCommentPh:"Wpisz swoje obserwacje z tej sesji...",
+    adminLogToggleBtn:"[ podgląd logu bieżącej sesji ]"
+  },
+  de: {
+    code:"de", sttLang:"de-DE", voiceId:VOICE_ID_DE,
+    setupTitle:"Notruf 112",
+    setupSubtitle:"Notruf-Simulator für Vorschulkinder\nund Grundschüler",
+    setupLangLabel:"Język aplikacji / App-Sprache",
+    setupClaudeLabel:"Anthropic API-Schlüssel",
+    setupXiLabel:"ElevenLabs-Schlüssel (TTS)",
+    setupStartBtn:"Starten", setupCheckingBtn:"Prüfe...",
+    setupKeysNote:"Die Schlüssel werden nur im Browserspeicher abgelegt.",
+    setupAdminBtn:"Administratorbereich",
+    setupErrConn:"Verbindungsfehler: ", setupErrKey:"Schlüsselfehler: ",
+    lockHint:"Nach oben wischen und Face ID verwenden\noder Code eingeben",
+    lockEmergency:"Notruf", lockCancel:"Abbrechen",
+    lockDays:["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"],
+    lockMonths:["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"],
+    dialerTopLabel:"NOTRUFNUMMER",
+    dialerHintOk:"Notrufnummer", dialerHintWrong:"Eingabe: 1 - 1 - 2",
+    dialerHintBottom:"Gib 1 - 1 - 2 ein und drücke den grünen Knopf",
+    callingTitle:"Notrufnummer 112", callingStatus:"Verbinden...",
+    talkingTitle:"Notrufnummer 112", talkingConnected:"Verbunden",
+    micHoldToTalk:"Knopf halten und sprechen",
+    micSpeaking:"Disponent spricht...",
+    micListening:"Jetzt sprechen! (loslassen wenn fertig)",
+    micPressToTalk:"Knopf drücken und sprechen",
+    operatorLabel:"Notruf 112", youLabel:"Du",
+    summaryTitle:"Bravo! Du bist ein Held!",
+    summarySubtitle:"Du hast gelernt, wie man mit dem\nNotruf 112 spricht.",
+    summaryTipsTitle:"Was man beim Notruf sagt:",
+    summaryTips:["🔴 Was passiert ist (Feuer, Unfall)","📍 Wo du bist (Adresse, Stadt)","👦 Wie du heißt (Vor- und Nachname)","🤕 Ob jemand verletzt ist","🚪 Ob die Tür für die Retter offen ist"],
+    summaryDisclaimer:"Denk daran: Ruf nur in einem echten Notfall an!",
+    summaryRetryBtn:"Nochmal versuchen", summaryAdminBtn:"Administratorbereich",
+    adminLoginTitle:"Administratorbereich",
+    adminLoginSubtitle:"Zugang nur für Lehrer und Betreuer",
+    adminLoginPassPh:"Administratorpasswort", adminLoginBtn:"Anmelden",
+    adminLoginCancel:"Abbrechen", adminLoginErr:"Falsches Passwort!",
+    adminPanelTitle:"Administratorbereich", adminPanelClose:"Schließen",
+    adminLangSectionTitle:"App-Sprache",
+    adminLangNote:"Die Sprachänderung wirkt sich auf die Benutzeroberfläche, die TTS-Stimme und die Disponentensprache aus.",
+    adminBaseLabel:"Systembasis", adminReadonlyBadge:"Fest – nur lesen",
+    adminBaseDesc:"Der Disponent führt ein Gespräch mit einem Kind. Erste Nachricht professionell. Weitere kindgerecht – mit Ermutigung. Erfasst: was passiert ist, Name, ob allein, Sicherheit, Adresse, ob Tür offen. Bleibt in der Leitung bis Rettungskräfte eintreffen.",
+    adminExtraLabel:"Zusätzliche Anweisungen", adminEditableBadge:"Bearbeitbar",
+    adminExtraHint:"Zusätzliche Fragen oder Szenarien für den Disponenten eingeben.",
+    adminExtraPh:"Z.B.:\n- Frage ob das Kind Rauch oder Feuer riecht\n- Frage ob ein Haustier im Haus ist\n- Szenario: Kind findet eine bewusstlose Person\n...",
+    adminPassLabel:"Passwort ändern (optional)", adminPassPh:"Neues Passwort (mind. 4 Zeichen)",
+    adminSaveBtn:"Einstellungen speichern", adminClearBtn:"Zusätzliche Anweisungen löschen",
+    adminSavedMsg:"Erfolgreich gespeichert!", adminClearedMsg:"Gelöscht.",
+    adminClearConfirm:"Zusätzliche Anweisungen löschen?",
+    logCopyBtn:"Kopieren", logCopiedBtn:"Kopiert!",
+    logSendBtn:"Senden", logSendingBtn:"Sende...", logSentBtn:"Gesendet!", logErrBtn:"Fehler!",
+    wrongNumberMsg:"Das ist keine Notrufnummer. Versuche eins-eins-zwei einzugeben.",
+    startMsg:"[START] Ein Kind hat gerade die Notrufnummer 112 angerufen. Beginne das Gespräch.",
+    errorMsg:"Entschuldigung, ich habe ein kurzes Problem. Bitte versuche es nochmal.",
+    srAlert:"Spracherkennung funktioniert in Safari (iOS) oder Chrome (Android).",
+    extraHeader:"ZUSÄTZLICHE ANWEISUNGEN VOM LEHRER:",
+    rodoTitle:"Notruf 112",
+    rodoSubtitle:"Notruf-Simulator für Vorschulkinder und Grundschüler",
+    rodoShieldTitle:"Datenschutz (DSGVO)",
+    rodoText:"Die App speichert keine personenbezogenen Daten von Kindern – keine Namen, Nachnamen oder Adressen. Alle Gespräche werden ausschließlich in Echtzeit verarbeitet und ohne Ihr Wissen nirgendwo gespeichert.",
+    rodoLinkAnthropic:"Datenschutzerklärung Anthropic",
+    rodoLinkElevenLabs:"Datenschutzerklärung ElevenLabs",
+    rodoStartBtn:"Übung starten",
+    rodoNote:"Für Kinder von 4–10 Jahren unter Aufsicht eines Lehrers oder Elternteils.",
+    iosCallingStatus:"Notruf — verbinde...",
+    iosCallingTitle:"Notrufnummer 112",
+    iosBtnSpeaker:"Lautsprecher", iosBtnFaceTime:"FaceTime", iosBtnMute:"Stumm",
+    iosBtnMore:"Mehr", iosBtnEnd:"Beenden", iosBtnKeypad:"Tasten",
+    adminSessionLabel:"Letzte Sitzung",
+    adminSessionBadge:"Vorschau",
+    adminSessionEmpty:"Keine gespeicherte Sitzung",
+    adminSessionDeleteBtn:"Löschen",
+    adminSessionAnonBtn:"Anonymis.",
+    adminSessionSendBtn:"Senden",
+    adminSessionAnonDone:"Anonymisiert – kann jetzt gesendet werden.",
+    adminSessionSentOk:"An Google Sheets gesendet!",
+    adminSessionErrAnon:"Anonymisierungsfehler.",
+    adminSessionErrSend:"Sendefehler.",
+    adminSessionDelConfirm:"Sitzungslog löschen?",
+    adminSessionDelDone:"Log gelöscht.",
+    adminCommentLabel:"Kommentar des Lehrers (wird dem Log beigefügt)",
+    adminCommentPh:"Notizen aus dieser Sitzung...",
+    adminLogToggleBtn:"[ aktuellen Sitzungslog anzeigen ]"
+  }
+};
 
-JEZYK:
-- Odpowiadaj WYLACZNIE po polsku, uzywajac tylko liter alfabetu polskiego (a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,r,s,t,u,w,y,z oraz polskie znaki)
-- Nigdy nie uzywaj cyrylicy, liter greckich ani zadnego innego alfabetu
-- Zamiast "nazywasz" pisz zawsze "masz na imie" lub "jak sie nazywa"
+// ============================================================
+// PROMPTY
+// ============================================================
+const BASE_PROMPT_PL = `Symulujesz dyspozytora numeru alarmowego 112. To jest symulacja edukacyjna dla dzieci w wieku przedszkolnym i wczesnoszkolnym.
 
-DETEKCJA UZYTKOWNIKA:
-- Jesli rozmowca uzywa zlozonego jezyka dorosłego, pyta o techniczne aspekty symulatora lub wyraznie nie jest dzieckiem, odpowiedz: "Witam, to symulator edukacyjny dla dzieci. Czy chce Pan lub Pani przetestowac aplikacje?" i prowadz rozmowe w trybie testowym.
+JĘZYK I ZNAKI — KRYTYCZNE:
+- Każda Twoja wiadomość MUSI zawierać poprawne polskie znaki diakrytyczne
+- ZAWSZE pisz: ą ć ę ł ń ó ś ź ż — NIGDY nie zastępuj ich: a c e l n o s z z
+- Przykłady OBOWIĄZKOWE: "Świetnie!" NIE "Swietnie!", "już" NIE "juz", "wysyłam" NIE "wysylam", "się" NIE "sie", "żeby" NIE "zeby", "będę" NIE "bede"
+- Nigdy nie używaj cyrylicy, liter greckich ani żadnego innego alfabetu
+- Zamiast "nazywasz" pisz zawsze "masz na imię" — nigdy nie używaj samego słowa "nazywasz"
 
-PIERWSZA WIADOMOSC (zawsze dokladnie taka):
-"Tu dyspozytor numeru alarmowego 112, prosze powiedziec co sie stalo."
+DETEKCJA UŻYTKOWNIKA:
+- Jeśli rozmówca używa złożonego języka dorosłego, pyta o techniczne aspekty symulatora lub wyraźnie nie jest dzieckiem, odpowiedz: "Witam, to symulator edukacyjny dla dzieci. Czy chce Pan lub Pani przetestować aplikację?" i prowadź rozmowę w trybie testowym.
 
-ZASADY ROZMOWY:
-- Mow krotko i prosto - jedno zdanie, jedno pytanie na raz
-- Uzywaj zwrotow dodajacych odwagi: "Swietnie!", "Dobrze sobie radzisz!", "Jestes bardzo dzielny!", "Nie boj sie, jestem z Toba"
-- Po kazdej odpowiedzi dziecka potwierdz ze dobrze rozumiesz: "Czyli rozumiem, ze..." albo "Dobrze, czyli..."
-- Gdy dziecko mowi NIE WIEM przy adresie - nie akceptuj, szukaj inaczej:
-  * "Czy widzisz przez okno jakis sklep, kosciol albo szkole?"
-  * "Jaki numer jest na Waszych drzwiach wejsciowych?"
-  * "Jak nazywa sie ulica? Moze widziałes tabliczke?"
-  * "W jakim miescie mieszkasz?"
-  * "Jak nazywa sie Twoja szkola lub przedszkole?"
-- Nigdy nie okazuj zdenerwowania
-- Nigdy nie uzywaj emoji ani znakow specjalnych
-- Odpowiedzi max 2-3 zdania po polsku
+PIERWSZA WIADOMOŚĆ (zawsze dokładnie taka):
+"Tu dyspozytor numeru alarmowego 112, w czym mogę pomóc?"
 
-KOLEJNOSC PYTAN (jedno na raz):
-1. Ustal CO sie stalo - szczegoly zdarzenia
-2. Imie i nazwisko dziecka
-3. Czy dziecko jest samo
-4. Czy dziecko jest w bezpiecznym miejscu
-5. Adres - ulica i numer, miasto
-6. Czy drzwi do mieszkania sa otwarte
-7. Poinformuj: "Juz wysylam pomoc, przyjada bardzo szybko"
-8. Pozostan na linii - "Zostane z Toba przez telefon."
-9. Uspokajaj i monitoruj sytuacje
+STYL ROZMOWY — wzorowany na prawdziwej rozmowie operatora z dzieckiem:
+- Słuchaj uważnie i daj dziecku mówić — nie przerywaj
+- Potwierdzaj krótko że słyszysz: "Tak", "Okej", "Rozumiem" — zanim zadasz kolejne pytanie
+- Jedno pytanie na raz — nigdy nie zadawaj dwóch pytań naraz
+- Mów krótko i prosto — maksymalnie 2 zdania na odpowiedź
+- Używaj spokojnego, pewnego tonu — dziecko musi czuć że sytuacja jest pod kontrolą
+- Gdy dziecko pyta "a pani przyjedzie?" — odpowiedz: "Tak, już wysyłam pomoc. Powiedz mi tylko..."
+- Nigdy nie okazuj zdenerwowania ani pośpiechu
+- Nigdy nie używaj emoji ani znaków specjalnych
+- Od drugiej wiadomości dodawaj słowa otuchy: "Świetnie!", "Bardzo dobrze!", "Jesteś dzielna/dzielny!"
 
-ZAKONCZENIE - tylko gdy sluzby dotarly:
-Powiedz: "Ratownicy juz sa przy Tobie. Jestes bardzo dzielny, swietnie sobie poradziles!" i dodaj [KONIEC_ROZMOWY]`;
+KOLEJNOŚĆ PYTAŃ (jedno na raz, w tej kolejności):
+1. CO się stało — zapytaj o szczegóły zdarzenia
+   - Przy osobie leżącej/nieprzytomnej: "Czy się rusza?" a potem "Czy mówi coś, czy odpowiada?"
+2. Czy dziecko jest samo — "Czy jesteś sama/sam?" (może być z młodszym rodzeństwem!)
+3. Imię i nazwisko dziecka — "A jak masz na imię?"
+4. GDZIE — miejscowość, ulica, numer domu/mieszkania
+   - Jeśli dziecko nie zna adresu: "A jakie jest większe miasto niedaleko?"
+   - Dalsze naprowadzanie: "Czy widzisz przez okno jakiś sklep, kościół albo szkołę?"
+   - "Jak nazywa się Twoja szkoła lub przedszkole?"
+   - "Jaki numer jest na Waszych drzwiach wejściowych?"
+5. Dom czy mieszkanie — "Mieszkacie w domu czy w mieszkaniu?" (ważne dla służb)
+6. Drzwi — "Czy możesz otworzyć drzwi dla ratowników?"
+7. Z czyjego telefonu dzwoni — "Dzwonisz z mamy telefonu czy swojego?"
+8. Poinformuj: "Okej, dobrze — już wysyłam informacje, żeby ktoś do Was przyjechał."
+9. Pozostań na linii — "Zostań przy telefonie, dobrze? Mów mi co się dzieje."
+10. Uspokajaj i monitoruj sytuację aż do przyjazdu służb
+
+ZAKOŃCZENIE — tylko gdy służby dotarły:
+Powiedz: "Ratownicy już są przy Tobie. Jesteś bardzo dzielna/dzielny, świetnie sobie poradziłaś/poradziłeś!" i dodaj [KONIEC_ROZMOWY]`;
+
+const BASE_PROMPT_DE = `Du simulierst einen Disponenten der Notrufnummer 112. Dies ist eine Bildungssimulation für Vorschulkinder und Grundschüler.
+
+SPRACHE UND ZEICHEN:
+- Antworte AUSSCHLIESSLICH auf Deutsch, verwende alle deutschen Sonderzeichen korrekt: ä, ö, ü, ß, Ä, Ö, Ü
+- Verwende niemals kyrillische Buchstaben, griechische Zeichen oder andere Schriftsysteme
+
+BENUTZERERKENNUNG:
+- Wenn der Gesprächspartner eine komplexe Erwachsenensprache verwendet, technische Aspekte erfragt oder offensichtlich kein Kind ist, antworte: "Guten Tag, das ist ein Bildungssimulator für Kinder. Möchten Sie die App testen?" und führe das Gespräch im Testmodus.
+
+ERSTE NACHRICHT (immer genau so):
+"Hier ist die Notrufleitung 112, was ist passiert?"
+
+GESPRÄCHSSTIL — ruhig, klar, kindgerecht:
+- Höre aufmerksam zu und lass das Kind sprechen — unterbreche nicht
+- Bestätige kurz, dass du zuhörst: "Ja", "Okay", "Ich verstehe" — bevor du die nächste Frage stellst
+- Immer nur eine Frage auf einmal — stelle niemals zwei Fragen gleichzeitig
+- Sprich kurz und einfach — maximal 2 Sätze pro Antwort
+- Verwende einen ruhigen, sicheren Ton — das Kind muss das Gefühl haben, dass alles unter Kontrolle ist
+- Wenn das Kind fragt "Kommen Sie jetzt?" — antworte: "Ja, ich schicke schon Hilfe. Sag mir nur noch..."
+- Zeige niemals Ungeduld oder Eile
+- Verwende niemals Emojis oder Sonderzeichen
+- Ab der zweiten Nachricht füge aufmunternde Worte hinzu: "Super!", "Sehr gut!", "Du bist sehr tapfer!"
+
+FRAGENREIHENFOLGE (immer eine nach der anderen):
+1. WAS ist passiert — frage nach Details
+   - Bei liegender/bewusstloser Person: "Bewegt sie sich?" dann "Antwortet sie, spricht sie?"
+2. Ob das Kind allein ist — "Bist du allein?" (kann auch mit Geschwistern sein!)
+3. Name des Kindes — "Und wie heißt du?"
+4. WO — Ort, Straße, Hausnummer
+   - Wenn das Kind die Adresse nicht kennt: "Welche größere Stadt ist in der Nähe?"
+   - "Siehst du durch das Fenster ein Geschäft, eine Kirche oder eine Schule?"
+   - "Wie heißt dein Kindergarten oder deine Schule?"
+   - "Welche Nummer steht an eurer Haustür?"
+5. Haus oder Wohnung — "Wohnt ihr in einem Haus oder einer Wohnung?"
+6. Tür — "Kannst du die Tür für die Retter öffnen?"
+7. Von welchem Telefon — "Rufst du vom Telefon deiner Mama an oder von deinem eigenen?"
+8. Informiere: "Okay, gut — ich schicke jetzt jemanden zu euch."
+9. Bleib in der Leitung — "Bleib am Telefon, ja? Sag mir, was passiert."
+10. Beruhige und beobachte die Situation bis Einsatzkräfte eintreffen
+
+ABSCHLUSS — nur wenn Einsatzkräfte angekommen sind:
+Sage: "Die Retter sind jetzt bei dir. Du bist sehr tapfer, du hast das großartig gemacht!" und füge [KONIEC_ROZMOWY] hinzu`;
+
+// ============================================================
+// STAN JĘZYKA
+// ============================================================
+let currentLang = localStorage.getItem("app_lang") || "pl";
+
+function getLoc() { return LOCALES[currentLang]; }
 
 function getActivePrompt() {
-  const extra = localStorage.getItem("admin_extra") || "";
-  if (extra.trim()) return BASE_PROMPT + "\n\nDODATKOWE INSTRUKCJE OD NAUCZYCIELA:\n" + extra;
-  return BASE_PROMPT;
+  const base = currentLang === "de" ? BASE_PROMPT_DE : BASE_PROMPT_PL;
+  const extra = localStorage.getItem("admin_extra_" + currentLang) || "";
+  if (extra.trim()) return base + "\n\n" + getLoc().extraHeader + "\n" + extra;
+  return base;
 }
 
-function getAdminPass() {
-  return localStorage.getItem("admin_pass") || ADMIN_DEFAULT_PASS;
+function getAdminPass() { return localStorage.getItem("admin_pass") || ADMIN_DEFAULT_PASS; }
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem("app_lang", lang);
+  applyLocale();
 }
 
-// =============================================
-// ZEGAR NA EKRANIE BLOKADY
-// =============================================
+function refreshAdminExtra() {
+  document.getElementById("admin-extra").value = localStorage.getItem("admin_extra_" + currentLang) || "";
+}
+
+function applyLocale() {
+  const L = getLoc();
+  document.documentElement.lang = L.code;
+  const pl = currentLang === "pl";
+
+  // Lang buttons (setup + admin)
+  ["lang-btn-pl","admin-lang-btn-pl"].forEach(id => {
+    const el = document.getElementById(id); if (el) el.className = "lang-btn " + (pl ? "active" : "inactive");
+  });
+  ["lang-btn-de","admin-lang-btn-de"].forEach(id => {
+    const el = document.getElementById(id); if (el) el.className = "lang-btn " + (!pl ? "active" : "inactive");
+  });
+
+  function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+  function setHTML(id, val) { const el = document.getElementById(id); if (el) el.innerHTML = val; }
+  function setPH(id, val) { const el = document.getElementById(id); if (el) el.placeholder = val; }
+
+  setText("setup-title", L.setupTitle);
+  setHTML("setup-subtitle", L.setupSubtitle.replace("\n","<br/>"));
+  setText("setup-lang-label", L.setupLangLabel);
+  setText("setup-claude-label", L.setupClaudeLabel);
+  setText("setup-xi-label", L.setupXiLabel);
+  setText("start-btn", L.setupStartBtn);
+  setText("setup-keys-note", L.setupKeysNote);
+  setText("setup-admin-btn", L.setupAdminBtn);
+  setHTML("lock-hint", L.lockHint.replace("\n","<br/>"));
+  setText("lock-emergency-label", L.lockEmergency);
+  setText("lock-cancel-label", L.lockCancel);
+  setText("dialer-top-label", L.dialerTopLabel);
+  setText("dialer-hint-bottom", L.dialerHintBottom);
+  setText("calling-title", L.callingTitle);
+  setText("calling-status", L.callingStatus);
+  setText("talking-title", L.talkingTitle);
+  setText("log-copy-btn", L.logCopyBtn);
+  setText("log-send-btn", L.logSendBtn);
+  setText("summary-title", L.summaryTitle);
+  setHTML("summary-subtitle", L.summarySubtitle.replace("\n","<br/>"));
+  setText("summary-disclaimer", L.summaryDisclaimer);
+  setText("summary-retry-btn", L.summaryRetryBtn);
+  setText("summary-admin-btn", L.summaryAdminBtn);
+  setHTML("summary-tips-box",
+    `<div style="font-weight:600;margin-bottom:6px;color:#fff;font-size:15px">${L.summaryTipsTitle}</div>` +
+    L.summaryTips.map(t => `<div>${t}</div>`).join(""));
+  setText("admin-login-title", L.adminLoginTitle);
+  setText("admin-login-subtitle", L.adminLoginSubtitle);
+  setPH("admin-pass-input", L.adminLoginPassPh);
+  setText("admin-login-btn", L.adminLoginBtn);
+  setText("admin-login-cancel", L.adminLoginCancel);
+  setText("admin-panel-title", L.adminPanelTitle);
+  setText("admin-panel-close", L.adminPanelClose);
+  setText("admin-lang-section-title", L.adminLangSectionTitle);
+  setText("admin-lang-note", L.adminLangNote);
+  setText("admin-base-label", L.adminBaseLabel);
+  setText("admin-readonly-badge", L.adminReadonlyBadge);
+  setText("admin-base-desc", L.adminBaseDesc);
+  setText("admin-extra-label", L.adminExtraLabel);
+  setText("admin-editable-badge", L.adminEditableBadge);
+  setText("admin-extra-hint", L.adminExtraHint);
+  setPH("admin-extra", L.adminExtraPh);
+  setText("admin-pass-label", L.adminPassLabel);
+  setPH("admin-new-pass", L.adminPassPh);
+  setText("admin-save-btn", L.adminSaveBtn);
+  setText("admin-clear-btn", L.adminClearBtn);
+  // RODO
+  setText("rodo-title", L.rodoTitle);
+  setHTML("rodo-subtitle", L.rodoSubtitle);
+  setText("rodo-shield-title", L.rodoShieldTitle);
+  setText("rodo-text", L.rodoText);
+  setText("rodo-link-anthropic-label", L.rodoLinkAnthropic);
+  setText("rodo-link-el-label", L.rodoLinkElevenLabs);
+  setText("rodo-start-btn", L.rodoStartBtn);
+  setText("rodo-note", L.rodoNote);
+  // iOS calling
+  setText("calling-status", L.iosCallingStatus);
+  setText("calling-title", L.iosCallingTitle);
+  setText("ios-btn-speaker", L.iosBtnSpeaker);
+  setText("ios-btn-facetime", L.iosBtnFaceTime);
+  setText("ios-btn-mute", L.iosBtnMute);
+  setText("ios-btn-more", L.iosBtnMore);
+  setText("ios-btn-end", L.iosBtnEnd);
+  setText("ios-btn-keypad", L.iosBtnKeypad);
+  // Admin sesja
+  setText("admin-session-label", L.adminSessionLabel);
+  setText("admin-session-badge", L.adminSessionBadge);
+  setText("admin-session-delete-btn", L.adminSessionDeleteBtn);
+  setText("admin-session-anon-btn", L.adminSessionAnonBtn);
+  setText("admin-session-send-btn", L.adminSessionSendBtn);
+  setText("admin-comment-label", L.adminCommentLabel);
+  setPH("admin-session-comment", L.adminCommentPh);
+  setText("admin-log-toggle-btn", L.adminLogToggleBtn);
+
+  updateLockClock();
+  updateDisplay();
+  updateMicState();
+}
+
+// ============================================================
+// ZEGAR
+// ============================================================
 function updateLockClock() {
   const now = new Date();
   const h = String(now.getHours()).padStart(2,"0");
   const m = String(now.getMinutes()).padStart(2,"0");
-  document.getElementById("lock-time").textContent = h + ":" + m;
-  const days = ["niedziela","poniedzialek","wtorek","sroda","czwartek","piatek","sobota"];
-  const months = ["stycznia","lutego","marca","kwietnia","maja","czerwca","lipca","sierpnia","wrzesnia","pazdziernika","listopada","grudnia"];
-  document.getElementById("lock-date").textContent =
-    days[now.getDay()] + ", " + now.getDate() + " " + months[now.getMonth()];
+  const el = document.getElementById("lock-time"); if (el) el.textContent = h+":"+m;
+  const L = getLoc();
+  const d = document.getElementById("lock-date");
+  if (d) d.textContent = L.lockDays[now.getDay()] + ", " + now.getDate() + " " + L.lockMonths[now.getMonth()];
 }
 updateLockClock();
 setInterval(updateLockClock, 10000);
 
-function goToEmergency() {
-  show("s-dialer");
-}
+function goToEmergency() { unlockAudioContext(); show("s-dialer"); }
 
-// =============================================
-// AUDIO — dzwieki UI
-// =============================================
+// ============================================================
+// AUDIO
+// ============================================================
 let audioCtx = null;
-
 function unlockAudioContext() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   if (audioCtx.state === "suspended") audioCtx.resume();
 }
-
-function playTone(freq, duration, type = "sine", gain = 0.15) {
+function playTone(freq, duration, type="sine", gain=0.15) {
   if (!audioCtx) return;
   try {
-    const o = audioCtx.createOscillator();
-    const g = audioCtx.createGain();
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
     o.connect(g); g.connect(audioCtx.destination);
     o.type = type; o.frequency.value = freq;
     g.gain.setValueAtTime(0, audioCtx.currentTime);
-    g.gain.linearRampToValueAtTime(gain, audioCtx.currentTime + 0.01);
-    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-    o.start(audioCtx.currentTime);
-    o.stop(audioCtx.currentTime + duration);
+    g.gain.linearRampToValueAtTime(gain, audioCtx.currentTime+0.01);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+duration);
+    o.start(audioCtx.currentTime); o.stop(audioCtx.currentTime+duration);
   } catch(e) {}
 }
-
-function playKeyClick() {
-  // Krotki, czysty dzwiek klawisza jak w iOS
-  playTone(1200, 0.06, "sine", 0.12);
-}
-
+function playKeyClick() { playTone(1200,0.06,"sine",0.12); }
 function playDialTone() {
-  // Dzwiek laczenia - tone jak w telefonie
   if (!audioCtx) return;
   let count = 0;
-  const interval = setInterval(() => {
-    if (count >= 4 || !document.getElementById("s-calling") ||
-        document.getElementById("s-calling").classList.contains("hidden")) {
-      clearInterval(interval); return;
-    }
-    playTone(440, 0.4, "sine", 0.1);
-    setTimeout(() => playTone(480, 0.4, "sine", 0.08), 20);
-    count++;
-  }, 1000);
+  const iv = setInterval(()=>{
+    if (count>=4||document.getElementById("s-calling").classList.contains("hidden")){clearInterval(iv);return;}
+    playTone(440,0.4,"sine",0.1); setTimeout(()=>playTone(480,0.4,"sine",0.08),20); count++;
+  },1000);
 }
 
-// =============================================
+// ============================================================
+// ADMIN — ZARZĄDZANIE SESJĄ (8.2)
+// ============================================================
+let sessionLog = null;      // surowy log bieżącej/ostatniej sesji
+let sessionAnonymized = null; // zanonimizowany log (po anonimizacji)
+
+function saveSessionLog(){
+  if (!logs.length) return;
+  const comment = (document.getElementById("admin-session-comment")||{}).value || "";
+  const commentLine = comment.trim() ? "\n\n--- KOMENTARZ NAUCZYCIELA ---\n" + comment.trim() : "";
+  sessionLog = logs.join("\n") + commentLine;
+  sessionAnonymized = null;
+  localStorage.setItem("last_session_log", sessionLog);
+  localStorage.removeItem("last_session_anon");
+}
+
+function loadSessionLog(){
+  sessionLog = localStorage.getItem("last_session_log") || null;
+  sessionAnonymized = localStorage.getItem("last_session_anon") || null;
+}
+
+function refreshAdminSession(){
+  const L = getLoc();
+  loadSessionLog();
+  const box = document.getElementById("admin-session-box");
+  const empty = document.getElementById("admin-session-empty");
+  const delBtn = document.getElementById("admin-session-delete-btn");
+  const anonBtn = document.getElementById("admin-session-anon-btn");
+  const sendBtn = document.getElementById("admin-session-send-btn");
+  const msg = document.getElementById("admin-session-msg");
+  if (msg) msg.textContent = "";
+
+  if (!sessionLog) {
+    if (box) { box.style.display="none"; box.textContent=""; }
+    if (empty) { empty.style.display="block"; empty.textContent=L.adminSessionEmpty; }
+    [delBtn,anonBtn,sendBtn].forEach(b=>{ if(b){b.disabled=true;b.style.opacity="0.4";} });
+  } else {
+    const display = sessionAnonymized || sessionLog;
+    if (empty) empty.style.display="none";
+    if (box) { box.style.display="block"; box.textContent=display; }
+    if (delBtn) { delBtn.disabled=false; delBtn.style.opacity="1"; }
+    if (anonBtn) { anonBtn.disabled=false; anonBtn.style.opacity="1"; }
+    if (sendBtn) {
+      const canSend = !!sessionAnonymized;
+      sendBtn.disabled=!canSend; sendBtn.style.opacity=canSend?"1":"0.4";
+    }
+  }
+}
+
+function adminDeleteSession(){
+  const L = getLoc();
+  if (!confirm(L.adminSessionDelConfirm)) return;
+  localStorage.removeItem("last_session_log");
+  localStorage.removeItem("last_session_anon");
+  sessionLog = null; sessionAnonymized = null;
+  const msg = document.getElementById("admin-session-msg");
+  if (msg) { msg.style.color="#ff9f0a"; msg.textContent=L.adminSessionDelDone; }
+  refreshAdminSession();
+}
+
+async function adminAnonymizeSession(){
+  if (!sessionLog || !CLAUDE_KEY) return;
+  const L = getLoc();
+  const anonBtn = document.getElementById("admin-session-anon-btn");
+  const msg = document.getElementById("admin-session-msg");
+  if (anonBtn) { anonBtn.disabled=true; anonBtn.style.opacity="0.4"; anonBtn.textContent="..."; }
+  if (msg) { msg.style.color="#8e8e93"; msg.textContent="⏳"; }
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"x-api-key":CLAUDE_KEY,"anthropic-version":"2023-06-01","content-type":"application/json","anthropic-dangerous-direct-browser-access":"true"},
+      body:JSON.stringify({
+        model:"claude-haiku-4-5-20251001", max_tokens:2000,
+        system:"Anonimizujesz log rozmowy. Zamień wszystkie imiona na [Imię], nazwiska na [Nazwisko], adresy (ulice, numery, miasta) na [Adres]. Zachowaj strukturę logu bez zmian. Zwróć wyłącznie zanonimizowany tekst.",
+        messages:[{role:"user",content:sessionLog}]
+      })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    sessionAnonymized = data.content[0].text;
+    localStorage.setItem("last_session_anon", sessionAnonymized);
+    if (msg) { msg.style.color="#34c759"; msg.textContent=L.adminSessionAnonDone; }
+  } catch(e) {
+    if (msg) { msg.style.color="#ff3b30"; msg.textContent=L.adminSessionErrAnon+" "+e.message; }
+  }
+  if (anonBtn) { anonBtn.textContent=L.adminSessionAnonBtn; }
+  refreshAdminSession();
+}
+
+async function adminSendSession(){
+  if (!sessionAnonymized) return;
+  const L = getLoc();
+  const sendBtn = document.getElementById("admin-session-send-btn");
+  const msg = document.getElementById("admin-session-msg");
+  if (sendBtn) { sendBtn.disabled=true; sendBtn.style.opacity="0.4"; }
+  if (msg) { msg.style.color="#8e8e93"; msg.textContent="⏳"; }
+  try {
+    await fetch(SHEETS_WEBHOOK,{
+      method:"POST", mode:"no-cors",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({log:sessionAnonymized, komentarz:"Admin export "+currentLang.toUpperCase()+" "+new Date().toLocaleString("pl-PL")})
+    });
+    if (msg) { msg.style.color="#34c759"; msg.textContent=L.adminSessionSentOk; }
+  } catch(e) {
+    if (msg) { msg.style.color="#ff3b30"; msg.textContent=L.adminSessionErrSend; }
+    if (sendBtn) { sendBtn.disabled=false; sendBtn.style.opacity="1"; }
+  }
+}
+
+// ============================================================
 // ADMIN
-// =============================================
-let tapCount = 0, tapTimer = null;
-document.getElementById("logo-tap").addEventListener("click", () => {
-  tapCount++;
-  clearTimeout(tapTimer);
-  tapTimer = setTimeout(() => { tapCount = 0; }, 800);
-  if (tapCount >= 3) {
-    tapCount = 0;
-    window._adminReturnTo = "s-calling";
-    document.getElementById("admin-pass-input").value = "";
-    document.getElementById("admin-login-err").textContent = "";
+// ============================================================
+let tapCount=0, tapTimer=null;
+document.getElementById("logo-tap").addEventListener("click",()=>{
+  tapCount++; clearTimeout(tapTimer);
+  tapTimer = setTimeout(()=>{tapCount=0;},800);
+  if (tapCount>=3){
+    tapCount=0; window._adminReturnTo="s-calling";
+    document.getElementById("admin-pass-input").value="";
+    document.getElementById("admin-login-err").textContent="";
     show("s-admin-login");
   }
 });
 
-function openAdminFromSetup() {
-  document.getElementById("admin-pass-input").value = "";
-  document.getElementById("admin-login-err").textContent = "";
-  window._adminReturnTo = "s-setup";
+function openAdminFromSetup(returnTo) {
+  document.getElementById("admin-pass-input").value="";
+  document.getElementById("admin-login-err").textContent="";
+  window._adminReturnTo = returnTo || "s-setup";
   show("s-admin-login");
 }
 
 function checkAdminPass() {
   const v = document.getElementById("admin-pass-input").value;
-  if (v === getAdminPass()) {
-    document.getElementById("admin-extra").value = localStorage.getItem("admin_extra") || "";
-    document.getElementById("admin-new-pass").value = "";
-    document.getElementById("admin-msg").textContent = "";
+  if (v===getAdminPass()) {
+    document.getElementById("admin-extra").value = localStorage.getItem("admin_extra_"+currentLang)||"";
+    document.getElementById("admin-new-pass").value="";
+    document.getElementById("admin-msg").textContent="";
+    refreshAdminSession();
     show("s-admin");
   } else {
-    document.getElementById("admin-login-err").textContent = "Nieprawidlowe haslo!";
+    document.getElementById("admin-login-err").textContent = getLoc().adminLoginErr;
   }
 }
 
 function saveAdminSettings() {
+  const L = getLoc();
   const extra = document.getElementById("admin-extra").value.trim();
   const newPass = document.getElementById("admin-new-pass").value.trim();
-  localStorage.setItem("admin_extra", extra);
-  if (newPass.length >= 4) localStorage.setItem("admin_pass", newPass);
+  localStorage.setItem("admin_extra_"+currentLang, extra);
+  if (newPass.length>=4) localStorage.setItem("admin_pass", newPass);
   const msg = document.getElementById("admin-msg");
-  msg.style.color = "#34c759";
-  msg.textContent = "Zapisano pomyslnie!";
-  setTimeout(() => { msg.textContent = ""; }, 2000);
+  msg.style.color="#34c759"; msg.textContent=L.adminSavedMsg;
+  setTimeout(()=>{msg.textContent="";},2000);
 }
 
 function clearExtra() {
-  if (!confirm("Wyczyscic dodatkowe instrukcje?")) return;
-  localStorage.removeItem("admin_extra");
-  document.getElementById("admin-extra").value = "";
+  const L = getLoc();
+  if (!confirm(L.adminClearConfirm)) return;
+  localStorage.removeItem("admin_extra_"+currentLang);
+  document.getElementById("admin-extra").value="";
   const msg = document.getElementById("admin-msg");
-  msg.style.color = "#ff9f0a";
-  msg.textContent = "Wyczyszczono.";
-  setTimeout(() => { msg.textContent = ""; }, 2000);
+  msg.style.color="#ff9f0a"; msg.textContent=L.adminClearedMsg;
+  setTimeout(()=>{msg.textContent="";},2000);
 }
 
-// =============================================
+// ============================================================
 // STAN APLIKACJI
-// =============================================
-let CLAUDE_KEY = "";
-let XI_KEY = "";
-let digits = "";
-let callSecs = 0;
-let timerInt = null;
-let speaking = false;
-let listening = false;
-let rec = null;
-let currentTranscript = "";
-let childAnswers = 0;
-let conversationHistory = [];
-const logs = [];
+// ============================================================
+let CLAUDE_KEY="", XI_KEY="", digits="", callSecs=0, timerInt=null;
+let speaking=false, listening=false, rec=null, currentTranscript="";
+let childAnswers=0, conversationHistory=[];
+let callActive=false; // flaga chroniaca przed race condition
+let autoListenScheduled=false; // zapobiega pętleniu recovery SR aborted (v1.3.1)
+const logs=[];
 
-// =============================================
+// ============================================================
 // LOG
-// =============================================
+// ============================================================
 function log(type, msg) {
-  const t = new Date().toLocaleTimeString("pl-PL", {hour:"2-digit",minute:"2-digit",second:"2-digit"});
-  const colors = {OK:"#34c759", ERR:"#ff3b30", INFO:"#8e8e93", API:"#0a84ff", EL:"#ff9f0a"};
-  const entry = `[${t}] [${type}] ${msg}`;
-  logs.push(entry);
-  const el = document.getElementById("log-content");
-  if (el) {
-    const line = document.createElement("div");
-    line.style.color = colors[type] || "#8e8e93";
-    line.textContent = entry;
-    el.appendChild(line);
-    el.parentElement.scrollTop = el.parentElement.scrollHeight;
-  }
+  const t = new Date().toLocaleTimeString("pl-PL",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+  const colors={OK:"#34c759",ERR:"#ff3b30",INFO:"#8e8e93",API:"#0a84ff",EL:"#ff9f0a"};
+  const entry=`[${t}] [${type}] ${msg}`; logs.push(entry);
+  const el=document.getElementById("log-content");
+  if (el){const line=document.createElement("div");line.style.color=colors[type]||"#8e8e93";line.textContent=entry;el.appendChild(line);el.parentElement.scrollTop=el.parentElement.scrollHeight;}
   console.log(entry);
 }
-
-function toggleLog() {
-  const p = document.getElementById("log-panel");
-  p.style.display = p.style.display === "none" ? "block" : "none";
+function toggleLog(){const p=document.getElementById("log-panel");p.style.display=p.style.display==="none"?"block":"none";}
+function copyLog(){
+  const L=getLoc(), btn=document.getElementById("log-copy-btn");
+  navigator.clipboard.writeText(logs.join("\n")).then(()=>{btn.textContent=L.logCopiedBtn;setTimeout(()=>{btn.textContent=L.logCopyBtn;},2000);}).catch(()=>{});
 }
-
-function copyLog() {
-  navigator.clipboard.writeText(logs.join("\n"))
-    .then(() => {
-      const btn = event.target;
-      btn.textContent = "Skopiowano!";
-      setTimeout(() => { btn.textContent = "Kopiuj"; }, 2000);
-    })
-    .catch(() => {});
-}
-
-async function sendLogToSheets() {
-  const btn = event.target;
-  btn.textContent = "Wysylam...";
-  btn.disabled = true;
+async function sendLogToSheets(){
+  const L=getLoc(), btn=document.getElementById("log-send-btn");
+  btn.textContent=L.logSendingBtn; btn.disabled=true;
   try {
-    await fetch(SHEETS_WEBHOOK, {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        log: logs.join("\n"),
-        komentarz: "Dev " + new Date().toLocaleString("pl-PL")
-      })
-    });
-    btn.textContent = "Wyslano!";
-    btn.style.color = "#34c759";
-    btn.style.borderColor = "#34c759";
-  } catch(e) {
-    btn.textContent = "Blad!";
-    btn.style.color = "#ff3b30";
-  }
-  setTimeout(() => {
-    btn.textContent = "Wyslij";
-    btn.disabled = false;
-    btn.style.color = "#34c759";
-    btn.style.borderColor = "#34c759";
-  }, 3000);
+    await fetch(SHEETS_WEBHOOK,{method:"POST",mode:"no-cors",headers:{"Content-Type":"application/json"},body:JSON.stringify({log:logs.join("\n"),komentarz:"Dev "+currentLang.toUpperCase()+" "+new Date().toLocaleString("pl-PL")})});
+    btn.textContent=L.logSentBtn; btn.style.color="#34c759"; btn.style.borderColor="#34c759";
+  } catch(e){btn.textContent=L.logErrBtn;btn.style.color="#ff3b30";}
+  setTimeout(()=>{btn.textContent=L.logSendBtn;btn.disabled=false;btn.style.color="#34c759";btn.style.borderColor="#34c759";},3000);
 }
 
-// =============================================
+// ============================================================
 // SETUP
-// =============================================
-function checkKeys() {
-  const ck = document.getElementById("claude-key-input").value.trim();
-  const xk = document.getElementById("xi-key-input").value.trim();
-  document.getElementById("start-btn").disabled = !(ck.length > 10 && xk.length > 10);
+// ============================================================
+function checkKeys(){
+  const ck=document.getElementById("claude-key-input").value.trim();
+  const xk=document.getElementById("xi-key-input").value.trim();
+  document.getElementById("start-btn").disabled=!(ck.length>10&&xk.length>10);
 }
-
-async function saveKeys() {
-  const ck = document.getElementById("claude-key-input").value.trim();
-  const xk = document.getElementById("xi-key-input").value.trim();
-  const errEl = document.getElementById("setup-error");
-  const btn = document.getElementById("start-btn");
-  btn.textContent = "Sprawdzam...";
-  btn.disabled = true;
-  errEl.textContent = "";
+async function saveKeys(){
+  const L=getLoc();
+  const ck=document.getElementById("claude-key-input").value.trim();
+  const xk=document.getElementById("xi-key-input").value.trim();
+  const errEl=document.getElementById("setup-error");
+  const btn=document.getElementById("start-btn");
+  btn.textContent=L.setupCheckingBtn; btn.disabled=true; errEl.textContent="";
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": ck,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-        "anthropic-dangerous-direct-browser-access": "true"
-      },
-      body: JSON.stringify({ model:"claude-haiku-4-5-20251001", max_tokens:10, messages:[{role:"user",content:"test"}] })
-    });
-    const data = await res.json();
-    if (data.error) {
-      errEl.textContent = "Blad klucza: " + data.error.message;
-      btn.textContent = "Rozpocznij"; btn.disabled = false; return;
-    }
-  } catch(e) {
-    errEl.textContent = "Blad polaczenia: " + e.message;
-    btn.textContent = "Rozpocznij"; btn.disabled = false; return;
-  }
-  CLAUDE_KEY = ck;
-  XI_KEY = xk;
-  unlockAudioContext();
-  show("s-lock");
+    const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"x-api-key":ck,"anthropic-version":"2023-06-01","content-type":"application/json","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:10,messages:[{role:"user",content:"test"}]})});
+    const data=await res.json();
+    if (data.error){errEl.textContent=L.setupErrKey+data.error.message;btn.textContent=L.setupStartBtn;btn.disabled=false;return;}
+  } catch(e){errEl.textContent=L.setupErrConn+e.message;btn.textContent=L.setupStartBtn;btn.disabled=false;return;}
+  CLAUDE_KEY=ck; XI_KEY=xk; unlockAudioContext(); show("s-rodo");
 }
 
-// =============================================
+// ============================================================
 // NAWIGACJA
-// =============================================
-const ALL_SCREENS = ["s-lock","s-setup","s-dialer","s-calling","s-talking","s-summary","s-admin-login","s-admin"];
-
-function show(id) {
-  ALL_SCREENS.forEach(s => {
-    const el = document.getElementById(s);
-    if (s === "s-lock") {
-      // Lock screen jest fixed - pokazujemy/ukrywamy przez hidden
-      el.classList.toggle("hidden", s !== id);
-    } else {
-      el.classList.toggle("hidden", s !== id);
-    }
-  });
-  // Gdy lock screen ukryty - upewnij sie ze body scrolluje normalnie
-  document.body.style.overflow = (id === "s-lock") ? "hidden" : "";
+// ============================================================
+const ALL_SCREENS=["s-rodo","s-lock","s-setup","s-dialer","s-calling","s-talking","s-summary","s-admin-login","s-admin"];
+function show(id){
+  ALL_SCREENS.forEach(s=>{document.getElementById(s).classList.toggle("hidden",s!==id);});
+  document.body.style.overflow=(id==="s-lock")?"hidden":"";
 }
 
-// =============================================
+// ============================================================
 // DIALER
-// =============================================
-function pressDigit(d) {
-  if (digits.length >= 3) return;
-  playKeyClick();
-  digits += d;
-  updateDisplay();
+// ============================================================
+function pressDigit(d){if(digits.length>=3)return;playKeyClick();digits+=d;updateDisplay();}
+function pressDelete(){if(digits.length>0)playKeyClick();digits=digits.slice(0,-1);updateDisplay();}
+function updateDisplay(){
+  const L=getLoc();
+  const el=document.getElementById("display"), hint=document.getElementById("dialer-hint");
+  if (!digits){el.innerHTML='<span style="color:#2c2c2e">_ _ _</span>';}
+  else{el.textContent=digits;}
+  if (digits==="112") hint.innerHTML='<span style="color:#34c759">'+L.dialerHintOk+'</span>';
+  else if (digits.length>0) hint.innerHTML='<span style="color:#ff9f0a">'+L.dialerHintWrong+'</span>';
+  else hint.textContent="";
 }
 
-function pressDelete() {
-  if (digits.length > 0) playKeyClick();
-  digits = digits.slice(0,-1);
-  updateDisplay();
-}
-
-function updateDisplay() {
-  const el = document.getElementById("display");
-  const hint = document.getElementById("dialer-hint");
-  if (!digits) { el.innerHTML = '<span style="color:#2c2c2e">_ _ _</span>'; }
-  else { el.textContent = digits; }
-  if (digits === "112") hint.innerHTML = '<span style="color:#34c759">Numer alarmowy</span>';
-  else if (digits.length > 0) hint.innerHTML = '<span style="color:#ff9f0a">Wpisz: 1 - 1 - 2</span>';
-  else hint.textContent = "";
-}
-
-// =============================================
-// TTS — ElevenLabs
-// =============================================
-async function speakEL(text, onEnd) {
-  speaking = true;
-  updateMicState();
-  log("EL", "Requesting TTS: " + text.substring(0,40) + "...");
+// ============================================================
+// TTS
+// ============================================================
+async function speakEL(text, onEnd){
+  if (speaking) { log("WARN","TTS skipped — already speaking"); if(onEnd)onEnd(); return; }
+  // Bug 5: ogranicz długość tekstu do TTS (max ~500 znaków = ~30s audio)
+  const safeText = text.length > 500 ? text.substring(0, 497) + "..." : text;
+  speaking=true; updateMicState();
+  const L=getLoc(); log("EL","TTS ["+L.code+"]: "+safeText.substring(0,40)+"...");
   try {
-    const isChildMode = childAnswers >= 1;
-    const voiceSettings = isChildMode
-      ? { stability: 0.35, similarity_boost: 0.80, style: 0.45, use_speaker_boost: true }
-      : { stability: 0.75, similarity_boost: 0.75, style: 0.0, use_speaker_boost: true };
-
-    const res = await fetch("https://api.elevenlabs.io/v1/text-to-speech/" + VOICE_ID, {
-      method: "POST",
-      headers: { "xi-api-key": XI_KEY, "Content-Type": "application/json" },
-      body: JSON.stringify({ text, model_id:"eleven_multilingual_v2", voice_settings: voiceSettings })
-    });
-    log(res.ok ? "OK" : "ERR", "EL response: " + res.status);
-    if (!res.ok) throw new Error("EL " + res.status);
-    const arrayBuffer = await res.arrayBuffer();
-    log("OK", "EL audio received: " + arrayBuffer.byteLength + " bytes");
+    const isChild=childAnswers>=1;
+    const vs=isChild?{stability:0.35,similarity_boost:0.80,style:0.45,use_speaker_boost:true}:{stability:0.75,similarity_boost:0.75,style:0.0,use_speaker_boost:true};
+    const res=await fetch("https://api.elevenlabs.io/v1/text-to-speech/"+L.voiceId,{method:"POST",headers:{"xi-api-key":XI_KEY,"Content-Type":"application/json"},body:JSON.stringify({text:safeText,model_id:"eleven_multilingual_v2",voice_settings:vs})});
+    log(res.ok?"OK":"ERR","EL response: "+res.status);
+    if (!res.ok) throw new Error("EL "+res.status);
+    const ab=await res.arrayBuffer();
+    log("OK","EL audio: "+ab.byteLength+" bytes");
     if (!audioCtx) unlockAudioContext();
-    if (audioCtx.state === "suspended") await audioCtx.resume();
-    log("INFO", "AudioContext state: " + audioCtx.state);
-    const decoded = await audioCtx.decodeAudioData(arrayBuffer);
-    const source = audioCtx.createBufferSource();
-    source.buffer = decoded;
-    source.connect(audioCtx.destination);
-    source.onended = () => {
-      log("OK", "EL playback ended");
-      speaking = false;
-      updateMicState();
-      if (onEnd) onEnd();
-      else autoStartListening();
-    };
-    source.start(0);
-    log("OK", "EL playback started");
-  } catch(e) {
-    log("ERR", "ElevenLabs error: " + e.message);
-    speaking = false;
-    updateMicState();
-    if (onEnd) onEnd();
-  }
+    if (audioCtx.state==="suspended") await audioCtx.resume();
+    const decoded=await audioCtx.decodeAudioData(ab);
+    const src=audioCtx.createBufferSource();
+    src.buffer=decoded; src.connect(audioCtx.destination);
+    src.onended=()=>{log("OK","EL ended");speaking=false;updateMicState();if(onEnd)onEnd();else autoStartListening();};
+    src.start(0); log("OK","EL started");
+  } catch(e){log("ERR","EL error: "+e.message);speaking=false;updateMicState();if(onEnd)onEnd();}
 }
 
-// =============================================
-// CLAUDE API
-// =============================================
-async function askClaude(userMessage) {
-  conversationHistory.push({ role:"user", content:userMessage });
-  log("API", "Claude request: " + userMessage.substring(0,40));
+// ============================================================
+// CLAUDE
+// ============================================================
+async function askClaude(userMessage){
+  conversationHistory.push({role:"user",content:userMessage});
+  log("API","Claude ["+currentLang+"]: "+userMessage.substring(0,40));
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": CLAUDE_KEY,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-        "anthropic-dangerous-direct-browser-access": "true"
-      },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 300,
-        system: getActivePrompt(),
-        messages: conversationHistory
-      })
-    });
-    log(res.ok ? "OK" : "ERR", "Claude response: " + res.status);
-    if (!res.ok) throw new Error("Claude " + res.status);
-    const data = await res.json();
-    const reply = data.content[0].text;
-    log("OK", "Claude reply: " + reply.substring(0,60));
-    conversationHistory.push({ role:"assistant", content:reply });
+    const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"x-api-key":CLAUDE_KEY,"anthropic-version":"2023-06-01","content-type":"application/json","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:150,system:getActivePrompt(),messages:conversationHistory})});
+    log(res.ok?"OK":"ERR","Claude: "+res.status);
+    if (!res.ok) throw new Error("Claude "+res.status);
+    const data=await res.json();
+    const reply=data.content[0].text;
+    log("OK","Reply: "+reply.substring(0,60));
+    conversationHistory.push({role:"assistant",content:reply});
     return reply;
-  } catch(e) {
-    log("ERR", "Claude error: " + e.message);
-    return "Przepraszam, mam chwilowy problem. Sprobuj jeszcze raz.";
-  }
+  } catch(e){log("ERR","Claude error: "+e.message);return getLoc().errorMsg;}
 }
 
-// =============================================
+// ============================================================
 // MIC STATE
-// =============================================
-function updateMicState() {
-  const btn = document.getElementById("mic-btn");
-  const hint = document.getElementById("mic-hint");
-  const status = document.getElementById("call-status");
+// ============================================================
+function updateMicState(){
+  const L=getLoc();
+  const btn=document.getElementById("mic-btn"), hint=document.getElementById("mic-hint"), status=document.getElementById("call-status");
   if (!btn) return;
-  if (speaking) {
-    btn.style.background = "#34c759"; btn.style.opacity = "0.4"; btn.style.animation = "none";
-    hint.style.color = "#ff9f0a"; hint.textContent = "Dyspozytor mowi...";
-    if (status) { status.style.color = "#ff9f0a"; status.textContent = "Dyspozytor mowi..."; }
-  } else if (listening) {
-    btn.style.background = "#ff3b30"; btn.style.opacity = "1"; btn.style.animation = "pulse 0.8s infinite";
-    hint.style.color = "#34c759"; hint.textContent = "Mow teraz! (zwolnij gdy skonczysz)";
+  if (speaking){
+    btn.style.background="#34c759";btn.style.opacity="0.4";btn.style.animation="none";
+    if (hint){hint.style.color="#ff9f0a";hint.textContent=L.micSpeaking;}
+    if (status){status.style.color="#ff9f0a";status.textContent=L.micSpeaking;}
+  } else if (listening){
+    btn.style.background="#ff3b30";btn.style.opacity="1";btn.style.animation="pulse 0.8s infinite";
+    if (hint){hint.style.color="#34c759";hint.textContent=L.micListening;}
   } else {
-    btn.style.background = "#34c759"; btn.style.opacity = "1"; btn.style.animation = "none";
-    hint.style.color = "#8e8e93"; hint.textContent = "Przytrzymaj przycisk i mow";
-    const m = Math.floor(callSecs/60), s = callSecs%60;
-    if (status) { status.style.color = "#34c759"; status.textContent = String(m).padStart(2,"0")+":"+String(s).padStart(2,"0")+" Polaczono"; }
+    btn.style.background="#34c759";btn.style.opacity="1";btn.style.animation="none";
+    if (hint){hint.style.color="#8e8e93";hint.textContent=L.micHoldToTalk;}
+    const mm=Math.floor(callSecs/60),ss=callSecs%60;
+    if (status){status.style.color="#34c759";status.textContent=String(mm).padStart(2,"0")+":"+String(ss).padStart(2,"0")+" "+L.talkingConnected;}
   }
 }
 
-// =============================================
+// ============================================================
 // CHAT UI
-// =============================================
-function addMessage(role, text) {
-  const msgs = document.getElementById("messages");
-  const wrap = document.createElement("div");
-  wrap.style.cssText = "display:flex;flex-direction:column";
-  const lbl = document.createElement("div");
-  lbl.className = "lbl";
-  lbl.style.alignSelf = role === "operator" ? "flex-start" : "flex-end";
-  lbl.textContent = role === "operator" ? "Dyspozytor 112" : "Ty";
-  const bub = document.createElement("div");
-  bub.className = role === "operator" ? "bubble-op" : "bubble-me";
-  bub.textContent = text.replace("[KONIEC_ROZMOWY]", "").trim();
-  wrap.appendChild(lbl); wrap.appendChild(bub);
-  msgs.appendChild(wrap);
-  msgs.scrollTop = msgs.scrollHeight;
+// ============================================================
+function addMessage(role, text){
+  const L=getLoc();
+  const msgs=document.getElementById("messages");
+  const wrap=document.createElement("div"); wrap.style.cssText="display:flex;flex-direction:column";
+  const lbl=document.createElement("div"); lbl.className="lbl";
+  lbl.style.alignSelf=role==="operator"?"flex-start":"flex-end";
+  lbl.textContent=role==="operator"?L.operatorLabel:L.youLabel;
+  const bub=document.createElement("div"); bub.className=role==="operator"?"bubble-op":"bubble-me";
+  bub.textContent=text.replace("[KONIEC_ROZMOWY]","").trim();
+  wrap.appendChild(lbl); wrap.appendChild(bub); msgs.appendChild(wrap);
+  msgs.scrollTop=msgs.scrollHeight;
 }
-
-function showTyping() {
-  const msgs = document.getElementById("messages");
-  const wrap = document.createElement("div");
-  wrap.id = "typing-indicator";
-  wrap.style.cssText = "display:flex;flex-direction:column";
-  wrap.innerHTML = '<div class="lbl">Dyspozytor 112</div><div class="bubble-op dots"><span></span><span></span><span></span></div>';
-  msgs.appendChild(wrap);
-  msgs.scrollTop = msgs.scrollHeight;
+function showTyping(){
+  const L=getLoc();
+  const msgs=document.getElementById("messages");
+  const wrap=document.createElement("div"); wrap.id="typing-indicator"; wrap.style.cssText="display:flex;flex-direction:column";
+  wrap.innerHTML='<div class="lbl">'+L.operatorLabel+'</div><div class="bubble-op dots"><span></span><span></span><span></span></div>';
+  msgs.appendChild(wrap); msgs.scrollTop=msgs.scrollHeight;
 }
+function removeTyping(){const el=document.getElementById("typing-indicator");if(el)el.remove();}
 
-function removeTyping() {
-  const el = document.getElementById("typing-indicator");
-  if (el) el.remove();
-}
-
-// =============================================
-// POLACZENIE
-// =============================================
-async function startCall() {
-  if (digits !== "112") {
-    unlockAudioContext();
-    await speakEL("To nie jest numer alarmowy. Sprobuj wpisac sto dwanascie.");
-    digits = ""; updateDisplay(); return;
-  }
-  show("s-calling");
-  conversationHistory = []; childAnswers = 0; callSecs = 0;
-  unlockAudioContext();
-  playDialTone();
-  setTimeout(async () => {
-    show("s-talking");
-    document.getElementById("messages").innerHTML = "";
-    timerInt = setInterval(() => {
-      callSecs++;
-      if (!speaking && !listening) updateMicState();
-    }, 1000);
+// ============================================================
+// POŁĄCZENIE
+// ============================================================
+async function startCall(){
+  const L=getLoc();
+  if (digits!=="112"){unlockAudioContext();await speakEL(L.wrongNumberMsg);digits="";updateDisplay();return;}
+  show("s-calling"); conversationHistory=[]; childAnswers=0; callSecs=0;
+  unlockAudioContext(); playDialTone();
+  setTimeout(async()=>{
+    show("s-talking"); document.getElementById("messages").innerHTML="";
+    timerInt=setInterval(()=>{callSecs++;if(!speaking&&!listening)updateMicState();},1000);
+    callActive=true;
     showTyping();
-    const firstMsg = await askClaude("[START] Dziecko wlasnie zadzwonilo pod numer 112. Rozpocznij rozmowe.");
+    const firstMsg=await askClaude(L.startMsg);
     removeTyping();
-    const clean = firstMsg.replace("[KONIEC_ROZMOWY]", "").trim();
-    addMessage("operator", clean);
-    await speakEL(clean);
-  }, 2800);
+    const clean=firstMsg.replace("[KONIEC_ROZMOWY]","").trim();
+    addMessage("operator",clean); await speakEL(clean);
+  },2800);
 }
 
-// =============================================
-// STT — rozpoznawanie mowy
-// =============================================
-function autoStartListening() {
+// ============================================================
+// STT
+// ============================================================
+function autoStartListening(){
+  const L=getLoc();
   if (speaking) return;
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) return;
-  rec = new SR();
-  rec.lang = "pl-PL";
-  rec.interimResults = true;
-  rec.maxAlternatives = 1;
-  currentTranscript = "";
-  rec.onresult = (ev) => {
-    currentTranscript = Array.from(ev.results).map(r => r[0].transcript).join("");
-    document.getElementById("transcript-box").textContent = '"' + currentTranscript + '"';
-  };
-  rec.onend = () => {
-    listening = false;
-    document.getElementById("transcript-box").textContent = "";
-    updateMicState();
-    if (currentTranscript.trim()) handleAnswer(currentTranscript.trim());
-    currentTranscript = "";
-  };
-  rec.onerror = (e) => {
-    log("ERR", "SR auto error: " + e.error);
-    listening = false;
-    updateMicState();
-    // FIX: restart po aborted — iOS zabija mikrofon po ciszy
-    if (e.error === "aborted" && !speaking) {
-      setTimeout(() => {
-        if (!speaking && !listening) autoStartListening();
-      }, 500);
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition; if (!SR) return;
+  rec=new SR(); rec.lang=L.sttLang; rec.interimResults=true; rec.maxAlternatives=1;
+  currentTranscript="";
+  rec.onresult=(ev)=>{currentTranscript=Array.from(ev.results).map(r=>r[0].transcript).join("");document.getElementById("transcript-box").textContent='"'+currentTranscript+'"';};
+  rec.onend=()=>{listening=false;document.getElementById("transcript-box").textContent="";updateMicState();if(currentTranscript.trim())handleAnswer(currentTranscript.trim());currentTranscript="";};
+  rec.onerror=(e)=>{
+    log("ERR","SR: "+e.error); listening=false; updateMicState();
+    if(e.error==="aborted"&&!speaking){
+      if(!autoListenScheduled){
+        autoListenScheduled=true;
+        setTimeout(()=>{autoListenScheduled=false;if(!speaking&&!listening)autoStartListening();},800);
+      }
       return;
     }
-    if (e.error === "not-allowed" || e.error === "service-not-allowed") {
-      const hint = document.getElementById("mic-hint");
-      if (hint) { hint.textContent = "Nacisnij przycisk i mow"; hint.style.color = "#ff9f0a"; }
-    }
+    if(e.error==="not-allowed"||e.error==="service-not-allowed"){const hint=document.getElementById("mic-hint");if(hint){hint.textContent=L.micPressToTalk;hint.style.color="#ff9f0a";}}
   };
-  rec.onstart = () => {
-    log("OK", "Auto-listen started");
-    listening = true;
-    updateMicState();
-  };
-  try {
-    rec.start();
-  } catch(err) {
-    log("ERR", "Auto-listen failed: " + err.message);
-    listening = false;
-    const btn = document.getElementById("mic-btn");
-    const hint = document.getElementById("mic-hint");
-    if (btn) { btn.style.background = "#ff9f0a"; btn.style.animation = "pulse 1s infinite"; btn.style.opacity = "1"; }
-    if (hint) { hint.textContent = "Nacisnij i mow"; hint.style.color = "#ff9f0a"; }
+  rec.onstart=()=>{log("OK","Auto-listen ["+L.sttLang+"]");listening=true;updateMicState();};
+  try{rec.start();}
+  catch(err){
+    log("ERR","Auto-listen failed: "+err.message); listening=false;
+    const btn=document.getElementById("mic-btn"),hint=document.getElementById("mic-hint");
+    if(btn){btn.style.background="#ff9f0a";btn.style.animation="pulse 1s infinite";btn.style.opacity="1";}
+    if(hint){hint.textContent=L.micPressToTalk;hint.style.color="#ff9f0a";}
   }
 }
+function startListening(e){
+  const L=getLoc(); e.preventDefault(); if(speaking)return;
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){alert(L.srAlert);return;}
+  if(rec){try{rec.abort();}catch(x){}}
+  rec=new SR(); rec.lang=L.sttLang; rec.interimResults=true; rec.maxAlternatives=1;
+  currentTranscript="";
+  rec.onresult=(ev)=>{currentTranscript=Array.from(ev.results).map(r=>r[0].transcript).join("");document.getElementById("transcript-box").textContent='"'+currentTranscript+'"';};
+  rec.onend=()=>{listening=false;document.getElementById("transcript-box").textContent="";updateMicState();if(currentTranscript.trim())handleAnswer(currentTranscript.trim());currentTranscript="";};
+  rec.onerror=()=>{listening=false;updateMicState();};
+  try{rec.start();listening=true;updateMicState();}catch(err){console.error(err);}
+}
+function stopListening(e){e.preventDefault();if(rec)rec.stop();}
 
-function startListening(e) {
-  e.preventDefault();
-  if (speaking) return;
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { alert("Rozpoznawanie mowy dziala w Safari (iOS) lub Chrome (Android)."); return; }
-  if (rec) { try { rec.abort(); } catch(x) {} }
-  rec = new SR();
-  rec.lang = "pl-PL"; rec.interimResults = true; rec.maxAlternatives = 1;
-  currentTranscript = "";
-  rec.onresult = (ev) => {
-    currentTranscript = Array.from(ev.results).map(r => r[0].transcript).join("");
-    document.getElementById("transcript-box").textContent = '"' + currentTranscript + '"';
-  };
-  rec.onend = () => {
-    listening = false;
-    document.getElementById("transcript-box").textContent = "";
-    updateMicState();
-    if (currentTranscript.trim()) handleAnswer(currentTranscript.trim());
-    currentTranscript = "";
-  };
-  rec.onerror = (e) => { listening = false; updateMicState(); };
-  try { rec.start(); listening = true; updateMicState(); } catch(err) { console.error(err); }
+// ============================================================
+// ODPOWIEDŹ
+// ============================================================
+async function handleAnswer(answer){
+  if (!callActive) return; // zabezpieczenie przed race condition
+  addMessage("child",answer); childAnswers++; showTyping();
+  const reply=await askClaude(answer); removeTyping();
+  const clean=reply.replace("[KONIEC_ROZMOWY]","").trim();
+  addMessage("operator",clean);
+  if(reply.includes("[KONIEC_ROZMOWY]")){await speakEL(clean,()=>setTimeout(()=>finishCall(),1500));}
+  else{await speakEL(clean);}
 }
 
-function stopListening(e) {
-  e.preventDefault();
-  if (rec) rec.stop();
-}
-
-// =============================================
-// ODPOWIEDZ DZIECKA
-// =============================================
-async function handleAnswer(answer) {
-  addMessage("child", answer);
-  childAnswers++;
-  showTyping();
-  const reply = await askClaude(answer);
-  removeTyping();
-  const clean = reply.replace("[KONIEC_ROZMOWY]", "").trim();
-  addMessage("operator", clean);
-  if (reply.includes("[KONIEC_ROZMOWY]")) {
-    await speakEL(clean, () => setTimeout(() => finishCall(), 1500));
-  } else {
-    await speakEL(clean);
-  }
-}
-
-// =============================================
-// ZAKONCZENIE
-// =============================================
-function finishCall() {
+// ============================================================
+// ZAKOŃCZENIE
+// ============================================================
+function finishCall(){
+  callActive=false;
   clearInterval(timerInt);
-  if (rec) { try { rec.stop(); } catch(x) {} }
-  const stars = childAnswers >= 4 ? 3 : childAnswers >= 2 ? 2 : 1;
-  document.getElementById("stars-row").innerHTML = [1,2,3].map(i =>
-    '<span style="color:' + (i<=stars?"#ffd60a":"#3a3a3c") + '">★</span>').join("");
+  speaking=false; listening=false;
+  if(rec){try{rec.onend=null;rec.onresult=null;rec.onerror=null;rec.abort();}catch(x){} rec=null;}
+  saveSessionLog();
+  const stars=childAnswers>=4?3:childAnswers>=2?2:1;
+  document.getElementById("stars-row").innerHTML=[1,2,3].map(i=>'<span style="color:'+(i<=stars?"#ffd60a":"#3a3a3c")+'">★</span>').join("");
   show("s-summary");
 }
-
-function endCall() {
+function endCall(){
+  callActive=false;
   clearInterval(timerInt);
-  if (rec) { try { rec.stop(); } catch(x) {} }
-  const stars = childAnswers >= 4 ? 3 : childAnswers >= 2 ? 2 : 1;
-  document.getElementById("stars-row").innerHTML = [1,2,3].map(i =>
-    '<span style="color:' + (i<=stars?"#ffd60a":"#3a3a3c") + '">★</span>').join("");
+  speaking=false; listening=false;
+  if(rec){try{rec.onend=null;rec.onresult=null;rec.onerror=null;rec.abort();}catch(x){} rec=null;}
+  saveSessionLog();
+  const stars=childAnswers>=4?3:childAnswers>=2?2:1;
+  document.getElementById("stars-row").innerHTML=[1,2,3].map(i=>'<span style="color:'+(i<=stars?"#ffd60a":"#3a3a3c")+'">★</span>').join("");
   show("s-summary");
 }
+function resetApp(){callActive=false;digits="";conversationHistory=[];childAnswers=0;callSecs=0;updateDisplay();show("s-rodo");}
 
-function resetApp() {
-  digits = ""; conversationHistory = []; childAnswers = 0; callSecs = 0;
-  updateDisplay();
-  show("s-lock");
-}
+// ============================================================
+// INIT
+// ============================================================
+applyLocale();
+
+// ============================================================
+// BLOKADA ZOOM I PRZESUWANIA EKRANU (v1.3)
+// Zapobiega przypadkowemu przybliżeniu przy chybieniu klawisza
+// ============================================================
+document.addEventListener('gesturestart', function(e){ e.preventDefault(); }, {passive:false});
+document.addEventListener('gesturechange', function(e){ e.preventDefault(); }, {passive:false});
+document.addEventListener('gestureend', function(e){ e.preventDefault(); }, {passive:false});
+document.addEventListener('touchmove', function(e){
+  if(e.scale !== undefined && e.scale !== 1){ e.preventDefault(); return; }
+  if(e.touches && e.touches.length > 1){ e.preventDefault(); }
+}, {passive:false});
 </script>
 </body>
 </html>
