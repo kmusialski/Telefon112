@@ -1,0 +1,19 @@
+{
+  "name": "dzwon112-backend",
+  "version": "1.4.0",
+  "description": "Backend proxy dla aplikacji Zadzwoń pod 112",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.4.0"
+  }
+}
