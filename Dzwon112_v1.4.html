@@ -828,12 +828,8 @@ let sessionAnonymized = null;
 function saveSessionLog(){
   if (!logs.length) return;
   const comment = (document.getElementById("admin-session-comment")||{}).value || "";
-  const commentLine = comment.trim() ? "
-
---- KOMENTARZ NAUCZYCIELA ---
-" + comment.trim() : "";
-  sessionLog = logs.join("
-") + commentLine;
+  const commentLine = comment.trim() ? "\n\n--- KOMENTARZ NAUCZYCIELA ---\n" + comment.trim() : "";
+  sessionLog = logs.join("\n") + commentLine;
   sessionAnonymized = null;
   localStorage.setItem("last_session_log", sessionLog);
   localStorage.removeItem("last_session_anon");
