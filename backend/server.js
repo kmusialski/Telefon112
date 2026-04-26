@@ -111,12 +111,12 @@ app.post("/api/chat", requireKeys, async (req, res) => {
 // ENDPOINT: /api/tts — proxy do ElevenLabs
 // ============================================================
 const ALLOWED_VOICE_IDS = new Set([
-  // PL
+  "pqHfZKP75CvOlQylNhV4",  // PL — aktualny głos
   "21m00Tcm4TlvDq8ikWAM",
   "pNInz6obpgDQGcFmaJgB",
   "ThT5KcBeYPX3keUQqHPh",
-  // DE
-  "XB0fDUnXU5powFXDhCwa",
+  "XB0fDUnXU5powFXDhCwa",  // DE
+  "EXAVITQu4vr4xnSDxMaL",  // DE Sarah
 ]);
 
 app.post("/api/tts", requireKeys, async (req, res) => {
