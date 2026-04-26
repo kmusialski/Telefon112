@@ -235,7 +235,7 @@ body{display:flex;flex-direction:column;align-items:center;font-family:-apple-sy
       onmousedown="startListening(event)" onmouseup="stopListening(event)">
       <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
     </button>
-    <button onclick="toggleLog()" style="background:transparent;border:none;color:#3a3a3c;font-size:11px;cursor:pointer;font-family:monospace;margin-top:2px">[ log ]</button>
+
   </div>
 </div>
 
@@ -292,6 +292,27 @@ body{display:flex;flex-direction:column;align-items:center;font-family:-apple-sy
     <div id="admin-extra-hint" style="font-size:12px;color:#636366;margin-bottom:8px;line-height:1.5"></div>
     <textarea id="admin-extra" style="background:#1c1c1e;border:0.5px solid #3a3a3c;border-radius:12px;color:#fff;font-size:13px;padding:14px;width:100%;height:200px;outline:none;font-family:-apple-system,sans-serif;line-height:1.6;resize:vertical"></textarea>
   </div>
+  <!-- SEKCJA SESJI -->
+  <div style="width:100%;margin-bottom:16px;padding-bottom:16px;border-bottom:0.5px solid #2c2c2e">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div id="admin-session-label" style="font-size:13px;color:#8e8e93"></div>
+      <div id="admin-session-badge" style="font-size:11px;color:#636366;background:#1c1c1e;padding:3px 8px;border-radius:6px"></div>
+    </div>
+    <div id="admin-session-empty" style="font-size:12px;color:#3a3a3c;text-align:center;padding:16px 0;display:none"></div>
+    <div id="admin-session-box" style="background:#0a0a0a;border:0.5px solid #2c2c2e;border-radius:12px;padding:10px 12px;font-size:11px;color:#636366;font-family:monospace;line-height:1.6;max-height:140px;overflow-y:auto;display:none"></div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button onclick="adminDeleteSession()" id="admin-session-delete-btn" style="flex:1;background:transparent;border:0.5px solid #ff3b30;border-radius:20px;color:#ff3b30;font-size:13px;padding:10px;cursor:pointer;font-family:-apple-system,sans-serif;opacity:0.4" disabled></button>
+      <button onclick="adminAnonymizeSession()" id="admin-session-anon-btn" style="flex:1;background:transparent;border:0.5px solid #ff9f0a;border-radius:20px;color:#ff9f0a;font-size:13px;padding:10px;cursor:pointer;font-family:-apple-system,sans-serif;opacity:0.4" disabled></button>
+      <button onclick="adminSendSession()" id="admin-session-send-btn" style="flex:1;background:transparent;border:0.5px solid #34c759;border-radius:20px;color:#34c759;font-size:13px;padding:10px;cursor:pointer;font-family:-apple-system,sans-serif;opacity:0.4" disabled></button>
+    </div>
+    <div id="admin-session-msg" style="font-size:12px;color:#8e8e93;text-align:center;min-height:18px;margin-top:6px"></div>
+    <div style="margin-top:10px">
+      <div id="admin-comment-label" style="font-size:13px;color:#8e8e93;margin-bottom:6px"></div>
+      <textarea id="admin-session-comment" style="background:#1c1c1e;border:0.5px solid #3a3a3c;border-radius:12px;color:#fff;font-size:13px;padding:10px 12px;width:100%;height:80px;outline:none;font-family:-apple-system,sans-serif;line-height:1.5;resize:vertical"></textarea>
+    </div>
+    <button onclick="toggleLog()" style="background:transparent;border:0.5px solid #3a3a3c;border-radius:20px;color:#3a3a3c;font-size:12px;cursor:pointer;width:100%;padding:8px;margin-top:8px;font-family:monospace" id="admin-log-toggle-btn"></button>
+  </div>
+
   <div style="width:100%;margin-bottom:12px">
     <div id="admin-pass-label" style="font-size:13px;color:#8e8e93;margin-bottom:6px"></div>
     <input id="admin-new-pass" class="api-input" type="password" placeholder="..."/>
@@ -379,7 +400,22 @@ const LOCALES = {
     iosCallingStatus:"Połączenie alarmowe — łączę...",
     iosCallingTitle:"Numer Alarmowy 112",
     iosBtnSpeaker:"Głośnik", iosBtnFaceTime:"FaceTime", iosBtnMute:"Wycisz",
-    iosBtnMore:"Więcej", iosBtnEnd:"Zakończ", iosBtnKeypad:"Przyciski"
+    iosBtnMore:"Więcej", iosBtnEnd:"Zakończ", iosBtnKeypad:"Przyciski",
+    adminSessionLabel:"Ostatnia sesja rozmowy",
+    adminSessionBadge:"Podgląd",
+    adminSessionEmpty:"Brak zapisanej sesji",
+    adminSessionDeleteBtn:"Skasuj",
+    adminSessionAnonBtn:"Anonimizuj",
+    adminSessionSendBtn:"Wyślij",
+    adminSessionAnonDone:"Zanonimizowano — możesz wysłać.",
+    adminSessionSentOk:"Pobrano log sesji!",
+    adminSessionErrAnon:"Błąd anonimizacji.",
+    adminSessionErrSend:"Błąd pobierania.",
+    adminSessionDelConfirm:"Usunąć log sesji?",
+    adminSessionDelDone:"Log usunięty.",
+    adminCommentLabel:"Komentarz nauczyciela (dołączany do logu)",
+    adminCommentPh:"Wpisz swoje obserwacje z tej sesji...",
+    adminLogToggleBtn:"[ podgląd logu bieżącej sesji ]"
   },
   de: {
     code:"de", sttLang:"de-DE", voiceId:VOICE_ID_DE,
@@ -446,7 +482,22 @@ const LOCALES = {
     iosCallingStatus:"Notruf — verbinde...",
     iosCallingTitle:"Notrufnummer 112",
     iosBtnSpeaker:"Lautsprecher", iosBtnFaceTime:"FaceTime", iosBtnMute:"Stumm",
-    iosBtnMore:"Mehr", iosBtnEnd:"Beenden", iosBtnKeypad:"Tasten"
+    iosBtnMore:"Mehr", iosBtnEnd:"Beenden", iosBtnKeypad:"Tasten",
+    adminSessionLabel:"Letzte Sitzung",
+    adminSessionBadge:"Vorschau",
+    adminSessionEmpty:"Keine gespeicherte Sitzung",
+    adminSessionDeleteBtn:"Löschen",
+    adminSessionAnonBtn:"Anonymis.",
+    adminSessionSendBtn:"Herunterladen",
+    adminSessionAnonDone:"Anonymisiert – kann jetzt heruntergeladen werden.",
+    adminSessionSentOk:"Log heruntergeladen!",
+    adminSessionErrAnon:"Anonymisierungsfehler.",
+    adminSessionErrSend:"Fehler.",
+    adminSessionDelConfirm:"Sitzungslog löschen?",
+    adminSessionDelDone:"Log gelöscht.",
+    adminCommentLabel:"Kommentar des Lehrers",
+    adminCommentPh:"Notizen aus dieser Sitzung...",
+    adminLogToggleBtn:"[ aktuellen Sitzungslog anzeigen ]"
   }
 };
 
@@ -641,6 +692,15 @@ function applyLocale() {
   setText("rodo-link-el-label", L.rodoLinkElevenLabs);
   setText("rodo-start-btn", L.rodoStartBtn);
   setText("rodo-note", L.rodoNote);
+  // Admin sesja
+  setText("admin-session-label", L.adminSessionLabel);
+  setText("admin-session-badge", L.adminSessionBadge);
+  setText("admin-session-delete-btn", L.adminSessionDeleteBtn);
+  setText("admin-session-anon-btn", L.adminSessionAnonBtn);
+  setText("admin-session-send-btn", L.adminSessionSendBtn);
+  setText("admin-comment-label", L.adminCommentLabel);
+  setPH("admin-session-comment", L.adminCommentPh);
+  setText("admin-log-toggle-btn", L.adminLogToggleBtn);
   // iOS calling
   setText("calling-status", L.iosCallingStatus);
   setText("calling-title", L.iosCallingTitle);
@@ -731,6 +791,7 @@ function checkAdminPass() {
     document.getElementById("admin-extra").value = localStorage.getItem("admin_extra_"+currentLang)||"";
     document.getElementById("admin-new-pass").value="";
     document.getElementById("admin-msg").textContent="";
+    refreshAdminSession();
     show("s-admin");
   } else {
     document.getElementById("admin-login-err").textContent = getLoc().adminLoginErr;
@@ -759,10 +820,113 @@ function clearExtra() {
 }
 
 // ============================================================
+// ZARZĄDZANIE SESJĄ
+// ============================================================
+let sessionLog = null;
+let sessionAnonymized = null;
+
+function saveSessionLog(){
+  if (!logs.length) return;
+  const comment = (document.getElementById("admin-session-comment")||{}).value || "";
+  const commentLine = comment.trim() ? "
+
+--- KOMENTARZ NAUCZYCIELA ---
+" + comment.trim() : "";
+  sessionLog = logs.join("
+") + commentLine;
+  sessionAnonymized = null;
+  localStorage.setItem("last_session_log", sessionLog);
+  localStorage.removeItem("last_session_anon");
+}
+
+function loadSessionLog(){
+  sessionLog = localStorage.getItem("last_session_log") || null;
+  sessionAnonymized = localStorage.getItem("last_session_anon") || null;
+}
+
+function refreshAdminSession(){
+  const L = getLoc();
+  loadSessionLog();
+  const box = document.getElementById("admin-session-box");
+  const empty = document.getElementById("admin-session-empty");
+  const delBtn = document.getElementById("admin-session-delete-btn");
+  const anonBtn = document.getElementById("admin-session-anon-btn");
+  const sendBtn = document.getElementById("admin-session-send-btn");
+  const msg = document.getElementById("admin-session-msg");
+  if (msg) msg.textContent = "";
+  if (!sessionLog) {
+    if (box) { box.style.display="none"; box.textContent=""; }
+    if (empty) { empty.style.display="block"; empty.textContent=L.adminSessionEmpty; }
+    [delBtn,anonBtn,sendBtn].forEach(b=>{ if(b){b.disabled=true;b.style.opacity="0.4";} });
+  } else {
+    const display = sessionAnonymized || sessionLog;
+    if (empty) empty.style.display="none";
+    if (box) { box.style.display="block"; box.textContent=display; }
+    if (delBtn) { delBtn.disabled=false; delBtn.style.opacity="1"; }
+    if (anonBtn) { anonBtn.disabled=false; anonBtn.style.opacity="1"; }
+    if (sendBtn) {
+      const canSend = !!sessionAnonymized;
+      sendBtn.disabled=!canSend; sendBtn.style.opacity=canSend?"1":"0.4";
+    }
+  }
+}
+
+function adminDeleteSession(){
+  const L = getLoc();
+  if (!confirm(L.adminSessionDelConfirm)) return;
+  localStorage.removeItem("last_session_log");
+  localStorage.removeItem("last_session_anon");
+  sessionLog = null; sessionAnonymized = null;
+  const msg = document.getElementById("admin-session-msg");
+  if (msg) { msg.style.color="#ff9f0a"; msg.textContent=L.adminSessionDelDone; }
+  refreshAdminSession();
+}
+
+async function adminAnonymizeSession(){
+  if (!sessionLog) return;
+  const L = getLoc();
+  const anonBtn = document.getElementById("admin-session-anon-btn");
+  const msg = document.getElementById("admin-session-msg");
+  if (anonBtn) { anonBtn.disabled=true; anonBtn.style.opacity="0.4"; anonBtn.textContent="..."; }
+  if (msg) { msg.style.color="#8e8e93"; msg.textContent="⏳ Anonimizuję..."; }
+  try {
+    const res = await fetch(BACKEND_URL+"/api/anonymize", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({text: sessionLog})
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Błąd serwera");
+    sessionAnonymized = data.anonymized;
+    localStorage.setItem("last_session_anon", sessionAnonymized);
+    if (msg) { msg.style.color="#34c759"; msg.textContent=L.adminSessionAnonDone; }
+  } catch(e) {
+    if (msg) { msg.style.color="#ff3b30"; msg.textContent=L.adminSessionErrAnon+" "+e.message; }
+  }
+  if (anonBtn) { anonBtn.textContent=L.adminSessionAnonBtn; anonBtn.disabled=false; anonBtn.style.opacity="1"; }
+  refreshAdminSession();
+}
+
+function adminSendSession(){
+  // v1.4: zamiast wysyłki do Sheets — pobierz plik txt
+  if (!sessionAnonymized) return;
+  const L = getLoc();
+  const blob = new Blob([sessionAnonymized], {type:"text/plain;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "sesja_zanonimizowana_" + new Date().toISOString().slice(0,10) + ".txt";
+  a.click();
+  URL.revokeObjectURL(url);
+  const msg = document.getElementById("admin-session-msg");
+  if (msg) { msg.style.color="#34c759"; msg.textContent=L.adminSessionSentOk; }
+}
+
+// ============================================================
 // STAN APLIKACJI
 // ============================================================
 // v1.4: klucze API są na serwerze
-const BACKEND_URL = "https://telefon112-dev.up.railway.app"; // "https://dzwon112-backend.up.railway.app";← zmień na URL z Railway
+const BACKEND_URL = "https://dzwon112-backend.up.railway.app"; // ← zmień na URL z Railway
 let digits="", callSecs=0, timerInt=null;
 let speaking=false, listening=false, rec=null, currentTranscript="";
 let childAnswers=0, conversationHistory=[];
@@ -1014,6 +1178,7 @@ function finishCall(){
   clearInterval(timerInt);
   speaking=false; listening=false;
   if(rec){try{rec.onend=null;rec.onresult=null;rec.onerror=null;rec.abort();}catch(x){} rec=null;}
+  saveSessionLog();
   const stars=childAnswers>=4?3:childAnswers>=2?2:1;
   document.getElementById("stars-row").innerHTML=[1,2,3].map(i=>'<span style="color:'+(i<=stars?"#ffd60a":"#3a3a3c")+'">★</span>').join("");
   show("s-summary");
@@ -1023,6 +1188,7 @@ function endCall(){
   clearInterval(timerInt);
   speaking=false; listening=false;
   if(rec){try{rec.onend=null;rec.onresult=null;rec.onerror=null;rec.abort();}catch(x){} rec=null;}
+  saveSessionLog();
   const stars=childAnswers>=4?3:childAnswers>=2?2:1;
   document.getElementById("stars-row").innerHTML=[1,2,3].map(i=>'<span style="color:'+(i<=stars?"#ffd60a":"#3a3a3c")+'">★</span>').join("");
   show("s-summary");
