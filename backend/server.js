@@ -6,7 +6,7 @@ const express = require("express");
 const cors = require("cors");
 const fetch = require("node-fetch");
 const { createClient } = require("@supabase/supabase-js");
-const nodemailer = require("nodemailer");
+// nodemailer usunięty — Railway blokuje SMTP. Używamy Resend API (HTTPS port 443)
 
 const app = express();
 app.use(express.json({ limit: "2mb" }));
@@ -29,8 +29,7 @@ const {
   ELEVENLABS_API_KEY,
   SUPABASE_URL,
   SUPABASE_SERVICE_KEY,
-  GMAIL_USER,
-  GMAIL_APP_PASSWORD,
+  RESEND_API_KEY,   // Resend.com — działa przez HTTPS (Railway nie blokuje)
   PORT = 3000
 } = process.env;
 
@@ -226,90 +225,172 @@ app.post("/api/session-end", async (req, res) => {
 // ============================================================
 app.post("/api/send-log-email", async (req, res) => {
   const { session_id, access_jwt } = req.body;
+  console.log(`[EMAIL] ▶ Żądanie wysyłki — session_id: ${session_id}`);
 
-  // Weryfikacja JWT dyrektora
+  // Weryfikacja JWT
+  console.log(`[EMAIL] Weryfikacja JWT (długość: ${access_jwt?.length || 0})`);
   const { data: { user }, error: authError } = await supabase.auth.getUser(access_jwt);
-  if (authError || !user) return res.status(401).json({ error: "Brak autoryzacji" });
+  if (authError || !user) {
+    console.error(`[EMAIL] ❌ Auth error: ${authError?.message || "brak usera"}`);
+    return res.status(401).json({ error: "Brak autoryzacji: " + (authError?.message || "brak usera") });
+  }
+  console.log(`[EMAIL] ✅ Użytkownik: ${user.email}`);
 
-  // Pobierz dane sesji wraz z wiadomościami
-  const { data: session } = await supabase
+  // Pobierz sesję
+  console.log(`[EMAIL] Pobieranie sesji z Supabase...`);
+  const { data: session, error: sessionError } = await supabase
     .from("sessions")
     .select("*, session_messages(*), schools(name, director_email)")
     .eq("id", session_id)
     .single();
-  if (!session) return res.status(404).json({ error: "Sesja nie znaleziona" });
+
+  if (sessionError || !session) {
+    console.error(`[EMAIL] ❌ Sesja nie znaleziona: ${sessionError?.message}`);
+    return res.status(404).json({ error: "Sesja nie znaleziona: " + (sessionError?.message || "") });
+  }
+  console.log(`[EMAIL] ✅ Sesja pobrana. Wiadomości: ${session.session_messages?.length || 0}, Szkoła: ${session.schools?.name}`);
 
   // Zbuduj surowy log
   const rawLog = (session.session_messages || [])
     .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
     .map(m => `[${m.role === "user" ? "DZIECKO" : "DYSPOZYTOR"}] ${m.content}`)
     .join("\n");
+  console.log(`[EMAIL] Surowy log: ${rawLog.length} znaków`);
 
-  // Anonimizuj przez Claude
-  let anonLog = rawLog;
-  try {
-    const anonRes = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001", max_tokens: 2000,
-        system: "Zanonimizuj poniższy log rozmowy edukacyjnej. Zastąp imiona, nazwiska, adresy i numery telefonów placeholderami [IMIĘ], [NAZWISKO], [ADRES], [TELEFON]. Zachowaj strukturę. Zwróć tylko zanonimizowany tekst.",
-        messages: [{ role: "user", content: rawLog }]
-      })
-    });
-    const anonData = await anonRes.json();
-    if (anonData.content?.[0]?.text) anonLog = anonData.content[0].text;
-  } catch (e) { console.error("Anonymize error:", e); }
+  // Anonimizuj — jeśli już mamy zanonimizowany, użyj go
+  let anonLog = session.anonymized_log || rawLog;
+  if (!session.anonymized_log) {
+    console.log(`[EMAIL] Anonimizuję przez Claude...`);
+    try {
+      const anonRes = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-haiku-4-5-20251001", max_tokens: 2000,
+          system: "Zanonimizuj poniższy log rozmowy edukacyjnej. Zastąp imiona, nazwiska, adresy i numery telefonów placeholderami [IMIĘ], [NAZWISKO], [ADRES], [TELEFON]. Zachowaj strukturę. Zwróć tylko zanonimizowany tekst.",
+          messages: [{ role: "user", content: rawLog }]
+        })
+      });
+      const anonData = await anonRes.json();
+      if (anonData.content?.[0]?.text) anonLog = anonData.content[0].text;
+      console.log(`[EMAIL] ✅ Anonimizacja OK (${anonLog.length} znaków)`);
+    } catch (e) {
+      console.error(`[EMAIL] ⚠️ Anonimizacja failed: ${e.message} — używam surowego logu`);
+    }
+  } else {
+    console.log(`[EMAIL] Zanonimizowany log już istnieje — pomijam anonimizację`);
+  }
 
-  // Zapisz zanonimizowany log i datę wysyłki
+  // Zapisz w Supabase
   await supabase.from("sessions").update({
     anonymized_log: anonLog,
     log_sent_at: new Date().toISOString()
   }).eq("id", session_id);
+  console.log(`[EMAIL] ✅ Supabase zaktualizowany`);
 
-  // Przygotuj email
+  // Przygotuj dane do maila
   const directorEmail = session.schools?.director_email || user.email;
   const schoolName = session.schools?.name || "Szkoła";
   const date = new Date(session.started_at).toLocaleString("pl-PL");
   const dur = session.duration_seconds ? Math.round(session.duration_seconds / 60) + " min" : "—";
 
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD }
-  });
+  // Na razie wysyłamy tylko na APP_EMAIL (Resend darmowy = tylko zweryfikowany adres)
+  // Docelowo po dodaniu domeny: recipients = [directorEmail, APP_EMAIL]
+  const recipient = APP_EMAIL;
+  console.log(`[EMAIL] Odbiorca: ${recipient} (tryb testowy — brak własnej domeny Resend)`);
+  console.log(`[EMAIL] Dyrektor szkoły (info w treści): ${directorEmail}`);
+  console.log(`[EMAIL] Resend API key: ${RESEND_API_KEY ? "ustawiony ✅" : "BRAK ❌"}`);
 
-  // Wyślij na: dyrektor + APP_EMAIL (musialski.k@gmail.com)
-  const recipients = [...new Set([directorEmail, APP_EMAIL])]; // usuń duplikaty jeśli ten sam email
+  if (!RESEND_API_KEY) {
+    console.error(`[EMAIL] ❌ Brak RESEND_API_KEY!`);
+    return res.status(500).json({ error: "Brak konfiguracji Resend na serwerze (RESEND_API_KEY)" });
+  }
 
-  const mailOptions = {
-    from: `"Zadzwoń pod 112" <${GMAIL_USER}>`,
-    to: recipients.join(", "),
-    subject: `[112] Log sesji — ${schoolName} · ${date}`,
-    text: `Log zanonimizowanej sesji edukacyjnej\n\nSzkoła: ${schoolName}\nData: ${date}\nCzas rozmowy: ${dur}\nGwiazdki: ${session.stars || 0}/3\nJęzyk: ${session.lang}\n\n--- LOG ROZMOWY (zanonimizowany) ---\n\n${anonLog}\n\n---\nZadzwoń pod 112 · Symulator edukacyjny\nWysłano automatycznie na żądanie: ${user.email}`,
-    html: `
-      <h2 style="color:#333">Log sesji — Zadzwoń pod 112</h2>
-      <table style="font-family:monospace;font-size:13px;border-collapse:collapse;margin-bottom:16px">
-        <tr><td style="padding:4px 16px 4px 0;color:#666">Szkoła:</td><td><b>${schoolName}</b></td></tr>
-        <tr><td style="padding:4px 16px 4px 0;color:#666">Data:</td><td>${date}</td></tr>
-        <tr><td style="padding:4px 16px 4px 0;color:#666">Czas rozmowy:</td><td>${dur}</td></tr>
-        <tr><td style="padding:4px 16px 4px 0;color:#666">Gwiazdki:</td><td>${session.stars || 0}/3</td></tr>
-        <tr><td style="padding:4px 16px 4px 0;color:#666">Język:</td><td>${session.lang}</td></tr>
-      </table>
+  const subject = `[112] Log sesji — ${schoolName} · ${date}`;
+  const textBody = [
+    `=== LOG SESJI EDUKACYJNEJ — ZADZWOŃ POD 112 ===`,
+    ``,
+    `DANE SZKOŁY:`,
+    `Szkoła:         ${schoolName}`,
+    `Dyrektor/email: ${directorEmail}`,
+    `Wysłano przez:  ${user.email}`,
+    ``,
+    `DANE SESJI:`,
+    `Data:           ${date}`,
+    `Czas rozmowy:   ${dur}`,
+    `Gwiazdki:       ${session.stars || 0}/3`,
+    `Język:          ${session.lang}`,
+    `Session ID:     ${session_id}`,
+    ``,
+    `=== LOG ROZMOWY (zanonimizowany) ===`,
+    ``,
+    anonLog,
+    ``,
+    `===`,
+    `Zadzwoń pod 112 · Symulator edukacyjny`,
+    `Wysłano automatycznie na żądanie dyrektora: ${user.email}`,
+    `UWAGA: Mail docelowo będzie też wysyłany bezpośrednio do dyrektora (po konfiguracji domeny).`
+  ].join("\n");
+
+  const htmlBody = `
+    <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
+      <h2 style="color:#c00;border-bottom:2px solid #c00;padding-bottom:8px">🚨 Log sesji — Zadzwoń pod 112</h2>
+      <div style="background:#f0f7ff;border-radius:8px;padding:16px;margin-bottom:16px">
+        <h3 style="margin:0 0 10px;color:#333">Dane szkoły</h3>
+        <table style="font-size:14px;border-collapse:collapse;width:100%">
+          <tr><td style="padding:4px 16px 4px 0;color:#666;width:140px">Szkoła:</td><td><b>${schoolName}</b></td></tr>
+          <tr><td style="padding:4px 16px 4px 0;color:#666">Dyrektor / email:</td><td><b>${directorEmail}</b></td></tr>
+          <tr><td style="padding:4px 16px 4px 0;color:#666">Wysłano przez:</td><td>${user.email}</td></tr>
+        </table>
+      </div>
+      <div style="background:#f5f5f5;border-radius:8px;padding:16px;margin-bottom:16px">
+        <h3 style="margin:0 0 10px;color:#333">Dane sesji</h3>
+        <table style="font-size:14px;border-collapse:collapse;width:100%">
+          <tr><td style="padding:4px 16px 4px 0;color:#666;width:140px">Data:</td><td>${date}</td></tr>
+          <tr><td style="padding:4px 16px 4px 0;color:#666">Czas rozmowy:</td><td>${dur}</td></tr>
+          <tr><td style="padding:4px 16px 4px 0;color:#666">Gwiazdki:</td><td>${"★".repeat(session.stars || 0)}${"☆".repeat(3 - (session.stars || 0))} (${session.stars || 0}/3)</td></tr>
+          <tr><td style="padding:4px 16px 4px 0;color:#666">Język:</td><td>${session.lang}</td></tr>
+        </table>
+      </div>
       <h3 style="color:#333">Log rozmowy (zanonimizowany)</h3>
-      <pre style="background:#f5f5f5;padding:16px;border-radius:8px;font-size:12px;line-height:1.7;color:#333;white-space:pre-wrap">${anonLog}</pre>
-      <p style="font-size:11px;color:#999;margin-top:16px">
+      <pre style="background:#111;color:#a0ffa0;padding:16px;border-radius:8px;font-size:12px;line-height:1.7;white-space:pre-wrap;overflow-x:auto">${anonLog}</pre>
+      <p style="font-size:11px;color:#999;margin-top:16px;border-top:1px solid #eee;padding-top:12px">
         Wysłano automatycznie na żądanie: ${user.email}<br/>
-        Odbiorcy: ${recipients.join(", ")}
+        <i>Uwaga: W fazie testowej maile trafiają tylko na adres administratora aplikacji. Po konfiguracji domeny będą wysyłane bezpośrednio do dyrektora szkoły.</i>
       </p>
-    `
-  };
+    </div>
+  `;
 
+  console.log(`[EMAIL] Wysyłam przez Resend API...`);
   try {
-    await transporter.sendMail(mailOptions);
-    return res.json({ ok: true, sent_to: recipients });
+    const resendRes = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${RESEND_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        from: "Zadzwoń pod 112 <onboarding@resend.dev>",
+        to: [recipient],
+        subject,
+        text: textBody,
+        html: htmlBody
+      })
+    });
+
+    const resendData = await resendRes.json();
+    console.log(`[EMAIL] Resend response: ${resendRes.status} — ${JSON.stringify(resendData)}`);
+
+    if (!resendRes.ok) {
+      console.error(`[EMAIL] ❌ Resend error: ${JSON.stringify(resendData)}`);
+      return res.status(500).json({ error: "Błąd Resend: " + (resendData.message || JSON.stringify(resendData)) });
+    }
+
+    console.log(`[EMAIL] ✅ Wysłano! ID: ${resendData.id}`);
+    return res.json({ ok: true, sent_to: [recipient], director_notified: false, messageId: resendData.id });
   } catch (e) {
-    console.error("Email error:", e);
-    return res.status(500).json({ error: "Błąd wysyłki emaila: " + e.message });
+    console.error(`[EMAIL] ❌ Wyjątek: ${e.message}`);
+    return res.status(500).json({ error: "Błąd wysyłki: " + e.message });
   }
 });
 
@@ -324,7 +405,7 @@ app.get("/api/health", async (req, res) => {
       anthropic: !!ANTHROPIC_API_KEY,
       elevenlabs: !!ELEVENLABS_API_KEY,
       supabase: !!SUPABASE_URL && !!SUPABASE_SERVICE_KEY,
-      gmail: !!GMAIL_USER && !!GMAIL_APP_PASSWORD
+      resend: !!RESEND_API_KEY
     },
     app_email: APP_EMAIL,
     timestamp: new Date().toISOString()
@@ -339,6 +420,6 @@ app.listen(PORT, () => {
   console.log(`   Anthropic: ${ANTHROPIC_API_KEY ? "✅" : "❌"}`);
   console.log(`   ElevenLabs: ${ELEVENLABS_API_KEY ? "✅" : "❌"}`);
   console.log(`   Supabase: ${SUPABASE_URL ? "✅" : "❌"}`);
-  console.log(`   Gmail: ${GMAIL_USER ? "✅" : "❌"}`);
+  console.log(`   Resend: ${RESEND_API_KEY ? "✅" : "❌"}`);
   console.log(`   App email (CC): ${APP_EMAIL}`);
 });
