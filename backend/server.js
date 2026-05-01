@@ -92,7 +92,7 @@ app.post("/api/validate-token", async (req, res) => {
 // ============================================================
 app.post("/api/chat", async (req, res) => {
   const ip = req.headers["x-forwarded-for"]?.split(",")[0] || req.ip;
-  if (!rateLimit(ip)) return res.status(429).json({ error: "Za dużo zapytań. Spróbuj za godzinę." });
+  if (!rateLimit(ip, 120)) return res.status(429).json({ error: "Za dużo zapytań. Spróbuj za godzinę." });
 
   const { message, history = [], system, lang = "pl", token, session_id } = req.body;
   if (!message) return res.status(400).json({ error: "Brak wiadomości" });
