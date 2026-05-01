@@ -35,7 +35,10 @@
     .nav-links a.active { color:var(--red); font-weight:500; }
     .nav-btn { background:var(--red); color:#fff; border:none; padding:9px 20px; font-family:var(--sans); font-size:13px; font-weight:500; cursor:pointer; letter-spacing:0.3px; border-radius:2px; transition:background .2s; text-decoration:none; display:inline-block; white-space:nowrap; }
     .nav-btn:hover { background:var(--red-dark); }
-    @media (max-width:700px) { .nav-links { display:none; } }
+    .nav-actions { display:flex; align-items:center; gap:10px; }
+    .nav-app-btn { text-decoration:none; color:var(--ink-mid); font-size:13px; font-weight:400; padding:7px 14px; border-radius:2px; border:1.5px solid var(--border); transition:all .2s; white-space:nowrap; }
+    .nav-app-btn:hover { color:var(--red); border-color:var(--red); background:var(--red-pale); }
+    @media (max-width:700px) { .nav-links { display:none; } .nav-app-btn { display:none; } }
 
     /* HERO */
     .hero-wrap { background:var(--white); border-bottom:1px solid var(--border); border-top:4px solid var(--red); position:relative; overflow:hidden; }
@@ -241,7 +244,7 @@
 <body>
 
 <nav>
-  <a class="nav-logo" href="#">
+  <a class="nav-logo" href="/">
     <strong>Hero</strong>Kids
     <span class="nav-badge">PL</span>
   </a>
@@ -252,7 +255,10 @@
     <li><a href="#cennik">Cennik</a></li>
     <li><a href="#faq">FAQ</a></li>
   </ul>
-  <a class="nav-btn" href="#" id="navAuthBtn" onclick="openModal(); return false;">Panel dyrektora →</a>
+  <div class="nav-actions">
+    <a class="nav-app-btn" href="/aplikacja/" id="navAppBtn">▶ Aplikacja</a>
+    <a class="nav-btn" href="#" id="navAuthBtn" onclick="openModal(); return false;">Panel dyrektora →</a>
+  </div>
 </nav>
 
 <!-- MODAL REJESTRACJA / LOGOWANIE -->
