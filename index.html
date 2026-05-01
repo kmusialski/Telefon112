@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HeroKids — Platforma edukacji bezpieczeństwa dla dzieci</title>
+  <meta name="description" content="HeroKids to platforma edukacji bezpieczeństwa dla dzieci w przedszkolach i klasach 1–3. Uczysz dzieci jak reagować w nagłych sytuacjach — głosowo, skutecznie, w bezpiecznych warunkach.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --red: #C8001E; --red-dark: #9a0016; --red-pale: #fff0f3;
+      --ink: #18181b; --ink-mid: #52525b; --ink-light: #a1a1aa;
+      --cream: #faf9f7; --border: #e4e4e7; --white: #ffffff;
+      --serif: 'Playfair Display', Georgia, serif;
+      --sans: 'DM Sans', system-ui, sans-serif;
+      --max: 960px; --pad: clamp(20px, 5vw, 48px);
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--sans); font-weight: 300; color: var(--ink); background: var(--white); line-height: 1.65; font-size: 16px; -webkit-font-smoothing: antialiased; }
+
+    @keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+    .reveal { opacity:0; transform:translateY(24px); transition: opacity .65s ease, transform .65s ease; }
+    .reveal.visible { opacity:1; transform:translateY(0); }
+
+    /* NAV */
+    nav { position:sticky; top:0; z-index:200; background:rgba(255,255,255,0.95); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-bottom:1px solid var(--border); padding:0 var(--pad); height:62px; display:flex; align-items:center; justify-content:space-between; }
+    .nav-logo { font-family:var(--serif); font-weight:700; font-size:17px; color:var(--ink); text-decoration:none; letter-spacing:-0.3px; display:flex; align-items:center; gap:8px; }
+    .nav-badge { background:var(--red); color:#fff; font-family:var(--sans); font-size:10px; font-weight:500; letter-spacing:1px; padding:3px 7px; border-radius:2px; }
+    .nav-links { display:flex; gap:2px; list-style:none; }
+    .nav-links a { text-decoration:none; color:var(--ink-mid); font-size:13px; font-weight:400; padding:6px 11px; border-radius:4px; transition:all .2s; }
+    .nav-links a:hover { color:var(--red); background:var(--red-pale); }
+    .nav-links a.active { color:var(--red); font-weight:500; }
+    .nav-btn { background:var(--red); color:#fff; border:none; padding:9px 20px; font-family:var(--sans); font-size:13px; font-weight:500; cursor:pointer; letter-spacing:0.3px; border-radius:2px; transition:background .2s; text-decoration:none; display:inline-block; white-space:nowrap; }
+    .nav-btn:hover { background:var(--red-dark); }
+    @media (max-width:700px) { .nav-links { display:none; } }
+
+    /* HERO */
+    .hero-wrap { background:var(--white); border-bottom:1px solid var(--border); border-top:4px solid var(--red); position:relative; overflow:hidden; }
+    .hero-wrap::before { content:'112'; position:absolute; right:-40px; top:50%; transform:translateY(-50%); font-family:var(--serif); font-size:clamp(200px,28vw,340px); font-weight:900; color:rgba(200,0,30,0.04); line-height:1; pointer-events:none; white-space:nowrap; }
+    .hero { max-width:var(--max); margin:0 auto; padding:clamp(64px,10vw,110px) var(--pad) clamp(56px,9vw,96px); display:grid; grid-template-columns:1.15fr 1fr; gap:64px; align-items:center; position:relative; }
+    @media (max-width:680px) { .hero { grid-template-columns:1fr; gap:40px; } .hero-phone { display:none; } }
+    .hero-eyebrow { display:inline-flex; align-items:center; gap:10px; font-size:11px; font-weight:500; letter-spacing:2.5px; text-transform:uppercase; color:var(--red); margin-bottom:22px; animation:fadeUp .5s ease both; }
+    .hero-eyebrow::before { content:''; display:block; width:24px; height:2px; background:var(--red); }
+    .hero h1 { font-family:var(--serif); font-size:clamp(36px,5vw,62px); font-weight:900; line-height:1.07; letter-spacing:-2px; color:var(--ink); margin-bottom:22px; animation:fadeUp .5s .1s ease both; }
+    .hero h1 em { font-style:italic; color:var(--red); }
+    .hero-lead { font-size:17px; font-weight:300; color:var(--ink-mid); line-height:1.7; margin-bottom:40px; max-width:480px; animation:fadeUp .5s .2s ease both; }
+    .hero-ctas { display:flex; gap:12px; flex-wrap:wrap; align-items:center; animation:fadeUp .5s .3s ease both; }
+    .btn { display:inline-block; text-decoration:none; font-family:var(--sans); font-size:14px; font-weight:500; padding:13px 28px; border-radius:2px; cursor:pointer; transition:all .2s; border:1.5px solid transparent; letter-spacing:0.2px; }
+    .btn-red { background:var(--red); color:#fff; border-color:var(--red); }
+    .btn-red:hover { background:var(--red-dark); border-color:var(--red-dark); }
+    .btn-ghost { background:transparent; color:var(--ink); border-color:var(--border); }
+    .btn-ghost:hover { border-color:var(--red); color:var(--red); }
+    .btn-outline { background:transparent; color:var(--ink); border-color:var(--border); }
+    .btn-outline:hover { border-color:var(--red); color:var(--red); }
+    .hero-note { font-size:12px; color:var(--ink-light); margin-top:16px; animation:fadeUp .5s .4s ease both; }
+
+    /* Phone */
+    .hero-phone { display:flex; justify-content:center; align-items:center; animation:fadeUp .6s .25s ease both; }
+    .phone-frame { width:210px; height:370px; background:#0a0a0a; border-radius:36px; padding:12px; box-shadow:0 0 0 1px rgba(0,0,0,0.12),0 32px 64px rgba(0,0,0,0.18); }
+    .phone-screen { width:100%; height:100%; background:#111; border-radius:26px; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; position:relative; }
+    .phone-notch { position:absolute; top:0; left:50%; transform:translateX(-50%); width:76px; height:18px; background:#0a0a0a; border-radius:0 0 12px 12px; }
+    .phone-status { font-size:11px; color:#444; letter-spacing:0.5px; }
+    .phone-num { font-family:var(--serif); font-size:46px; font-weight:900; color:#fff; letter-spacing:6px; line-height:1; }
+    .phone-sub { font-size:10px; color:#555; letter-spacing:1.5px; text-transform:uppercase; }
+    .phone-btn-wrap { position:relative; display:flex; align-items:center; justify-content:center; margin-top:8px; }
+    .phone-pulse { position:absolute; width:56px; height:56px; border-radius:50%; background:rgba(29,185,84,0.25); animation:pulse 1.8s ease-out infinite; }
+    @keyframes pulse { 0%{transform:scale(1);opacity:.8;} 100%{transform:scale(2.4);opacity:0;} }
+    .phone-call { position:relative; width:56px; height:56px; border-radius:50%; background:#1db954; display:flex; align-items:center; justify-content:center; }
+    .phone-call svg { width:24px; height:24px; fill:#fff; }
+
+    /* TRUST BAR */
+    .trust-bar { border-bottom:1px solid var(--border); padding:18px var(--pad); display:flex; justify-content:center; gap:clamp(20px,4vw,56px); flex-wrap:wrap; }
+    .trust-item { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink-mid); }
+    .trust-item::before { content:''; display:block; width:6px; height:6px; background:var(--red); border-radius:50%; flex-shrink:0; }
+
+    /* SECTION BASE */
+    .section { max-width:var(--max); margin:0 auto; padding:clamp(56px,9vw,88px) var(--pad); }
+    .divider { height:1px; background:var(--border); max-width:var(--max); margin:0 auto; }
+    .section-eyebrow { font-size:11px; font-weight:500; letter-spacing:2.5px; text-transform:uppercase; color:var(--red); margin-bottom:14px; display:block; }
+    .section-title { font-family:var(--serif); font-size:clamp(26px,3.5vw,40px); font-weight:700; line-height:1.15; letter-spacing:-1.2px; color:var(--ink); margin-bottom:14px; }
+    .section-lead { font-size:16px; font-weight:300; color:var(--ink-mid); line-height:1.7; max-width:580px; margin-bottom:44px; }
+
+    /* VIDEO */
+    .video-section { background:var(--cream); border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
+    .video-inner { max-width:var(--max); margin:0 auto; padding:clamp(56px,9vw,88px) var(--pad); display:grid; grid-template-columns:1fr 1fr; gap:64px; align-items:center; }
+    @media (max-width:680px) { .video-inner { grid-template-columns:1fr; } }
+    .video-embed { aspect-ratio:16/9; background:var(--ink); border-radius:4px; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+    .video-placeholder { display:flex; flex-direction:column; align-items:center; gap:14px; }
+    .video-play { width:64px; height:64px; border-radius:50%; background:rgba(200,0,30,0.9); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:transform .2s,background .2s; }
+    .video-play:hover { transform:scale(1.08); background:var(--red); }
+    .video-play svg { width:24px; height:24px; fill:#fff; margin-left:4px; }
+    .video-placeholder p { font-size:13px; color:#555; }
+    .video-quote { margin-top:28px; padding:20px 24px; border-left:3px solid var(--red); background:#fff; }
+    .video-quote p { font-size:14px; color:var(--ink-mid); line-height:1.65; font-style:italic; }
+    .video-quote cite { display:block; font-size:12px; color:var(--ink-light); margin-top:8px; font-style:normal; }
+
+    /* STEPS */
+    .steps { border-top:1px solid var(--border); }
+    .step { display:grid; grid-template-columns:60px 1fr; border-bottom:1px solid var(--border); padding:28px 0; gap:4px; transition:all .2s; }
+    .step:hover { background:var(--cream); margin:0 -24px; padding:28px 24px; }
+    .step-n { font-family:var(--serif); font-size:34px; font-weight:900; color:var(--red); opacity:.18; line-height:1; padding-top:3px; }
+    .step h3 { font-size:15px; font-weight:500; margin-bottom:6px; }
+    .step p  { font-size:14px; color:var(--ink-mid); line-height:1.65; }
+    .step-tag { display:inline-block; font-size:10px; font-weight:500; letter-spacing:1px; text-transform:uppercase; color:var(--red); background:var(--red-pale); padding:2px 8px; border-radius:2px; margin-bottom:8px; }
+
+    /* PILOT */
+    .pilot-section { background:var(--cream); border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
+    .pilot-inner { max-width:var(--max); margin:0 auto; padding:clamp(56px,9vw,88px) var(--pad); }
+    .pilot-grid { display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:start; margin-top:44px; }
+    @media (max-width:680px) { .pilot-grid { grid-template-columns:1fr; } }
+    .pilot-steps { display:flex; flex-direction:column; }
+    .pilot-step { display:flex; gap:20px; align-items:flex-start; padding:22px 0; border-bottom:1px solid var(--border); }
+    .pilot-step:first-child { padding-top:0; }
+    .pilot-num { width:34px; height:34px; border-radius:50%; background:var(--red); color:#fff; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:500; }
+    .pilot-step h4 { font-size:14px; font-weight:500; margin-bottom:4px; }
+    .pilot-step p  { font-size:13px; color:var(--ink-mid); line-height:1.6; }
+    .pilot-box { background:var(--ink); padding:36px 32px; position:relative; overflow:hidden; }
+    .pilot-box::before { content:'10'; position:absolute; right:-12px; bottom:-24px; font-family:var(--serif); font-size:160px; font-weight:900; color:rgba(255,255,255,0.04); line-height:1; pointer-events:none; }
+    .pilot-box h3 { font-family:var(--serif); font-size:26px; font-weight:700; color:#fff; letter-spacing:-0.8px; margin-bottom:8px; }
+    .pilot-box .pilot-sub { font-size:14px; color:#71717a; margin-bottom:28px; }
+    .pilot-includes { list-style:none; display:flex; flex-direction:column; gap:12px; margin-bottom:32px; }
+    .pilot-includes li { display:flex; gap:12px; align-items:flex-start; font-size:14px; color:#a1a1aa; }
+    .pilot-includes li::before { content:''; display:block; width:16px; height:16px; flex-shrink:0; margin-top:1px; background:url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='8' cy='8' r='7.5' stroke='%23C8001E'/%3E%3Cpath d='M5 8l2 2 4-4' stroke='%23C8001E' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat; }
+    .pilot-disclaimer { font-size:12px; color:#3f3f46; padding-top:20px; border-top:1px solid #27272a; line-height:1.6; }
+
+    /* PACKAGES */
+    .packages { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--border); border:1px solid var(--border); }
+    @media (max-width:680px) { .packages { grid-template-columns:1fr; } }
+    .pkg { background:var(--white); padding:32px 28px; display:flex; flex-direction:column; transition:background .15s; }
+    .pkg:hover { background:var(--cream); }
+    .pkg.featured { background:var(--ink); }
+    .pkg.featured:hover { background:#1c1c1f; }
+    .pkg-badge { font-size:10px; font-weight:500; letter-spacing:1.5px; text-transform:uppercase; padding:3px 9px; display:inline-block; margin-bottom:20px; align-self:flex-start; border-radius:2px; }
+    .pkg .pkg-badge { color:var(--red); background:var(--red-pale); }
+    .pkg.featured .pkg-badge { color:#ffa0a0; background:rgba(200,0,30,0.2); }
+    .pkg-name { font-family:var(--serif); font-size:22px; font-weight:700; letter-spacing:-0.5px; margin-bottom:8px; }
+    .pkg .pkg-name { color:var(--ink); }
+    .pkg.featured .pkg-name { color:#fff; }
+    .pkg-desc { font-size:13px; line-height:1.6; margin-bottom:24px; font-weight:300; }
+    .pkg .pkg-desc { color:var(--ink-mid); }
+    .pkg.featured .pkg-desc { color:#71717a; }
+    .pkg-sessions { font-family:var(--serif); font-size:42px; font-weight:900; line-height:1; letter-spacing:-1px; margin-bottom:4px; }
+    .pkg .pkg-sessions { color:var(--ink); }
+    .pkg.featured .pkg-sessions { color:#fff; }
+    .pkg-sessions-label { font-size:12px; color:var(--ink-light); margin-bottom:6px; }
+    .pkg.featured .pkg-sessions-label { color:#52525b; }
+    .pkg-price { font-size:14px; font-weight:400; margin-bottom:28px; color:var(--ink-mid); }
+    .pkg.featured .pkg-price { color:#a1a1aa; }
+    .pkg-features { list-style:none; display:flex; flex-direction:column; gap:9px; margin-bottom:28px; }
+    .pkg-features li { font-size:13px; display:flex; gap:10px; align-items:flex-start; }
+    .pkg .pkg-features li { color:var(--ink-mid); }
+    .pkg.featured .pkg-features li { color:#a1a1aa; }
+    .pkg-features li::before { content:'–'; color:var(--red); font-weight:500; flex-shrink:0; }
+    .pkg-btn { display:block; text-align:center; text-decoration:none; font-family:var(--sans); font-size:13px; font-weight:500; padding:11px 20px; border-radius:2px; cursor:pointer; transition:all .2s; border:1.5px solid; margin-top:auto; letter-spacing:0.2px; }
+    .pkg .pkg-btn { color:var(--ink); border-color:var(--border); background:transparent; }
+    .pkg .pkg-btn:hover { border-color:var(--red); color:var(--red); }
+    .pkg.featured .pkg-btn { background:var(--red); color:#fff; border-color:var(--red); }
+    .pkg.featured .pkg-btn:hover { background:var(--red-dark); border-color:var(--red-dark); }
+    .pkg-note { font-size:11px; color:var(--ink-light); margin-top:10px; text-align:center; }
+    .pkg.featured .pkg-note { color:#3f3f46; }
+    .packages-sub { margin-top:20px; font-size:13px; color:var(--ink-light); text-align:center; }
+    .packages-sub a { color:var(--red); text-decoration:none; }
+    .packages-sub a:hover { text-decoration:underline; }
+
+    /* RODO */
+    .rodo-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    @media (max-width:560px) { .rodo-grid { grid-template-columns:1fr; } }
+    .rodo-item { display:flex; gap:12px; align-items:flex-start; padding:16px 18px; background:var(--cream); border:1px solid var(--border); }
+    .rodo-dot { width:6px; height:6px; background:var(--red); flex-shrink:0; margin-top:7px; }
+    .rodo-item p { font-size:13px; color:var(--ink-mid); line-height:1.6; }
+
+    /* FAQ */
+    .faq-list { border-top:1px solid var(--border); }
+    details { border-bottom:1px solid var(--border); }
+    summary { padding:22px 0; font-size:15px; font-weight:500; cursor:pointer; list-style:none; display:flex; justify-content:space-between; align-items:center; color:var(--ink); user-select:none; }
+    summary::-webkit-details-marker { display:none; }
+    summary::after { content:'+'; font-size:22px; font-weight:300; color:var(--red); flex-shrink:0; margin-left:16px; transition:transform .25s; line-height:1; }
+    details[open] summary::after { transform:rotate(45deg); }
+    .faq-body { padding:0 0 22px; font-size:14px; color:var(--ink-mid); line-height:1.7; font-weight:300; max-width:680px; }
+
+    /* CTA STRIP */
+    .cta-strip { background:var(--red); padding:clamp(48px,8vw,80px) var(--pad); text-align:center; position:relative; overflow:hidden; }
+    .cta-strip::before { content:'112'; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); font-family:var(--serif); font-size:clamp(180px,30vw,300px); font-weight:900; color:rgba(0,0,0,0.08); line-height:1; pointer-events:none; white-space:nowrap; }
+    .cta-inner { position:relative; max-width:560px; margin:0 auto; }
+    .cta-strip h2 { font-family:var(--serif); font-size:clamp(28px,4.5vw,48px); font-weight:900; color:#fff; letter-spacing:-1.5px; line-height:1.08; margin-bottom:14px; }
+    .cta-strip p { font-size:16px; color:rgba(255,255,255,0.72); margin-bottom:36px; font-weight:300; }
+    .btn-white { background:#fff; color:var(--red); border:none; padding:15px 36px; font-family:var(--sans); font-size:15px; font-weight:500; cursor:pointer; border-radius:2px; text-decoration:none; display:inline-block; transition:opacity .2s; }
+    .btn-white:hover { opacity:.92; }
+    .cta-note { font-size:12px; color:rgba(255,255,255,0.4); margin-top:16px; }
+
+    /* FOOTER */
+    footer { border-top:1px solid var(--border); background:var(--cream); padding:28px var(--pad); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; font-size:13px; }
+    .footer-logo { font-family:var(--serif); font-weight:700; font-size:15px; color:var(--ink); text-decoration:none; }
+    .footer-logo strong { color:var(--red); }
+    footer p { color:var(--ink-light); }
+    footer a { color:var(--ink-mid); text-decoration:none; }
+    footer a:hover { color:var(--red); }
+
+    /* MODAL */
+    .modal-overlay { display:none; position:fixed; inset:0; z-index:999; background:rgba(24,24,27,0.55); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); align-items:center; justify-content:center; padding:20px; }
+    .modal-overlay.open { display:flex; }
+    .modal { background:var(--white); width:100%; max-width:440px; position:relative; border-top:4px solid var(--red); box-shadow:0 32px 80px rgba(0,0,0,0.2); animation:fadeUp .3s ease both; }
+    .modal-close { position:absolute; top:16px; right:16px; background:none; border:none; font-size:22px; color:var(--ink-light); cursor:pointer; line-height:1; padding:4px; }
+    .modal-close:hover { color:var(--red); }
+    .modal-inner { padding:36px 36px 32px; }
+    @media (max-width:480px) { .modal-inner { padding:28px 22px 24px; } }
+    .modal-eyebrow { font-size:11px; font-weight:500; letter-spacing:2px; text-transform:uppercase; color:var(--red); margin-bottom:10px; display:block; }
+    .modal-title { font-family:var(--serif); font-size:26px; font-weight:700; letter-spacing:-0.8px; color:var(--ink); margin-bottom:6px; }
+    .modal-sub { font-size:13px; color:var(--ink-mid); margin-bottom:28px; line-height:1.55; }
+    .modal-tabs { display:flex; border-bottom:1px solid var(--border); margin-bottom:28px; }
+    .modal-tab { flex:1; padding:10px 0; font-size:13px; font-weight:500; color:var(--ink-mid); background:none; border:none; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; transition:all .2s; }
+    .modal-tab.active { color:var(--red); border-bottom-color:var(--red); }
+    .modal-tab:hover:not(.active) { color:var(--ink); }
+    .form-group { display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
+    .form-group label { font-size:12px; font-weight:500; color:var(--ink); letter-spacing:0.3px; }
+    .form-group input { border:1.5px solid var(--border); padding:11px 14px; font-family:var(--sans); font-size:14px; color:var(--ink); background:var(--white); border-radius:2px; outline:none; transition:border-color .2s; }
+    .form-group input:focus { border-color:var(--red); }
+    .form-group input::placeholder { color:var(--ink-light); }
+    .form-group input.error { border-color:#ef4444; }
+    .form-error { font-size:12px; color:#ef4444; margin-top:2px; display:none; }
+    .form-error.show { display:block; }
+    .form-submit { width:100%; padding:13px; background:var(--red); color:#fff; border:none; font-family:var(--sans); font-size:14px; font-weight:500; cursor:pointer; border-radius:2px; letter-spacing:0.3px; transition:background .2s; margin-top:8px; }
+    .form-submit:hover { background:var(--red-dark); }
+    .form-submit:disabled { opacity:0.6; cursor:not-allowed; }
+    .form-note { font-size:11px; color:var(--ink-light); text-align:center; margin-top:14px; line-height:1.6; }
+    .form-note a { color:var(--red); text-decoration:none; }
+    .form-msg { padding:12px 14px; border-radius:2px; font-size:13px; margin-bottom:16px; display:none; }
+    .form-msg.show { display:block; }
+    .form-msg.success { background:#f0fdf4; border:1px solid #86efac; color:#166534; }
+    .form-msg.error { background:#fef2f2; border:1px solid #fca5a5; color:#991b1b; }
+    .modal-pane { display:none; }
+    .modal-pane.active { display:block; }
+  </style>
+
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="#">
+    <strong>Hero</strong>Kids
+    <span class="nav-badge">PL</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#film">Film</a></li>
+    <li><a href="#jak-dziala">Jak działa</a></li>
+    <li><a href="#pilotaz">Pilotaż</a></li>
+    <li><a href="#cennik">Cennik</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ul>
+  <a class="nav-btn" href="#" id="navAuthBtn" onclick="openModal(); return false;">Panel dyrektora →</a>
+</nav>
+
+<!-- MODAL REJESTRACJA / LOGOWANIE -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <button class="modal-close" onclick="closeModal()" aria-label="Zamknij">×</button>
+    <div class="modal-inner">
+      <span class="modal-eyebrow">Platforma HeroKids</span>
+      <h2 class="modal-title" id="modalTitle">Panel dyrektora</h2>
+      <p class="modal-sub">Zarządzaj sesjami, śledź postępy i dokupuj pakiety dla swojej placówki.</p>
+
+      <div class="modal-tabs" role="tablist">
+        <button class="modal-tab active" onclick="switchTab('login')" id="tabLogin" role="tab">Zaloguj się</button>
+        <button class="modal-tab" onclick="switchTab('register')" id="tabRegister" role="tab">Zarejestruj placówkę</button>
+      </div>
+
+      <!-- LOGOWANIE -->
+      <div class="modal-pane active" id="paneLogin">
+        <div class="form-msg" id="loginMsg"></div>
+        <div class="form-group">
+          <label for="loginEmail">Adres e-mail</label>
+          <input type="email" id="loginEmail" placeholder="dyrektor@szkola.pl" autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">Hasło</label>
+          <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <button class="form-submit" id="loginBtn" onclick="handleLogin()">Zaloguj się →</button>
+        <p class="form-note">
+          Nie masz konta? <a href="#" onclick="switchTab('register'); return false;">Zarejestruj placówkę</a><br>
+          <a href="#" onclick="handleForgot(); return false;">Zapomniałem/am hasła</a>
+        </p>
+      </div>
+
+      <!-- REJESTRACJA -->
+      <div class="modal-pane" id="paneRegister">
+        <div class="form-msg" id="registerMsg"></div>
+        <div class="form-group">
+          <label for="regSchool">Nazwa placówki</label>
+          <input type="text" id="regSchool" placeholder="Przedszkole nr 5 w Warszawie" autocomplete="organization">
+        </div>
+        <div class="form-group">
+          <label for="regEmail">Adres e-mail dyrektora</label>
+          <input type="email" id="regEmail" placeholder="dyrektor@szkola.pl" autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label for="regPassword">Hasło (min. 8 znaków)</label>
+          <input type="password" id="regPassword" placeholder="Ustaw hasło do panelu" autocomplete="new-password">
+        </div>
+        <div class="form-group">
+          <label for="regPassword2">Powtórz hasło</label>
+          <input type="password" id="regPassword2" placeholder="••••••••" autocomplete="new-password">
+        </div>
+        <button class="form-submit" id="registerBtn" onclick="handleRegister()">Zarejestruj placówkę →</button>
+        <p class="form-note">
+          Rejestracja jest bezpłatna i daje dostęp do 10 sesji pilotażowych.<br>
+          Masz już konto? <a href="#" onclick="switchTab('login'); return false;">Zaloguj się</a>
+        </p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero-wrap">
+  <div class="hero">
+    <div>
+      <div class="hero-eyebrow">Edukacja bezpieczeństwa · przedszkola i klasy 1–3</div>
+      <h1>Dziecko,<br>które <em>wie</em> co<br>zrobić w nagłej<br>sytuacji.</h1>
+      <p class="hero-lead">Symulator głosowy dla przedszkoli i klas 1–3, który uczy dzieci jak prawidłowo przeprowadzić rozmowę z dyspozytorem 112 — w bezpiecznych warunkach, wielokrotnie, skutecznie.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-red" href="#pilotaz">Zacznij pilotaż — 10 sesji gratis</a>
+        <a class="btn btn-ghost" href="#film">Obejrzyj demo ↓</a>
+      </div>
+      <p class="hero-note">Bez karty płatniczej &nbsp;·&nbsp; Bez zobowiązań &nbsp;·&nbsp; Zgodny z RODO</p>
+    </div>
+    <div class="hero-phone">
+      <div class="phone-frame">
+        <div class="phone-screen">
+          <div class="phone-notch"></div>
+          <div class="phone-status">Połączenie alarmowe</div>
+          <div class="phone-num">112</div>
+          <div class="phone-sub">Wybieranie…</div>
+          <div class="phone-btn-wrap">
+            <div class="phone-pulse"></div>
+            <div class="phone-call">
+              <svg viewBox="0 0 24 24"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="trust-bar">
+  <div class="trust-item">Działa w przeglądarce — bez instalacji</div>
+  <div class="trust-item">Tablet, telefon, laptop</div>
+  <div class="trust-item">Zgodny z RODO</div>
+  <div class="trust-item">Wsparcie po polsku</div>
+</div>
+
+<!-- FILM -->
+<div class="video-section" id="film">
+  <div class="video-inner reveal">
+    <div>
+      <span class="section-eyebrow">Zobacz w akcji</span>
+      <h2 class="section-title">Jak wygląda prawdziwa sesja?</h2>
+      <p class="section-lead">Nagranie z rzeczywistej sesji z dzieckiem w wieku przedszkolnym. Żadnego skryptu — dziecko rozmawia z dyspozytorem AI tak jak w prawdziwym telefonie.</p>
+      <div class="video-quote">
+        <p>„Niebawem pojawi się tu nagranie z pilotażu. Jeśli chcesz zobaczyć aplikację w działaniu — napisz do mnie, umówimy demo na żywo."</p>
+        <cite>— Kamila Musialska, twórczyni HeroKids</cite>
+      </div>
+    </div>
+    <div>
+      <!--
+        GDY MASZ FILM NA YOUTUBE — usuń cały div.video-embed poniżej
+        i wstaw w jego miejsce:
+        <iframe style="width:100%;aspect-ratio:16/9;border:none;border-radius:4px;"
+          src="https://www.youtube.com/embed/TWOJE_ID_FILMU"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen></iframe>
+      -->
+      <div class="video-embed">
+        <div class="video-placeholder">
+          <div class="video-play">
+            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          </div>
+          <p>Film wkrótce</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JAK DZIAŁA -->
+<section class="section reveal" id="jak-dziala">
+  <span class="section-eyebrow">Jak działa</span>
+  <h2 class="section-title">Pięć kroków — jak w prawdziwym telefonie</h2>
+  <p class="section-lead">Dziecko przechodzi przez pełną symulację rozmowy z dyspozytorem. Bez skryptów, bez przycisku „następny" — głosowo, dokładnie jak w nagłej sytuacji.</p>
+  <div class="steps">
+    <div class="step"><div class="step-n">1</div><div><h3>Odblokowanie ekranu</h3><p>Dziecko widzi ekran blokady smartfona i odblokowuje go gestem. Realistyczny kontekst od pierwszej sekundy.</p></div></div>
+    <div class="step"><div class="step-n">2</div><div><h3>Wybieranie numeru 1-1-2</h3><p>Na klawiaturze telefonu dziecko samodzielnie wpisuje numer alarmowy i naciska zielony przycisk połączenia.</p></div></div>
+    <div class="step"><div class="step-n">3</div><div><h3>Animacja łączenia</h3><p>Aplikacja symuluje łączenie z dźwiękiem i animacją identyczną jak w prawdziwym telefonie — pełne zanurzenie w scenariuszu.</p></div></div>
+    <div class="step"><div class="step-n">4</div><div><span class="step-tag">Kluczowy moment</span><h3>Rozmowa głosowa z dyspozytorem AI</h3><p>Sztuczna inteligencja odbiera i prowadzi rozmowę. Pyta o zdarzenie, adres, bezpieczeństwo. Jest cierpliwa i dostosowuje pytania do odpowiedzi dziecka. Dziecko mówi naturalnie do mikrofonu.</p></div></div>
+    <div class="step"><div class="step-n">5</div><div><h3>Ocena i wskazówki</h3><p>Dziecko dostaje gwiazdki i konkretne porady. Nauczyciel widzi log każdej sesji w panelu administratora — zanonimizowany, bez danych osobowych.</p></div></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- PILOTAŻ -->
+<div class="pilot-section" id="pilotaz">
+  <div class="pilot-inner reveal">
+    <span class="section-eyebrow">Pilotaż</span>
+    <h2 class="section-title">10 sesji gratis — jak to działa?</h2>
+    <p class="section-lead">Pilotaż to nie jest „darmowy dostęp na zawsze". To ograniczona, konkretna próba — wystarczająca, żeby przeprowadzić jedną grupę i zobaczyć jak dzieci reagują.</p>
+    <div class="pilot-grid">
+      <div class="pilot-steps">
+        <div class="pilot-step">
+          <div class="pilot-num">1</div>
+          <div><h4>Napisz do mnie</h4><p>Email na kontakt@herokids.pl z nazwą placówki. Odpisuję w ciągu 24 godzin w dni robocze.</p></div>
+        </div>
+        <div class="pilot-step">
+          <div class="pilot-num">2</div>
+          <div><h4>Otrzymujesz kod dostępu</h4><p>Unikalny kod przypisany do Twojej placówki (format: PSZ-MIASTO-XXXX). Bez podawania danych karty.</p></div>
+        </div>
+        <div class="pilot-step">
+          <div class="pilot-num">3</div>
+          <div><h4>Uruchamiasz aplikację w grupie</h4><p>Link do aplikacji i instrukcja dla nauczyciela. Wystarczy tablet z przeglądarką. Pierwsza sesja zajmuje 5 minut.</p></div>
+        </div>
+        <div class="pilot-step">
+          <div class="pilot-num">4</div>
+          <div><h4>10 sesji — koniec pilotażu</h4><p>Po wykorzystaniu 10 kredytów aplikacja informuje o końcu. Możesz dokupić pakiet lub zakończyć — bez presji, bez automatycznych opłat.</p></div>
+        </div>
+        <div class="pilot-step">
+          <div class="pilot-num">5</div>
+          <div><h4>Feedback od Ciebie</h4><p>Zależy mi na szczerej opinii — krótka rozmowa lub ankieta po pilotażu. To jedyne o co proszę w zamian.</p></div>
+        </div>
+      </div>
+      <div class="pilot-box">
+        <h3>Co dostajesz<br>w pilotażu</h3>
+        <p class="pilot-sub">Bez karty płatniczej · Bez umowy</p>
+        <ul class="pilot-includes">
+          <li>10 sesji edukacyjnych dla dzieci</li>
+          <li>Unikalny kod dostępu dla placówki</li>
+          <li>Panel administratora z logami sesji</li>
+          <li>Wzory zgód RODO dla rodziców</li>
+          <li>Instrukcja dla nauczyciela</li>
+          <li>Wsparcie przez cały czas pilotażu</li>
+        </ul>
+        <a class="btn btn-red" href="#" onclick="openModal('register'); return false;" style="display:block;text-align:center;text-decoration:none;padding:13px;">Zarejestruj placówkę — 10 sesji gratis →</a>
+        <p class="pilot-disclaimer">Pilotaż przeznaczony dla placówek edukacyjnych w Polsce. Jeden pilotaż na placówkę. Nie dotyczy osób prywatnych.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CENNIK -->
+<section class="section reveal" id="cennik">
+  <span class="section-eyebrow">Cennik</span>
+  <h2 class="section-title">Pakiety sesji — płacisz za to, czego używasz</h2>
+  <p class="section-lead">Bez miesięcznych subskrypcji. Kupujesz pakiet kredytów sesji ważnych przez 12 miesięcy. Ceny zostaną ogłoszone po zakończeniu pierwszych pilotaży.</p>
+  <div class="packages">
+    <div class="pkg">
+      <span class="pkg-badge">Mała placówka</span>
+      <div class="pkg-name">Starter</div>
+      <div class="pkg-desc">Dla jednej grupy. Wystarczy na regularne ćwiczenia przez cały rok szkolny.</div>
+      <div class="pkg-sessions">30</div>
+      <div class="pkg-sessions-label">sesji · ważne 12 miesięcy</div>
+      <div class="pkg-price">Cena wkrótce</div>
+      <ul class="pkg-features">
+        <li>Panel administratora</li>
+        <li>Logi sesji dla nauczyciela</li>
+        <li>Wsparcie przez email</li>
+        <li>Faktura VAT</li>
+      </ul>
+      <a class="pkg-btn" href="mailto:kontakt@herokids.pl">Zapytaj o cenę</a>
+      <p class="pkg-note">Zacznij od 10 sesji pilotażowych gratis</p>
+    </div>
+    <div class="pkg featured">
+      <span class="pkg-badge">Najpopularniejszy</span>
+      <div class="pkg-name">Szkoła</div>
+      <div class="pkg-desc">Dla kilku grup. Sesje dla całej placówki przez cały rok z zapasem.</div>
+      <div class="pkg-sessions">100</div>
+      <div class="pkg-sessions-label">sesji · ważne 12 miesięcy</div>
+      <div class="pkg-price">Cena wkrótce</div>
+      <ul class="pkg-features">
+        <li>Panel administratora</li>
+        <li>Logi sesji i wysyłka mailem</li>
+        <li>Priorytetowe wsparcie</li>
+        <li>Faktura VAT</li>
+        <li>Dostęp do nowych scenariuszy</li>
+      </ul>
+      <a class="pkg-btn" href="mailto:kontakt@herokids.pl">Zapytaj o cenę</a>
+      <p class="pkg-note">Rekomendowany po pilotażu</p>
+    </div>
+    <div class="pkg">
+      <span class="pkg-badge">Sieć placówek</span>
+      <div class="pkg-name">Pro</div>
+      <div class="pkg-desc">Dla sieci przedszkoli lub dużych szkół z wieloma grupami i oddziałami.</div>
+      <div class="pkg-sessions">∞</div>
+      <div class="pkg-sessions-label">sesji · indywidualna wycena</div>
+      <div class="pkg-price">Wycena indywidualna</div>
+      <ul class="pkg-features">
+        <li>Panel per grupa z raportami</li>
+        <li>Raporty zbiorcze dla dyrektora</li>
+        <li>Dedykowane wsparcie</li>
+        <li>Umowa SLA</li>
+        <li>Priorytetowe nowe funkcje</li>
+      </ul>
+      <a class="pkg-btn" href="mailto:kontakt@herokids.pl">Napisz po wycenę</a>
+      <p class="pkg-note">Dla sieci 3+ placówek</p>
+    </div>
+  </div>
+  <p class="packages-sub">Pytania o cenę? <a href="mailto:kontakt@herokids.pl">Napisz bezpośrednio</a> — odpiszę w ciągu 24h.</p>
+</section>
+
+<div class="divider"></div>
+
+<!-- RODO -->
+<section class="section reveal" id="bezpieczenstwo">
+  <span class="section-eyebrow">Bezpieczeństwo i RODO</span>
+  <h2 class="section-title">Dane dzieci są bezpieczne</h2>
+  <p class="section-lead">Ochrona danych to nie dodatek — to fundament architektury. Projekt budowany był z myślą o przedszkolach, gdzie standardy są najwyższe.</p>
+  <div class="rodo-grid">
+    <div class="rodo-item"><div class="rodo-dot"></div><p>Nie zbieramy imion ani żadnych danych osobowych dzieci</p></div>
+    <div class="rodo-item"><div class="rodo-dot"></div><p>Logi rozmów automatycznie anonimizowane przez AI przed zapisem</p></div>
+    <div class="rodo-item"><div class="rodo-dot"></div><p>Klucze do systemów AI wyłącznie na serwerze — nie w przeglądarce dziecka</p></div>
+    <div class="rodo-item"><div class="rodo-dot"></div><p>Unikalny kod dostępu per placówka — dane widoczne tylko dla jej administratora</p></div>
+    <div class="rodo-item"><div class="rodo-dot"></div><p>Certyfikowani dostawcy AI: Anthropic i ElevenLabs z własnymi politykami prywatności</p></div>
+    <div class="rodo-item"><div class="rodo-dot"></div><p>Gotowe wzory zgód RODO dla rodziców i placówki — dostarczamy przy uruchomieniu</p></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FAQ -->
+<section class="section reveal" id="faq">
+  <span class="section-eyebrow">Pytania i odpowiedzi</span>
+  <h2 class="section-title">Najczęstsze pytania dyrektorów</h2>
+  <div class="faq-list" style="margin-top:32px;">
+    <details><summary>Ile czasu zajmuje jedna sesja?</summary><div class="faq-body">Około 3–5 minut. Sesja obejmuje pełną symulację — od odblokowania telefonu do podsumowania z gwiazdkami. Można przeprowadzać indywidualnie lub parami przy jednym urządzeniu.</div></details>
+    <details><summary>Czy aplikacja jest odpowiednia dla dzieci 4–6 lat?</summary><div class="faq-body">Tak — była projektowana przede wszystkim z myślą o przedszkolakach. Dyspozytor AI jest cierpliwy i zachęcający, dostosowuje pytania do odpowiedzi dziecka. Nie ocenia, nie pogania — delikatnie naprowadza do właściwych informacji.</div></details>
+    <details><summary>Dlaczego tylko 10 sesji w pilotażu?</summary><div class="faq-body">10 sesji wystarczy na przeprowadzenie próby z całą grupą przedszkolną i wyrobienie sobie zdania o aplikacji. To limit, który pozwala mi oferować pilotaż wielu placówkom bez nieograniczonych kosztów. Każda placówka dostaje jeden pilotaż.</div></details>
+    <details><summary>Jak wygląda płatność? Czy to subskrypcja?</summary><div class="faq-body">Nie — sprzedajemy pakiety sesji, nie subskrypcję miesięczną. Kupujesz pakiet kredytów ważnych przez 12 miesięcy. Płatność jednorazowa, bez automatycznych odnowień, z fakturą VAT. Płatności przez PayU: BLIK, karta, przelew.</div></details>
+    <details><summary>Czy rodzice muszą wyrazić zgodę?</summary><div class="faq-body">Przy samym korzystaniu z aplikacji (bez nagrywania) zgoda rodziców nie jest wymagana — aplikacja nie zbiera danych osobowych dzieci. Jeśli planujecie dokumentowanie sesji lub nagrywanie dzieci — tak, zgoda jest potrzebna. Gotowy wzór dostarczamy każdej placówce.</div></details>
+    <details><summary>Jakie urządzenia są potrzebne?</summary><div class="faq-body">Tablet lub smartfon z przeglądarką (Safari, Chrome) i dostępem do internetu. Wbudowany mikrofon i głośnik wystarczą. Aplikacja nie wymaga instalacji — otwierasz link i zaczynasz. Działa też na laptopie z mikrofonem.</div></details>
+    <details><summary>Czy będą nowe scenariusze i funkcje?</summary><div class="faq-body">Tak. W planach: tryb drugi (niechciana rozmowa, ochrona danych osobowych), wersja dla klas 1–3, oraz wersja niemiecka HeroKids DE (Notruf 112). Placówki z płatnymi pakietami mają dostęp do nowych scenariuszy automatycznie, bez dopłat.</div></details>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-strip reveal">
+  <div class="cta-inner">
+    <span class="section-eyebrow" style="color:rgba(255,255,255,0.55);">Zacznij teraz</span>
+    <h2>10 sesji gratis.<br>Bez karty. Bez umów.</h2>
+    <p>Załóż konto, odbierz kod dostępu i zacznij pierwsze sesje z dziećmi — dziś.</p>
+    <a class="btn-white" href="#" onclick="openModal('register'); return false;">Zarejestruj placówkę — to trwa 60 sekund</a>
+    <p class="cta-note">Jeden pilotaż na placówkę · Tylko dla placówek edukacyjnych w Polsce</p>
+  </div>
+</div>
+
+<footer>
+  <a class="footer-logo" href="#"><strong>Hero</strong>Kids</a>
+  <p>© 2026 &nbsp;·&nbsp; <a href="mailto:kontakt@herokids.pl">kontakt@herokids.pl</a> &nbsp;·&nbsp; herokids.pl</p>
+</footer>
+
+<script>
+  // ── Scroll animations ──────────────────────────────────────
+  const io = new IntersectionObserver(
+    e => e.forEach(el => { if (el.isIntersecting) el.target.classList.add('visible'); }),
+    { threshold: 0.08 }
+  );
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  const sections = document.querySelectorAll('[id]');
+  const links = document.querySelectorAll('.nav-links a');
+  const ao = new IntersectionObserver(e => {
+    e.forEach(el => {
+      if (el.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const l = document.querySelector(`.nav-links a[href="#${el.target.id}"]`);
+        if (l) l.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-40% 0px -55% 0px' });
+  sections.forEach(s => ao.observe(s));
+
+  // ── Supabase ───────────────────────────────────────────────
+  const SUPABASE_URL = "https://vnennalmoexaqkohzjkm.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_fcOplky2nD4ERYlDpaa1zw_04Us8URx";
+  const { createClient } = supabase;
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // ── Modal ──────────────────────────────────────────────────
+  function openModal(tab) {
+    document.getElementById('modalOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    if (tab) switchTab(tab);
+  }
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  function closeModalOutside(e) {
+    if (e.target === document.getElementById('modalOverlay')) closeModal();
+  }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+  function switchTab(tab) {
+    ['login','register'].forEach(t => {
+      document.getElementById('pane' + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('active', t === tab);
+      document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('active', t === tab);
+    });
+    clearMsgs();
+  }
+
+  function showMsg(id, type, text) {
+    const el = document.getElementById(id);
+    el.className = 'form-msg show ' + type;
+    el.textContent = text;
+  }
+  function clearMsgs() {
+    ['loginMsg','registerMsg'].forEach(id => {
+      const el = document.getElementById(id);
+      el.className = 'form-msg';
+      el.textContent = '';
+    });
+  }
+  function setLoading(btnId, loading) {
+    const btn = document.getElementById(btnId);
+    btn.disabled = loading;
+    btn.textContent = loading ? 'Proszę czekać…' : btn.dataset.label;
+  }
+
+  // Zapisz oryginalne etykiety przycisków
+  document.addEventListener('DOMContentLoaded', () => {
+    ['loginBtn','registerBtn'].forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) btn.dataset.label = btn.textContent;
+    });
+
+    // Sprawdź czy użytkownik jest już zalogowany
+    sb.auth.getSession().then(({ data: { session } }) => {
+      if (session) updateNavForLoggedIn(session.user);
+    });
+    sb.auth.onAuthStateChange((_event, session) => {
+      if (session) updateNavForLoggedIn(session.user);
+      else updateNavForLoggedOut();
+    });
+  });
+
+  function updateNavForLoggedIn(user) {
+    const btn = document.getElementById('navAuthBtn');
+    if (btn) {
+      btn.textContent = 'Mój panel →';
+      btn.onclick = () => { window.location.href = 'panel.html'; return false; };
+    }
+  }
+  function updateNavForLoggedOut() {
+    const btn = document.getElementById('navAuthBtn');
+    if (btn) {
+      btn.textContent = 'Panel dyrektora →';
+      btn.onclick = () => { openModal(); return false; };
+    }
+  }
+
+  // ── Logowanie ──────────────────────────────────────────────
+  async function handleLogin() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    if (!email || !password) { showMsg('loginMsg', 'error', 'Wpisz email i hasło.'); return; }
+
+    setLoading('loginBtn', true);
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    setLoading('loginBtn', false);
+
+    if (error) {
+      const msg = error.message.includes('Invalid') ? 'Nieprawidłowy email lub hasło.' : error.message;
+      showMsg('loginMsg', 'error', msg);
+      return;
+    }
+    showMsg('loginMsg', 'success', '✓ Zalogowano! Przekierowuję do panelu…');
+    setTimeout(() => { window.location.href = 'panel.html'; }, 1000);
+  }
+
+  // ── Rejestracja ────────────────────────────────────────────
+  async function handleRegister() {
+    const school = document.getElementById('regSchool').value.trim();
+    const email  = document.getElementById('regEmail').value.trim();
+    const pass   = document.getElementById('regPassword').value;
+    const pass2  = document.getElementById('regPassword2').value;
+
+    if (!school) { showMsg('registerMsg', 'error', 'Podaj nazwę placówki.'); return; }
+    if (!email)  { showMsg('registerMsg', 'error', 'Podaj adres e-mail.'); return; }
+    if (pass.length < 8) { showMsg('registerMsg', 'error', 'Hasło musi mieć co najmniej 8 znaków.'); return; }
+    if (pass !== pass2)  { showMsg('registerMsg', 'error', 'Hasła nie są zgodne.'); return; }
+
+    setLoading('registerBtn', true);
+
+    // 1. Utwórz konto w Supabase Auth
+    const { data: authData, error: authError } = await sb.auth.signUp({
+      email, password: pass,
+      options: { data: { school_name: school } }
+    });
+
+    if (authError) {
+      setLoading('registerBtn', false);
+      const msg = authError.message.includes('already') ? 'Ten adres email jest już zarejestrowany.' : authError.message;
+      showMsg('registerMsg', 'error', msg);
+      return;
+    }
+
+    // 2. Zapisz szkołę w tabeli schools (przez backend lub bezpośrednio przez Supabase)
+    const userId = authData.user?.id;
+    if (userId) {
+      await sb.from('schools').insert({
+        name: school,
+        director_email: email,
+        user_id: userId,
+        created_at: new Date().toISOString()
+      });
+    }
+
+    setLoading('registerBtn', false);
+    showMsg('registerMsg', 'success', '✓ Konto założone! Sprawdź email, aby potwierdzić adres, a następnie zaloguj się.');
+    setTimeout(() => switchTab('login'), 3500);
+  }
+
+  // ── Reset hasła ────────────────────────────────────────────
+  async function handleForgot() {
+    const email = document.getElementById('loginEmail').value.trim();
+    if (!email) { showMsg('loginMsg', 'error', 'Wpisz swój adres email powyżej, a następnie kliknij "Zapomniałem/am hasła".'); return; }
+    const { error } = await sb.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + '/panel.html'
+    });
+    if (error) { showMsg('loginMsg', 'error', error.message); return; }
+    showMsg('loginMsg', 'success', '✓ Link do resetowania hasła wysłany na ' + email);
+  }
+</script>
+</body>
+</html>
