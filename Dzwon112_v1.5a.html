@@ -67,7 +67,7 @@ body{display:flex;flex-direction:column;align-items:center;font-family:-apple-sy
     <div style="margin-bottom:6px">🤖 <a href="https://www.anthropic.com/privacy" target="_blank" style="color:#0a84ff;text-decoration:none">Anthropic (Claude) — Privacy Policy</a></div>
     <div>🔊 <a href="https://elevenlabs.io/privacy" target="_blank" style="color:#0a84ff;text-decoration:none">ElevenLabs — Privacy Policy</a></div>
   </div>
-  <button onclick="show('s-setup')" class="api-btn" style="margin-top:0">Rozumiem i akceptuję</button>
+  <button onclick="ACCESS_TOKEN?show('s-lock'):show('s-setup')" class="api-btn" style="margin-top:0">Rozumiem i akceptuję</button>
   <div style="font-size:11px;color:#636366;text-align:center;margin-top:12px">Projekt: Zadzwoń pod 112 · v1.5a</div>
 </div>
 
@@ -635,7 +635,7 @@ async function validateTokenAndStart(){
     localStorage.setItem("access_token",ACCESS_TOKEN);localStorage.setItem("token_credits",TOKEN_CREDITS);localStorage.setItem("token_school",TOKEN_SCHOOL);
     statusEl.textContent="✅ Kod aktywny · Sesje: "+TOKEN_CREDITS;statusEl.style.color="#34c759";
     updateTokenUI();unlockAudioContext();
-    setTimeout(()=>show("s-lock"),800);
+    setTimeout(()=>show("s-rodo"),800);
   }catch(e){errEl.textContent="Błąd połączenia: "+e.message;btn.textContent=L.setupStartBtn;btn.disabled=false;statusEl.textContent="";}
 }
 
@@ -658,7 +658,7 @@ document.getElementById("logo-tap").addEventListener("click",()=>{
 });
 function openAdminFromSetup(ret){
   document.getElementById("admin-pass-input").value="";document.getElementById("admin-login-err").textContent="";
-  window._adminReturnTo=ret||"s-setup";show("s-admin-login");
+  window._adminReturnTo=ret||"s-rodo";show("s-admin-login");
 }
 function checkAdminPass(){
   const v=document.getElementById("admin-pass-input").value;
@@ -686,6 +686,7 @@ let digits="",callSecs=0,timerInt=null;
 let speaking=false,listening=false,rec=null,currentTranscript="";
 let childAnswers=0,conversationHistory=[];
 let callActive=false,sessionId=null;
+let lastResponseWasError=false;
 const logs=[];
 
 // ============================================================
@@ -734,7 +735,7 @@ async function speakEL(text,onEnd){
     const decoded=await audioCtx.decodeAudioData(ab);
     const src=audioCtx.createBufferSource();
     src.buffer=decoded;src.connect(audioCtx.destination);
-    src.onended=()=>{log("OK","EL ended");speaking=false;updateMicState();if(onEnd)onEnd();else autoStartListening();};
+    src.onended=()=>{log("OK","EL ended");speaking=false;updateMicState();if(onEnd)onEnd();else if(!lastResponseWasError)autoStartListening();};
     src.start(0);
   }catch(e){log("ERR","EL error: "+e.message);speaking=false;updateMicState();if(onEnd)onEnd();}
 }
@@ -844,6 +845,8 @@ async function handleAnswer(answer){
   if(!callActive)return;
   addMessage("child",answer);childAnswers++;showTyping();
   const reply=await askClaude(answer);removeTyping();
+  const L=getLoc();
+  lastResponseWasError=(reply===L.errorMsg||reply===L.noCreditsMsg);
   const clean=reply.replace("[KONIEC_ROZMOWY]","").trim();
   addMessage("operator",clean);
   if(reply.includes("[KONIEC_ROZMOWY]")){await speakEL(clean,()=>setTimeout(()=>finishCall(),1500));}
@@ -869,12 +872,12 @@ function endCall(){
   if(sessionId){fetch(BACKEND_URL+"/api/session-end",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({session_id:sessionId,token:ACCESS_TOKEN,stars,messages:childAnswers,duration:callSecs,lang:currentLang,ended_by:"user"})}).catch(()=>{});}
   show("s-summary");
 }
-function resetApp(){callActive=false;digits="";conversationHistory=[];childAnswers=0;callSecs=0;sessionId=null;updateDisplay();show("s-lock");}
+function resetApp(){callActive=false;digits="";conversationHistory=[];childAnswers=0;callSecs=0;sessionId=null;updateDisplay();show("s-rodo");}
 
 // ============================================================
 // INIT
 // ============================================================
-if(ACCESS_TOKEN){show("s-lock");}else{show("s-rodo");}
+show("s-rodo");
 applyLocale();
 if(ACCESS_TOKEN){document.getElementById("token-input").value=ACCESS_TOKEN;checkToken();}
 </script>
