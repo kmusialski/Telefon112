@@ -46,14 +46,17 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
 // ============================================================
 // RATE LIMITER (in-memory)
+// /api/chat: max 120/h — aktywna sesja może mieć ~20 wiadomości
+// pozostałe endpointy: max 30/h
 // ============================================================
 const rateMap = new Map();
 function rateLimit(ip, max = 30, windowMs = 3600000) {
   const now = Date.now();
-  const entry = rateMap.get(ip) || { count: 0, reset: now + windowMs };
+  const key = `${ip}:${max}`; // osobny licznik per limit
+  const entry = rateMap.get(key) || { count: 0, reset: now + windowMs };
   if (now > entry.reset) { entry.count = 0; entry.reset = now + windowMs; }
   entry.count++;
-  rateMap.set(ip, entry);
+  rateMap.set(key, entry);
   return entry.count <= max;
 }
 
@@ -95,7 +98,7 @@ app.post("/api/validate-token", async (req, res) => {
 // ============================================================
 app.post("/api/chat", async (req, res) => {
   const ip = req.headers["x-forwarded-for"]?.split(",")[0] || req.ip;
-  if (!rateLimit(ip)) return res.status(429).json({ error: "Za dużo zapytań. Spróbuj za godzinę." });
+  if (!rateLimit(ip, 120)) return res.status(429).json({ error: "Za dużo zapytań. Spróbuj za godzinę." });
 
   const { message, history = [], system, lang = "pl", token, session_id } = req.body;
   if (!message) return res.status(400).json({ error: "Brak wiadomości" });
@@ -403,13 +406,15 @@ app.post("/api/send-log-email", async (req, res) => {
 app.get("/api/health", async (req, res) => {
   res.json({
     status: "ok",
-    version: "1.5a",
+    version: "1.5b",
     services: {
       anthropic: !!ANTHROPIC_API_KEY,
       elevenlabs: !!ELEVENLABS_API_KEY,
       supabase: !!SUPABASE_URL && !!SUPABASE_SERVICE_KEY,
       resend: !!RESEND_API_KEY
     },
+    rate_limits: { chat: "120/h", other: "30/h" },
+    cors_origins: ["kmusialski.github.io", "herokids.eu"],
     app_email: APP_EMAIL,
     timestamp: new Date().toISOString()
   });
@@ -419,10 +424,12 @@ app.get("/api/health", async (req, res) => {
 // START
 // ============================================================
 app.listen(PORT, () => {
-  console.log(`✅ Zadzwoń pod 112 backend v1.5a — port ${PORT}`);
+  console.log(`✅ HeroKids 112 backend v1.5b — port ${PORT}`);
   console.log(`   Anthropic: ${ANTHROPIC_API_KEY ? "✅" : "❌"}`);
   console.log(`   ElevenLabs: ${ELEVENLABS_API_KEY ? "✅" : "❌"}`);
   console.log(`   Supabase: ${SUPABASE_URL ? "✅" : "❌"}`);
   console.log(`   Resend: ${RESEND_API_KEY ? "✅" : "❌"}`);
+  console.log(`   CORS: herokids.eu + kmusialski.github.io`);
+  console.log(`   Rate limit: /api/chat 120/h, pozostałe 30/h`);
   console.log(`   App email (CC): ${APP_EMAIL}`);
 });
