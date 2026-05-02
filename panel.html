@@ -24,7 +24,6 @@ button:disabled{opacity:0.4;cursor:not-allowed}
 .badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:8px;font-size:12px;font-weight:600}
 .badge-green{background:#0d2818;color:#34c759;border:0.5px solid #34c759}
 .badge-orange{background:#2a1800;color:#ff9f0a;border:0.5px solid #ff9f0a}
-.badge-red{background:#1a0000;color:#ff3b30;border:0.5px solid #ff3b30}
 .stat-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:0.5px solid #2c2c2e}
 .stat-row:last-child{border-bottom:none}
 .stat-label{font-size:14px;color:#8e8e93}
@@ -33,9 +32,10 @@ button:disabled{opacity:0.4;cursor:not-allowed}
 .session-row:last-child{border-bottom:none}
 .session-meta{font-size:12px;color:#636366;margin-top:3px}
 .stars{color:#ffd60a;letter-spacing:2px}
-.msg{padding:10px 14px;border-radius:10px;font-size:13px;margin-top:8px;display:none}
+.msg{padding:10px 14px;border-radius:10px;font-size:13px;margin-top:8px}
 .msg-ok{background:#0d2818;color:#34c759;border:0.5px solid #34c759}
 .msg-err{background:#1a0000;color:#ff3b30;border:0.5px solid #ff3b30}
+.msg-info{background:#001a2e;color:#0a84ff;border:0.5px solid #0a84ff}
 .hidden{display:none!important}
 .spinner{display:inline-block;width:16px;height:16px;border:2px solid #8e8e93;border-top-color:#0a84ff;border-radius:50%;animation:spin 0.6s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -46,8 +46,14 @@ button:disabled{opacity:0.4;cursor:not-allowed}
 .tab-content.active{display:block}
 #log-modal{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:100;display:none;align-items:center;justify-content:center;padding:16px}
 #log-modal.open{display:flex}
-.modal-inner{background:#1c1c1e;border-radius:16px;padding:24px;max-width:600px;width:100%;max-height:80vh;overflow-y:auto}
+.modal-inner{background:#1c1c1e;border-radius:16px;padding:24px;max-width:600px;width:100%;max-height:85vh;overflow-y:auto}
 pre{background:#111;border-radius:10px;padding:14px;font-size:12px;line-height:1.7;color:#a0a0a0;white-space:pre-wrap;word-break:break-word;margin-top:8px}
+/* DEBUG LOG */
+#debug-log{background:#0a0a0a;border:0.5px solid #2c2c2e;border-radius:10px;padding:10px;font-size:11px;font-family:monospace;line-height:1.8;max-height:200px;overflow-y:auto;margin-top:8px}
+.dlog-ok{color:#34c759}
+.dlog-err{color:#ff3b30}
+.dlog-info{color:#0a84ff}
+.dlog-warn{color:#ff9f0a}
 </style>
 </head>
 <body>
@@ -63,8 +69,8 @@ pre{background:#111;border-radius:10px;padding:14px;font-size:12px;line-height:1
     <div class="card-title">Logowanie</div>
     <input id="login-email" type="email" placeholder="Email dyrektora / administratora"/>
     <input id="login-password" type="password" placeholder="Hasło"/>
-    <div id="login-msg" class="msg"></div>
-    <button class="btn-primary" onclick="doLogin()" id="login-btn" style="margin-top:4px">Zaloguj się</button>
+    <div id="login-msg" style="font-size:13px;min-height:20px;margin-bottom:8px"></div>
+    <button class="btn-primary" onclick="doLogin()" id="login-btn">Zaloguj się</button>
     <div style="margin-top:16px;text-align:center">
       <button onclick="showReset()" style="background:transparent;color:#0a84ff;border:none;font-size:14px;cursor:pointer">Zapomniałem hasła</button>
     </div>
@@ -73,13 +79,12 @@ pre{background:#111;border-radius:10px;padding:14px;font-size:12px;line-height:1
     <div class="card-title">Reset hasła</div>
     <input id="reset-email" type="email" placeholder="Twój email"/>
     <button class="btn-primary" onclick="doReset()" style="margin-top:4px">Wyślij link resetujący</button>
-    <div id="reset-msg" class="msg" style="margin-top:8px"></div>
+    <div id="reset-msg" style="font-size:13px;margin-top:8px"></div>
   </div>
 </div>
 
 <!-- PANEL GŁÓWNY -->
 <div id="view-panel" class="container hidden">
-  <!-- Header -->
   <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px">
     <div>
       <div style="font-size:20px;margin-bottom:4px">🏫</div>
@@ -92,26 +97,11 @@ pre{background:#111;border-radius:10px;padding:14px;font-size:12px;line-height:1
   <!-- Statystyki -->
   <div class="card">
     <div class="card-title">Statystyki konta</div>
-    <div class="stat-row">
-      <span class="stat-label">Aktywny token</span>
-      <span id="stat-token" class="stat-value" style="font-family:monospace;font-size:14px;color:#34c759"></span>
-    </div>
-    <div class="stat-row">
-      <span class="stat-label">Pozostałe sesje</span>
-      <span id="stat-credits" class="stat-value"></span>
-    </div>
-    <div class="stat-row">
-      <span class="stat-label">Łącznie sesji</span>
-      <span id="stat-total" class="stat-value"></span>
-    </div>
-    <div class="stat-row">
-      <span class="stat-label">Średnia ocena (gwiazdki)</span>
-      <span id="stat-avg-stars" class="stat-value"></span>
-    </div>
-    <div class="stat-row">
-      <span class="stat-label">Ostatnia sesja</span>
-      <span id="stat-last" class="stat-value" style="font-size:13px"></span>
-    </div>
+    <div class="stat-row"><span class="stat-label">Aktywny token</span><span id="stat-token" class="stat-value" style="font-family:monospace;font-size:14px;color:#34c759"></span></div>
+    <div class="stat-row"><span class="stat-label">Pozostałe sesje</span><span id="stat-credits" class="stat-value"></span></div>
+    <div class="stat-row"><span class="stat-label">Łącznie sesji</span><span id="stat-total" class="stat-value"></span></div>
+    <div class="stat-row"><span class="stat-label">Średnia ocena</span><span id="stat-avg-stars" class="stat-value"></span></div>
+    <div class="stat-row"><span class="stat-label">Ostatnia sesja</span><span id="stat-last" class="stat-value" style="font-size:13px"></span></div>
   </div>
 
   <!-- Tabs -->
@@ -127,46 +117,24 @@ pre{background:#111;border-radius:10px;padding:14px;font-size:12px;line-height:1
         <div class="card-title" style="margin-bottom:0">Historia sesji</div>
         <button onclick="loadSessions()" class="btn-secondary">Odśwież</button>
       </div>
-      <div id="sessions-list">
-        <div style="text-align:center;padding:24px;color:#636366">Ładowanie...</div>
-      </div>
+      <div id="sessions-list"><div style="text-align:center;padding:24px;color:#636366">Ładowanie...</div></div>
     </div>
   </div>
 
-  <!-- Tab: Informacje -->
+  <!-- Tab: Info -->
   <div id="tab-info" class="tab-content">
     <div class="card">
       <div class="card-title">Pakiety sesji</div>
-      <div style="font-size:14px;color:#8e8e93;line-height:1.8;margin-bottom:12px">
-        Aby dokupić sesje, skontaktuj się z administratorem aplikacji lub odnów pakiet w panelu PayU.
-      </div>
+      <div style="font-size:14px;color:#8e8e93;line-height:1.8;margin-bottom:12px">Aby dokupić sesje, skontaktuj się z administratorem aplikacji.</div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
-        <div style="background:#111;border-radius:12px;padding:14px;text-align:center">
-          <div style="font-size:20px;font-weight:700;color:#fff">50</div>
-          <div style="font-size:11px;color:#636366;margin-top:2px">sesji</div>
-          <div style="font-size:14px;color:#ffd60a;font-weight:600;margin-top:6px">29 zł</div>
-          <div style="font-size:10px;color:#636366;margin-top:2px">Starter</div>
-        </div>
-        <div style="background:#111;border-radius:12px;padding:14px;text-align:center;border:1px solid #0a84ff">
-          <div style="font-size:20px;font-weight:700;color:#fff">200</div>
-          <div style="font-size:11px;color:#636366;margin-top:2px">sesji</div>
-          <div style="font-size:14px;color:#ffd60a;font-weight:600;margin-top:6px">79 zł</div>
-          <div style="font-size:10px;color:#0a84ff;margin-top:2px">Standard ★</div>
-        </div>
-        <div style="background:#111;border-radius:12px;padding:14px;text-align:center">
-          <div style="font-size:20px;font-weight:700;color:#fff">∞</div>
-          <div style="font-size:11px;color:#636366;margin-top:2px">sesji/rok</div>
-          <div style="font-size:14px;color:#ffd60a;font-weight:600;margin-top:6px">149 zł</div>
-          <div style="font-size:10px;color:#636366;margin-top:2px">Roczny</div>
-        </div>
+        <div style="background:#111;border-radius:12px;padding:14px;text-align:center"><div style="font-size:20px;font-weight:700">50</div><div style="font-size:11px;color:#636366;margin-top:2px">sesji</div><div style="font-size:14px;color:#ffd60a;font-weight:600;margin-top:6px">29 zł</div><div style="font-size:10px;color:#636366;margin-top:2px">Starter</div></div>
+        <div style="background:#111;border-radius:12px;padding:14px;text-align:center;border:1px solid #0a84ff"><div style="font-size:20px;font-weight:700">200</div><div style="font-size:11px;color:#636366;margin-top:2px">sesji</div><div style="font-size:14px;color:#ffd60a;font-weight:600;margin-top:6px">79 zł</div><div style="font-size:10px;color:#0a84ff;margin-top:2px">Standard ★</div></div>
+        <div style="background:#111;border-radius:12px;padding:14px;text-align:center"><div style="font-size:20px;font-weight:700">∞</div><div style="font-size:11px;color:#636366;margin-top:2px">sesji/rok</div><div style="font-size:14px;color:#ffd60a;font-weight:600;margin-top:6px">149 zł</div><div style="font-size:10px;color:#636366;margin-top:2px">Roczny</div></div>
       </div>
     </div>
     <div class="card">
       <div class="card-title">Kontakt</div>
-      <div style="font-size:14px;color:#8e8e93;line-height:1.8">
-        W sprawach technicznych i zakupowych:<br/>
-        📧 <a href="mailto:kontakt@zadzwon112.pl" style="color:#0a84ff">kontakt@zadzwon112.pl</a>
-      </div>
+      <div style="font-size:14px;color:#8e8e93;line-height:1.8">📧 <a href="mailto:musialski.k@gmail.com" style="color:#0a84ff">musialski.k@gmail.com</a></div>
     </div>
   </div>
 </div>
@@ -180,28 +148,71 @@ pre{background:#111;border-radius:10px;padding:14px;font-size:12px;line-height:1
     </div>
     <div id="modal-meta" style="font-size:13px;color:#8e8e93;margin-bottom:12px"></div>
     <pre id="modal-log"></pre>
+
     <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
       <button id="modal-send-btn" onclick="sendCurrentLog()" class="btn-green">📧 Wyślij na email</button>
       <button onclick="copyModalLog()" class="btn-secondary">Kopiuj</button>
     </div>
-    <div id="modal-send-msg" class="msg" style="margin-top:8px"></div>
+
+    <!-- STATUS WYSYŁKI -->
+    <div id="send-status-box" style="margin-top:12px;display:none">
+      <div id="send-status-msg" style="font-size:13px;padding:10px 14px;border-radius:10px;margin-bottom:8px"></div>
+    </div>
+
+    <!-- DEBUG LOG -->
+    <div style="margin-top:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span style="font-size:11px;color:#636366;font-family:monospace">DEBUG LOG</span>
+        <button onclick="clearDebugLog()" style="background:transparent;border:none;color:#636366;font-size:11px;cursor:pointer;font-family:monospace">Wyczyść</button>
+      </div>
+      <div id="debug-log"><span style="color:#636366">Oczekiwanie na akcję...</span></div>
+    </div>
   </div>
 </div>
 
 <script>
 // ============================================================
-// KONFIGURACJA — podmień na własne wartości
+// KONFIGURACJA
 // ============================================================
 const SUPABASE_URL = "https://vnennalmoexaqkohzjkm.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_fcOplky2nD4ERYlDpaa1zw_04Us8URx";
-const BACKEND_URL = "https://telefon112-production.up.railway.app";
+const BACKEND_URL = "https://telefon112-dev.up.railway.app";
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
 let currentSchool = null;
 let currentToken = null;
-let currentSessionId = null; // dla modal
+let currentSessionId = null;
+
+// ============================================================
+// DEBUG LOG
+// ============================================================
+function dlog(msg, type = "info") {
+  const el = document.getElementById("debug-log");
+  if (!el) return;
+  const t = new Date().toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  const line = document.createElement("div");
+  line.className = "dlog-" + type;
+  line.textContent = `[${t}] ${msg}`;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+  console.log(`[DEBUG][${type.toUpperCase()}] ${msg}`);
+}
+function clearDebugLog() {
+  const el = document.getElementById("debug-log");
+  if (el) el.innerHTML = '<span style="color:#636366">Wyczyszczono.</span>';
+}
+function showSendStatus(msg, type) {
+  const box = document.getElementById("send-status-box");
+  const msgEl = document.getElementById("send-status-msg");
+  box.style.display = "block";
+  msgEl.textContent = msg;
+  msgEl.className = "";
+  msgEl.style.background = type === "ok" ? "#0d2818" : type === "err" ? "#1a0000" : "#001a2e";
+  msgEl.style.color = type === "ok" ? "#34c759" : type === "err" ? "#ff3b30" : "#0a84ff";
+  msgEl.style.border = `0.5px solid ${type === "ok" ? "#34c759" : type === "err" ? "#ff3b30" : "#0a84ff"}`;
+}
 
 // ============================================================
 // AUTH
@@ -222,12 +233,12 @@ async function doLogin() {
   const password = document.getElementById("login-password").value;
   const btn = document.getElementById("login-btn");
   const msg = document.getElementById("login-msg");
-  btn.disabled = true; btn.textContent = "Loguję...";
-  msg.style.display = "none";
+  btn.disabled = true; btn.textContent = "Loguję..."; msg.textContent = "";
 
   const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
   if (error) {
-    showMsg("login-msg", error.message, "err");
+    msg.className = "msg msg-err"; msg.textContent = error.message;
+    msg.style.display = "block";
     btn.disabled = false; btn.textContent = "Zaloguj się";
     return;
   }
@@ -242,17 +253,15 @@ async function doLogout() {
   show("login");
 }
 
-function showReset() {
-  document.getElementById("view-reset").classList.remove("hidden");
-}
+function showReset() { document.getElementById("view-reset").classList.remove("hidden"); }
 
 async function doReset() {
   const email = document.getElementById("reset-email").value.trim();
-  const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin + "/panel/reset"
-  });
-  if (error) showMsg("reset-msg", error.message, "err");
-  else showMsg("reset-msg", "Wysłano link na email!", "ok");
+  const { error } = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + "/panel/reset" });
+  const msg = document.getElementById("reset-msg");
+  if (error) { msg.className = "msg msg-err"; msg.textContent = error.message; }
+  else { msg.className = "msg msg-ok"; msg.textContent = "Wysłano link na email!"; }
+  msg.style.display = "block";
 }
 
 // ============================================================
@@ -261,56 +270,31 @@ async function doReset() {
 async function loadPanelData() {
   document.getElementById("panel-email").textContent = currentUser.email;
 
-  // Pobierz szkołę powiązaną z kontem
-  const { data: school } = await supabaseClient
-    .from("schools")
-    .select("*")
-    .eq("director_email", currentUser.email)
-    .single();
-
+  const { data: school } = await supabaseClient.from("schools").select("*").eq("director_email", currentUser.email).single();
   if (school) {
     currentSchool = school;
     document.getElementById("panel-school-name").textContent = school.name;
+  } else {
+    document.getElementById("panel-school-name").textContent = currentUser.email;
   }
 
-  // Pobierz token szkoły
   if (school) {
-    const { data: tokens } = await supabaseClient
-      .from("tokens")
-      .select("*")
-      .eq("school_id", school.id)
-      .eq("active", true)
-      .order("created_at", { ascending: false })
-      .limit(1);
-
+    const { data: tokens } = await supabaseClient.from("tokens").select("*").eq("school_id", school.id).eq("active", true).order("created_at", { ascending: false }).limit(1);
     if (tokens?.[0]) {
       currentToken = tokens[0];
       document.getElementById("stat-token").textContent = tokens[0].token_code;
       document.getElementById("stat-credits").textContent = tokens[0].credits + " sesji";
     }
-  }
 
-  // Statystyki sesji
-  if (school) {
-    const { data: sessions } = await supabaseClient
-      .from("sessions")
-      .select("id, stars, started_at, status")
-      .eq("school_id", school.id)
-      .order("started_at", { ascending: false });
-
+    const { data: sessions } = await supabaseClient.from("sessions").select("id, stars, started_at, status").eq("school_id", school.id).order("started_at", { ascending: false });
     if (sessions) {
       const completed = sessions.filter(s => s.status === "completed");
-      const avgStars = completed.length
-        ? (completed.reduce((a, s) => a + (s.stars || 0), 0) / completed.length).toFixed(1)
-        : "—";
+      const avgStars = completed.length ? (completed.reduce((a, s) => a + (s.stars || 0), 0) / completed.length).toFixed(1) : "—";
       document.getElementById("stat-total").textContent = sessions.length;
       document.getElementById("stat-avg-stars").textContent = avgStars + " / 3";
-      document.getElementById("stat-last").textContent = sessions[0]
-        ? new Date(sessions[0].started_at).toLocaleString("pl-PL")
-        : "Brak";
+      document.getElementById("stat-last").textContent = sessions[0] ? new Date(sessions[0].started_at).toLocaleString("pl-PL") : "Brak";
     }
   }
-
   await loadSessions();
 }
 
@@ -322,12 +306,7 @@ async function loadSessions() {
   const list = document.getElementById("sessions-list");
   list.innerHTML = '<div style="text-align:center;padding:16px;color:#636366"><div class="spinner"></div></div>';
 
-  const { data: sessions, error } = await supabaseClient
-    .from("sessions")
-    .select("id, started_at, ended_at, stars, message_count, duration_seconds, lang, status, log_sent_at")
-    .eq("school_id", currentSchool.id)
-    .order("started_at", { ascending: false })
-    .limit(50);
+  const { data: sessions, error } = await supabaseClient.from("sessions").select("id, started_at, ended_at, stars, message_count, duration_seconds, lang, status, log_sent_at").eq("school_id", currentSchool.id).order("started_at", { ascending: false }).limit(50);
 
   if (error || !sessions?.length) {
     list.innerHTML = '<div style="text-align:center;padding:24px;color:#636366">Brak sesji</div>';
@@ -335,26 +314,12 @@ async function loadSessions() {
   }
 
   list.innerHTML = sessions.map(s => {
-    const date = new Date(s.started_at).toLocaleString("pl-PL", { day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit" });
+    const date = new Date(s.started_at).toLocaleString("pl-PL", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
     const dur = s.duration_seconds ? Math.round(s.duration_seconds / 60) + " min" : "—";
     const stars = "★".repeat(s.stars || 0) + "☆".repeat(3 - (s.stars || 0));
-    const badge = s.status === "completed"
-      ? '<span class="badge badge-green">ukończona</span>'
-      : '<span class="badge badge-orange">przerwana</span>';
+    const badge = s.status === "completed" ? '<span class="badge badge-green">ukończona</span>' : '<span class="badge badge-orange">przerwana</span>';
     const sentIcon = s.log_sent_at ? "📧 " : "";
-    return `
-      <div class="session-row">
-        <div style="flex:1;min-width:0">
-          <div style="font-size:14px;color:#e5e5ea">${date} · ${dur}</div>
-          <div class="session-meta">${sentIcon}Wiadomości: ${s.message_count || 0} · Język: ${s.lang || "pl"}</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-          <span class="stars" style="font-size:14px">${stars}</span>
-          ${badge}
-          <button onclick="openSessionLog('${s.id}')" class="btn-secondary" style="font-size:12px;padding:6px 10px">📋 Log</button>
-        </div>
-      </div>
-    `;
+    return `<div class="session-row"><div style="flex:1;min-width:0"><div style="font-size:14px;color:#e5e5ea">${date} · ${dur}</div><div class="session-meta">${sentIcon}Wiadomości: ${s.message_count || 0} · ${s.lang || "pl"}</div></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><span class="stars" style="font-size:14px">${stars}</span>${badge}<button onclick="openSessionLog('${s.id}')" class="btn-secondary" style="font-size:12px;padding:6px 10px">📋 Log</button></div></div>`;
   }).join("");
 }
 
@@ -363,38 +328,48 @@ async function loadSessions() {
 // ============================================================
 async function openSessionLog(sessionId) {
   currentSessionId = sessionId;
-  const modal = document.getElementById("log-modal");
-  modal.classList.add("open");
+  document.getElementById("log-modal").classList.add("open");
   document.getElementById("modal-log").textContent = "Ładowanie...";
   document.getElementById("modal-meta").textContent = "";
-  document.getElementById("modal-send-msg").style.display = "none";
+  document.getElementById("send-status-box").style.display = "none";
+  clearDebugLog();
+  dlog("Otwieranie logu sesji: " + sessionId, "info");
 
-  const { data: session } = await supabaseClient
-    .from("sessions")
-    .select("*, session_messages(*)")
-    .eq("id", sessionId)
-    .single();
+  const { data: session, error } = await supabaseClient.from("sessions").select("*, session_messages(*)").eq("id", sessionId).single();
 
-  if (!session) {
+  if (error || !session) {
+    dlog("Błąd pobierania sesji: " + (error?.message || "brak danych"), "err");
     document.getElementById("modal-log").textContent = "Błąd pobierania logu.";
     return;
   }
+
+  dlog("Sesja pobrana. Wiadomości: " + (session.session_messages?.length || 0), "ok");
+  dlog("Status: " + session.status + " · Gwiazdki: " + (session.stars || 0), "info");
 
   const date = new Date(session.started_at).toLocaleString("pl-PL");
   const dur = session.duration_seconds ? Math.round(session.duration_seconds / 60) + " min" : "—";
   document.getElementById("modal-meta").textContent = `${date} · ${dur} · ★ ${session.stars || 0}/3`;
 
-  // Jeśli jest zanonimizowany log — pokaż go
   if (session.anonymized_log) {
+    dlog("Zanonimizowany log dostępny — wyświetlam.", "ok");
     document.getElementById("modal-log").textContent = session.anonymized_log;
   } else if (session.session_messages?.length) {
-    const raw = session.session_messages
-      .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
-      .map(m => `[${m.role === "user" ? "DZIECKO" : "DYSPOZYTOR"}] ${m.content}`)
-      .join("\n");
+    const raw = session.session_messages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).map(m => `[${m.role === "user" ? "DZIECKO" : "DYSPOZYTOR"}] ${m.content}`).join("\n");
     document.getElementById("modal-log").textContent = raw + "\n\n(log niezanonimizowany)";
+    dlog("Wyświetlam surowy log (" + session.session_messages.length + " wiadomości).", "warn");
   } else {
     document.getElementById("modal-log").textContent = "Brak wiadomości w tej sesji.";
+    dlog("Brak wiadomości w sesji.", "warn");
+  }
+
+  // Sprawdź stan JWT
+  const { data: { session: authSession } } = await supabaseClient.auth.getSession();
+  if (authSession?.access_token) {
+    dlog("JWT: dostępny ✅ (wygasa: " + new Date(authSession.expires_at * 1000).toLocaleTimeString() + ")", "ok");
+    document.getElementById("modal-send-btn").disabled = false;
+  } else {
+    dlog("JWT: BRAK ❌ — wyloguj się i zaloguj ponownie!", "err");
+    document.getElementById("modal-send-btn").disabled = true;
   }
 }
 
@@ -406,18 +381,48 @@ function closeModal() {
 function copyModalLog() {
   const text = document.getElementById("modal-log").textContent;
   navigator.clipboard.writeText(text).then(() => {
-    showMsg("modal-send-msg", "Skopiowano!", "ok");
+    showSendStatus("✅ Skopiowano do schowka!", "ok");
   });
 }
 
+// ============================================================
+// WYSYŁKA MAILA — z pełnym debugowaniem
+// ============================================================
 async function sendCurrentLog() {
-  if (!currentSessionId) return;
+  if (!currentSessionId) { dlog("Brak session_id!", "err"); return; }
+
   const btn = document.getElementById("modal-send-btn");
   btn.disabled = true; btn.textContent = "Wysyłam...";
-  document.getElementById("modal-send-msg").style.display = "none";
+  document.getElementById("send-status-box").style.display = "none";
 
-  const { data: { session } } = await supabaseClient.auth.getSession();
-  const accessJwt = session?.access_token;
+  dlog("▶ Rozpoczynam wysyłkę...", "info");
+  dlog("Session ID: " + currentSessionId, "info");
+  dlog("Backend URL: " + BACKEND_URL, "info");
+
+  // Pobierz JWT
+  const { data: { session: authSession }, error: sessionError } = await supabaseClient.auth.getSession();
+
+  if (sessionError) {
+    dlog("Błąd pobierania sesji auth: " + sessionError.message, "err");
+    showSendStatus("❌ Błąd autoryzacji: " + sessionError.message, "err");
+    btn.disabled = false; btn.textContent = "📧 Wyślij na email";
+    return;
+  }
+
+  if (!authSession) {
+    dlog("Brak sesji Supabase — użytkownik niezalogowany!", "err");
+    showSendStatus("❌ Brak sesji — wyloguj się i zaloguj ponownie.", "err");
+    btn.disabled = false; btn.textContent = "📧 Wyślij na email";
+    return;
+  }
+
+  const accessJwt = authSession.access_token;
+  dlog("JWT pobrany ✅ (długość: " + accessJwt.length + " znaków)", "ok");
+  dlog("User email: " + authSession.user?.email, "info");
+  dlog("Token wygasa: " + new Date(authSession.expires_at * 1000).toLocaleString(), "info");
+
+  // Wysyłka do backendu
+  dlog("▶ Wysyłam POST do: " + BACKEND_URL + "/api/send-log-email", "info");
 
   try {
     const res = await fetch(BACKEND_URL + "/api/send-log-email", {
@@ -425,17 +430,39 @@ async function sendCurrentLog() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ session_id: currentSessionId, access_jwt: accessJwt })
     });
-    const data = await res.json();
-    if (res.ok) {
-      showMsg("modal-send-msg", "✅ Wysłano na: " + (data.sent_to || []).join(", "), "ok");
+
+    dlog("HTTP status: " + res.status + " " + res.statusText, res.ok ? "ok" : "err");
+
+    const contentType = res.headers.get("content-type") || "";
+    dlog("Content-Type odpowiedzi: " + contentType, "info");
+
+    let data;
+    if (contentType.includes("application/json")) {
+      data = await res.json();
+      dlog("Odpowiedź JSON: " + JSON.stringify(data), res.ok ? "ok" : "err");
     } else {
-      showMsg("modal-send-msg", "Błąd: " + (data.error || "nieznany"), "err");
+      const text = await res.text();
+      dlog("Odpowiedź (nie-JSON): " + text.substring(0, 200), "err");
+      showSendStatus("❌ Backend zwrócił nie-JSON. Sprawdź debug log.", "err");
+      btn.disabled = false; btn.textContent = "📧 Wyślij na email";
+      return;
+    }
+
+    if (res.ok && data.ok) {
+      dlog("✅ Mail wysłany do: " + (data.sent_to || []).join(", "), "ok");
+      showSendStatus("✅ Wysłano na: " + (data.sent_to || []).join(", "), "ok");
+      await loadSessions();
+    } else {
+      dlog("❌ Błąd serwera: " + (data.error || "nieznany"), "err");
+      showSendStatus("❌ " + (data.error || "Błąd serwera"), "err");
     }
   } catch (e) {
-    showMsg("modal-send-msg", "Błąd połączenia", "err");
+    dlog("❌ Wyjątek fetch: " + e.message, "err");
+    dlog("Stack: " + (e.stack || "brak"), "err");
+    showSendStatus("❌ Błąd połączenia: " + e.message, "err");
   }
+
   btn.disabled = false; btn.textContent = "📧 Wyślij na email";
-  await loadSessions(); // odśwież — zaktualizuj ikonę "wysłano"
 }
 
 // ============================================================
@@ -446,27 +473,14 @@ function show(which) {
   document.getElementById("view-panel").classList.toggle("hidden", which !== "panel");
 }
 
-function showMsg(id, text, type) {
-  const el = document.getElementById(id);
-  el.textContent = text;
-  el.className = "msg " + (type === "ok" ? "msg-ok" : "msg-err");
-  el.style.display = "block";
-}
-
 function switchTab(name) {
-  document.querySelectorAll(".tab").forEach((t, i) => {
-    t.classList.toggle("active", ["sessions","info"][i] === name);
-  });
+  document.querySelectorAll(".tab").forEach((t, i) => { t.classList.toggle("active", ["sessions","info"][i] === name); });
   document.getElementById("tab-sessions").classList.toggle("active", name === "sessions");
   document.getElementById("tab-info").classList.toggle("active", name === "info");
 }
 
-// Zamknij modal po kliknięciu tła
-document.getElementById("log-modal").addEventListener("click", (e) => {
-  if (e.target === e.currentTarget) closeModal();
-});
+document.getElementById("log-modal").addEventListener("click", (e) => { if (e.target === e.currentTarget) closeModal(); });
 
-// Start
 checkSession();
 </script>
 </body>
