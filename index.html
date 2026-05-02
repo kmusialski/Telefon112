@@ -758,18 +758,6 @@
       showMsg('registerMsg', 'error', msg);
       return;
     }
-
-    // 2. Zapisz szkołę w tabeli schools (przez backend lub bezpośrednio przez Supabase)
-    const userId = authData.user?.id;
-    if (userId) {
-      await sb.from('schools').insert({
-        name: school,
-        director_email: email,
-        user_id: userId,
-        created_at: new Date().toISOString()
-      });
-    }
-
     setLoading('registerBtn', false);
     showMsg('registerMsg', 'success', '✓ Konto założone! Sprawdź email, aby potwierdzić adres, a następnie zaloguj się.');
     setTimeout(() => switchTab('login'), 3500);
