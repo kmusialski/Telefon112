@@ -38,7 +38,24 @@
     .nav-actions { display:flex; align-items:center; gap:10px; }
     .nav-app-btn { text-decoration:none; color:var(--ink-mid); font-size:13px; font-weight:400; padding:7px 14px; border-radius:2px; border:1.5px solid var(--border); transition:all .2s; white-space:nowrap; }
     .nav-app-btn:hover { color:var(--red); border-color:var(--red); background:var(--red-pale); }
-    @media (max-width:700px) { .nav-links { display:none; } .nav-app-btn { display:none; } }
+    .nav-hamburger { display:none; flex-direction:column; gap:5px; background:none; border:none; cursor:pointer; padding:6px; }
+    .nav-hamburger span { display:block; width:22px; height:2px; background:var(--ink); border-radius:2px; transition:all .3s; }
+    .nav-hamburger.open span:nth-child(1) { transform:translateY(7px) rotate(45deg); }
+    .nav-hamburger.open span:nth-child(2) { opacity:0; }
+    .nav-hamburger.open span:nth-child(3) { transform:translateY(-7px) rotate(-45deg); }
+    @media (max-width:700px) {
+      .nav-links { display:none; }
+      .nav-app-btn { display:none; }
+      .nav-hamburger { display:flex; }
+      .nav-actions .nav-btn { display:none; }
+      .mobile-menu { display:none; position:fixed; top:56px; left:0; right:0; background:var(--white); border-bottom:1px solid var(--border); z-index:998; padding:16px 20px 20px; flex-direction:column; gap:4px; box-shadow:0 8px 24px rgba(0,0,0,0.08); }
+      .mobile-menu.open { display:flex; }
+      .mobile-menu a { text-decoration:none; color:var(--ink-mid); font-size:15px; padding:11px 14px; border-radius:4px; transition:all .2s; }
+      .mobile-menu a:hover { color:var(--red); background:var(--red-pale); }
+      .mobile-menu .mobile-app-btn { color:var(--red); font-weight:500; border:1.5px solid var(--red); margin-top:4px; }
+      .mobile-menu .mobile-panel-btn { background:var(--red); color:#fff; font-weight:500; margin-top:4px; }
+      .mobile-menu .mobile-panel-btn:hover { background:var(--red-dark); color:#fff; }
+    }
 
     /* HERO */
     .hero-wrap { background:var(--white); border-bottom:1px solid var(--border); border-top:4px solid var(--red); position:relative; overflow:hidden; }
@@ -258,8 +275,22 @@
   <div class="nav-actions">
     <a class="nav-app-btn" href="/aplikacja/" id="navAppBtn">▶ Aplikacja</a>
     <a class="nav-btn" href="#" id="navAuthBtn" onclick="openModal(); return false;">Panel dyrektora →</a>
+    <button class="nav-hamburger" id="hamburgerBtn" onclick="toggleMobileMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#film" onclick="closeMobileMenu()">Film</a>
+  <a href="#jak-dziala" onclick="closeMobileMenu()">Jak działa</a>
+  <a href="#pilotaz" onclick="closeMobileMenu()">Pilotaż</a>
+  <a href="#cennik" onclick="closeMobileMenu()">Cennik</a>
+  <a href="#faq" onclick="closeMobileMenu()">FAQ</a>
+  <a href="/aplikacja/" class="mobile-app-btn">▶ Uruchom Aplikację</a>
+  <a href="#" class="mobile-panel-btn" id="mobilePanelBtn" onclick="closeMobileMenu(); openModal(); return false;">Panel dyrektora →</a>
+</div>
 
 <!-- MODAL REJESTRACJA / LOGOWANIE -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
@@ -569,6 +600,20 @@
 </footer>
 
 <script>
+  // ── Mobile menu ───────────────────────────────────────────
+  function toggleMobileMenu() {
+    const menu = document.getElementById('mobileMenu');
+    const btn = document.getElementById('hamburgerBtn');
+    const isOpen = menu.classList.toggle('open');
+    btn.classList.toggle('open', isOpen);
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+  }
+  function closeMobileMenu() {
+    document.getElementById('mobileMenu').classList.remove('open');
+    document.getElementById('hamburgerBtn').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
   // ── Scroll animations ──────────────────────────────────────
   const io = new IntersectionObserver(
     e => e.forEach(el => { if (el.isIntersecting) el.target.classList.add('visible'); }),
