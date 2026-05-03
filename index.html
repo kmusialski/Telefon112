@@ -246,7 +246,10 @@
     <li><a href="#cennik">Cennik</a></li>
     <li><a href="#faq">FAQ</a></li>
   </ul>
-  <a class="nav-btn" href="mailto:kontakt@herokids.pl">Umów pilotaż →</a>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <a class="nav-btn" href="/panel" style="background:transparent;color:var(--ink);border:1.5px solid var(--border);">Panel</a>
+    <a class="nav-btn" href="/app">Aplikacja →</a>
+  </div>
 </nav>
 
 <!-- HERO -->
@@ -344,7 +347,7 @@
     <div class="step"><div class="step-n">2</div><div><h3>Wybieranie numeru 1-1-2</h3><p>Na klawiaturze telefonu dziecko samodzielnie wpisuje numer alarmowy i naciska zielony przycisk połączenia.</p></div></div>
     <div class="step"><div class="step-n">3</div><div><h3>Animacja łączenia</h3><p>Aplikacja symuluje łączenie z dźwiękiem i animacją identyczną jak w prawdziwym telefonie — pełne zanurzenie w scenariuszu.</p></div></div>
     <div class="step"><div class="step-n">4</div><div><span class="step-tag">Kluczowy moment</span><h3>Rozmowa głosowa z dyspozytorem AI</h3><p>Sztuczna inteligencja odbiera i prowadzi rozmowę. Pyta o zdarzenie, adres, bezpieczeństwo. Jest cierpliwa i dostosowuje pytania do odpowiedzi dziecka. Dziecko mówi naturalnie do mikrofonu.</p></div></div>
-    <div class="step"><div class="step-n">5</div><div><h3>Ocena i wskazówki</h3><p>Dziecko dostaje gwiazdki i konkretne porady. Nauczyciel widzi log każdej sesji w panelu administratora — zanonimizowany, bez danych osobowych.</p></div></div>
+    <div class="step"><div class="step-n">5</div><div><h3>Ocena i wskazówki</h3><p>Dziecko dostaje gwiazdki i konkretne porady co zrobiło dobrze, a co warto poćwiczyć następnym razem.</p></div></div>
   </div>
 </section>
 
@@ -385,7 +388,6 @@
         <ul class="pilot-includes">
           <li>10 sesji edukacyjnych dla dzieci</li>
           <li>Unikalny kod dostępu dla placówki</li>
-          <li>Panel administratora z logami sesji</li>
           <li>Wzory zgód RODO dla rodziców</li>
           <li>Instrukcja dla nauczyciela</li>
           <li>Wsparcie przez cały czas pilotażu</li>
@@ -403,60 +405,40 @@
 <section class="section reveal" id="cennik">
   <span class="section-eyebrow">Cennik</span>
   <h2 class="section-title">Pakiety sesji — płacisz za to, czego używasz</h2>
-  <p class="section-lead">Bez miesięcznych subskrypcji. Kupujesz pakiet kredytów sesji ważnych przez 12 miesięcy. Ceny zostaną ogłoszone po zakończeniu pierwszych pilotaży.</p>
+  <p class="section-lead">Bez miesięcznych subskrypcji. Kupujesz pakiet kredytów sesji ważnych przez 12 miesięcy. Każdy pakiet zawiera wsparcie email, fakturę VAT i dostęp do wszystkich scenariuszy.</p>
   <div class="packages">
     <div class="pkg">
       <span class="pkg-badge">Mała placówka</span>
-      <div class="pkg-name">Starter</div>
+      <div class="pkg-name">Mały</div>
       <div class="pkg-desc">Dla jednej grupy. Wystarczy na regularne ćwiczenia przez cały rok szkolny.</div>
       <div class="pkg-sessions">30</div>
       <div class="pkg-sessions-label">sesji · ważne 12 miesięcy</div>
-      <div class="pkg-price">Cena wkrótce</div>
-      <ul class="pkg-features">
-        <li>Panel administratora</li>
-        <li>Logi sesji dla nauczyciela</li>
-        <li>Wsparcie przez email</li>
-        <li>Faktura VAT</li>
-      </ul>
-      <a class="pkg-btn" href="mailto:kontakt@herokids.pl">Zapytaj o cenę</a>
+      <div class="pkg-price">29 zł jednorazowo</div>
+      <a class="pkg-btn" href="mailto:kontakt@herokids.pl">Kup pakiet</a>
       <p class="pkg-note">Zacznij od 10 sesji pilotażowych gratis</p>
     </div>
     <div class="pkg featured">
       <span class="pkg-badge">Najpopularniejszy</span>
-      <div class="pkg-name">Szkoła</div>
+      <div class="pkg-name">Średni</div>
       <div class="pkg-desc">Dla kilku grup. Sesje dla całej placówki przez cały rok z zapasem.</div>
-      <div class="pkg-sessions">100</div>
+      <div class="pkg-sessions">60</div>
       <div class="pkg-sessions-label">sesji · ważne 12 miesięcy</div>
-      <div class="pkg-price">Cena wkrótce</div>
-      <ul class="pkg-features">
-        <li>Panel administratora</li>
-        <li>Logi sesji i wysyłka mailem</li>
-        <li>Priorytetowe wsparcie</li>
-        <li>Faktura VAT</li>
-        <li>Dostęp do nowych scenariuszy</li>
-      </ul>
-      <a class="pkg-btn" href="mailto:kontakt@herokids.pl">Zapytaj o cenę</a>
+      <div class="pkg-price">49 zł jednorazowo</div>
+      <a class="pkg-btn" href="mailto:kontakt@herokids.pl">Kup pakiet</a>
       <p class="pkg-note">Rekomendowany po pilotażu</p>
     </div>
     <div class="pkg">
-      <span class="pkg-badge">Sieć placówek</span>
-      <div class="pkg-name">Pro</div>
-      <div class="pkg-desc">Dla sieci przedszkoli lub dużych szkół z wieloma grupami i oddziałami.</div>
-      <div class="pkg-sessions">∞</div>
-      <div class="pkg-sessions-label">sesji · indywidualna wycena</div>
-      <div class="pkg-price">Wycena indywidualna</div>
-      <ul class="pkg-features">
-        <li>Panel per grupa z raportami</li>
-        <li>Raporty zbiorcze dla dyrektora</li>
-        <li>Dedykowane wsparcie</li>
-        <li>Umowa SLA</li>
-        <li>Priorytetowe nowe funkcje</li>
-      </ul>
-      <a class="pkg-btn" href="mailto:kontakt@herokids.pl">Napisz po wycenę</a>
-      <p class="pkg-note">Dla sieci 3+ placówek</p>
+      <span class="pkg-badge">Duża placówka</span>
+      <div class="pkg-name">Duży</div>
+      <div class="pkg-desc">Dla dużych przedszkoli i szkół z wieloma grupami przez cały rok.</div>
+      <div class="pkg-sessions">100</div>
+      <div class="pkg-sessions-label">sesji · ważne 12 miesięcy</div>
+      <div class="pkg-price">79 zł jednorazowo</div>
+      <a class="pkg-btn" href="mailto:kontakt@herokids.pl">Kup pakiet</a>
+      <p class="pkg-note">Dla wielu grup jednocześnie</p>
     </div>
   </div>
-  <p class="packages-sub">Pytania o cenę? <a href="mailto:kontakt@herokids.pl">Napisz bezpośrednio</a> — odpiszę w ciągu 24h.</p>
+  <p class="packages-sub">Pytania? <a href="mailto:kontakt@herokids.pl">Napisz bezpośrednio</a> — odpiszę w ciągu 24h.</p>
 </section>
 
 <div class="divider"></div>
@@ -470,7 +452,7 @@
     <div class="rodo-item"><div class="rodo-dot"></div><p>Nie zbieramy imion ani żadnych danych osobowych dzieci</p></div>
     <div class="rodo-item"><div class="rodo-dot"></div><p>Logi rozmów automatycznie anonimizowane przez AI przed zapisem</p></div>
     <div class="rodo-item"><div class="rodo-dot"></div><p>Klucze do systemów AI wyłącznie na serwerze — nie w przeglądarce dziecka</p></div>
-    <div class="rodo-item"><div class="rodo-dot"></div><p>Unikalny kod dostępu per placówka — dane widoczne tylko dla jej administratora</p></div>
+    <div class="rodo-item"><div class="rodo-dot"></div><p>Unikalny kod dostępu per placówka — dane widoczne tylko dla nauczyciela prowadzącego</p></div>
     <div class="rodo-item"><div class="rodo-dot"></div><p>Certyfikowani dostawcy AI: Anthropic i ElevenLabs z własnymi politykami prywatności</p></div>
     <div class="rodo-item"><div class="rodo-dot"></div><p>Gotowe wzory zgód RODO dla rodziców i placówki — dostarczamy przy uruchomieniu</p></div>
   </div>
