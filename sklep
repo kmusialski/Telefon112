@@ -110,26 +110,26 @@ button:disabled{opacity:0.4;cursor:not-allowed}
   <div class="card">
     <div class="card-title">Wybierz pakiet</div>
     <div class="packages">
-      <div class="pkg" id="pkg-starter" onclick="selectPackage('starter')">
+      <div class="pkg" id="pkg-basic" onclick="selectPackage('basic')">
         <div class="pkg-check">✓</div>
-        <div class="pkg-sessions">50</div>
+        <div class="pkg-sessions">30</div>
         <div class="pkg-unit">sesji</div>
         <div class="pkg-price">29 zł</div>
-        <div class="pkg-name">Starter</div>
+        <div class="pkg-name">Basic</div>
       </div>
       <div class="pkg popular" id="pkg-standard" onclick="selectPackage('standard')">
         <div class="pkg-check">✓</div>
-        <div class="pkg-sessions">200</div>
+        <div class="pkg-sessions">60</div>
         <div class="pkg-unit">sesji</div>
-        <div class="pkg-price">79 zł</div>
+        <div class="pkg-price">49 zł</div>
         <div class="pkg-name">Standard</div>
       </div>
-      <div class="pkg" id="pkg-roczny" onclick="selectPackage('roczny')">
+      <div class="pkg" id="pkg-pro" onclick="selectPackage('pro')">
         <div class="pkg-check">✓</div>
-        <div class="pkg-sessions">∞</div>
-        <div class="pkg-unit">sesji / rok</div>
-        <div class="pkg-price">149 zł</div>
-        <div class="pkg-name">Roczny</div>
+        <div class="pkg-sessions">100</div>
+        <div class="pkg-unit">sesji</div>
+        <div class="pkg-price">79 zł</div>
+        <div class="pkg-name">Pro</div>
       </div>
     </div>
 
@@ -235,9 +235,9 @@ const PANEL_URL = "panel.html";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const PACKAGES = {
-  starter:  { name: "Starter",  sessions: 50,   price: "29 zł",  sessionsLabel: "50 sesji" },
-  standard: { name: "Standard", sessions: 200,  price: "79 zł",  sessionsLabel: "200 sesji" },
-  roczny:   { name: "Roczny",   sessions: 9999, price: "149 zł", sessionsLabel: "Nieograniczone (rok)" }
+  basic:    { name: "Basic",    sessions: 30,  price: "29 zł", sessionsLabel: "30 sesji",  amount: 2900 },
+  standard: { name: "Standard", sessions: 60,  price: "49 zł", sessionsLabel: "60 sesji",  amount: 4900 },
+  pro:      { name: "Pro",      sessions: 100, price: "79 zł", sessionsLabel: "100 sesji", amount: 7900 }
 };
 
 let currentUser = null;
