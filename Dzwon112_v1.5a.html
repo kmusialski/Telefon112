@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<link rel="icon" href="data:,"/>
+<title>Zadzwon pod 112 / Notruf 112</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:#000;height:100%;overflow-x:hidden}
+body{display:flex;flex-direction:column;align-items:center;font-family:-apple-system,sans-serif;color:#fff}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+@keyframes ring{0%,100%{transform:scale(1)}40%{transform:scale(1.18)}70%{transform:scale(0.94)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.screen{width:100%;max-width:400px;min-height:100dvh;display:flex;flex-direction:column;align-items:center;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.hidden{display:none!important}
+.key{background:#1c1c1e;border:none;border-radius:50%;width:72px;height:72px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;touch-action:manipulation;-webkit-user-select:none;user-select:none;transition:background 0.1s,transform 0.08s;flex-shrink:0}
+.key:active{background:#3a3a3c;transform:scale(0.93)}
+.key-num{font-size:28px;line-height:1}
+.key-sub{font-size:10px;color:#8e8e93;letter-spacing:2px;margin-top:2px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:0 20px;width:100%}
+.call-btn{background:#34c759;border:none;border-radius:50%;width:72px;height:72px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation;flex-shrink:0}
+.end-btn{background:#ff3b30;border:none;border-radius:50%;width:56px;height:56px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.mic-btn{border:none;border-radius:50%;width:76px;height:76px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:none;-webkit-user-select:none;user-select:none}
+.bubble-op{align-self:flex-start;background:#1c1c1e;border-radius:16px;padding:10px 14px;max-width:82%;font-size:15px;line-height:1.4;color:#fff;animation:fadeIn 0.2s ease}
+.bubble-me{align-self:flex-end;background:#0a84ff;border-radius:16px;padding:10px 14px;max-width:82%;font-size:15px;line-height:1.4;color:#fff;animation:fadeIn 0.2s ease}
+.lbl{font-size:11px;color:#8e8e93;margin-bottom:3px}
+.dots span{display:inline-block;width:7px;height:7px;border-radius:50%;background:#8e8e93;margin:0 3px;animation:pulse 0.6s infinite}
+.dots span:nth-child(2){animation-delay:0.15s}
+.dots span:nth-child(3){animation-delay:0.3s}
+.api-input{background:#1c1c1e;border:0.5px solid #3a3a3c;border-radius:12px;color:#fff;font-size:14px;padding:14px 16px;width:100%;outline:none;font-family:-apple-system,sans-serif;margin-top:8px}
+.api-input::placeholder{color:#636366}
+.api-btn{background:#0a84ff;color:#fff;border:none;border-radius:24px;padding:14px;font-size:16px;cursor:pointer;width:100%;margin-top:12px;font-family:-apple-system,sans-serif}
+.api-btn:disabled{opacity:0.4}
+.lang-btn{border:none;border-radius:16px;padding:10px 0;font-size:16px;cursor:pointer;flex:1;transition:background 0.15s,transform 0.1s;touch-action:manipulation;font-family:-apple-system,sans-serif;color:#fff}
+.lang-btn:active{transform:scale(0.94)}
+.lang-btn.active{background:#0a84ff}
+.lang-btn.inactive{background:#1c1c1e;color:#8e8e93}
+.token-badge{display:inline-flex;align-items:center;gap:6px;background:#0d2818;border:0.5px solid #34c759;border-radius:10px;padding:6px 12px;font-size:12px;color:#34c759;font-family:monospace;margin-top:8px}
+.credits-badge{display:inline-flex;align-items:center;gap:6px;background:#1c1c1e;border-radius:10px;padding:6px 12px;font-size:12px;color:#8e8e93;font-family:monospace;margin-top:4px}
+/* iOS call screen buttons */
+.call-action-btn{background:rgba(255,255,255,0.15);border:none;border-radius:50%;width:72px;height:72px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#fff;font-size:11px;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.call-action-btn svg{flex-shrink:0}
+.call-end-big{background:#ff3b30;border:none;border-radius:50%;width:72px;height:72px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation}
+</style>
+</head>
+<body>
+
+<!-- RODO -->
+<div id="s-rodo" class="screen" style="padding:40px 24px;justify-content:center;gap:0">
+  <div style="font-size:48px;text-align:center;margin-bottom:20px">🔒</div>
+  <div style="font-size:20px;font-weight:600;text-align:center;margin-bottom:8px">Informacja RODO</div>
+  <div style="font-size:13px;color:#8e8e93;line-height:1.8;text-align:center;margin-bottom:24px">
+    Aplikacja zbiera anonimowe logi rozmów<br/>wyłącznie w celach edukacyjnych.<br/>
+    Nie zapisujemy imion ani danych osobowych.<br/>
+    Dane są widoczne tylko dla administratora szkoły.
+  </div>
+  <div style="background:#1c1c1e;border-radius:16px;padding:16px 20px;width:100%;font-size:13px;color:#8e8e93;line-height:1.8;margin-bottom:24px">
+    <div style="color:#fff;font-weight:600;margin-bottom:8px">Jak działamy:</div>
+    <div>✅ Rozmowy są anonimizowane przez AI</div>
+    <div>✅ Brak przechowywania danych osobowych</div>
+    <div>✅ Klucze API tylko na serwerze</div>
+    <div>✅ Zgodność z RODO / GDPR</div>
+  </div>
+  <div style="width:100%;background:#1c1c1e;border-radius:16px;padding:16px 20px;margin-bottom:24px;font-size:13px;color:#8e8e93;line-height:1.8">
+    <div style="color:#fff;font-weight:600;margin-bottom:8px">Polityki prywatności dostawców AI:</div>
+    <div style="margin-bottom:6px">🤖 <a href="https://www.anthropic.com/privacy" target="_blank" style="color:#0a84ff;text-decoration:none">Anthropic (Claude) — Privacy Policy</a></div>
+    <div>🔊 <a href="https://elevenlabs.io/privacy" target="_blank" style="color:#0a84ff;text-decoration:none">ElevenLabs — Privacy Policy</a></div>
+  </div>
+  <button onclick="ACCESS_TOKEN?show('s-lock'):show('s-setup')" class="api-btn" style="margin-top:0">Rozumiem i akceptuję</button>
+  <div style="font-size:11px;color:#636366;text-align:center;margin-top:12px">Projekt: Zadzwoń pod 112 · v1.5a</div>
+</div>
+
+<!-- SETUP -->
+<div id="s-setup" class="screen hidden" style="padding:40px 24px;gap:0">
+  <div style="font-size:48px;margin-bottom:16px;margin-top:20px">🚨</div>
+  <div id="setup-title" style="font-size:22px;font-weight:600;text-align:center"></div>
+  <div id="setup-subtitle" style="font-size:14px;color:#8e8e93;text-align:center;margin-top:8px;line-height:1.6"></div>
+  <!-- TOKEN v1.5a -->
+  <div style="width:100%;margin-top:24px">
+    <div style="font-size:13px;color:#8e8e93;margin-bottom:4px">Kod dostępu szkoły</div>
+    <input id="token-input" class="api-input" type="text" placeholder="PSZ-MIASTO-XXXX" oninput="checkToken()" autocomplete="off" autocapitalize="characters"/>
+    <div style="font-size:11px;color:#636366;margin-top:6px">Kod otrzymany od administratora aplikacji</div>
+  </div>
+  <div id="token-status" style="font-size:13px;color:#8e8e93;text-align:center;min-height:20px;margin-top:10px"></div>
+  <div id="setup-error" style="font-size:13px;color:#ff3b30;margin-top:4px;text-align:center;min-height:16px"></div>
+  <button id="start-btn" class="api-btn" onclick="validateTokenAndStart()" disabled>Rozpocznij</button>
+  <div style="font-size:11px;color:#636366;text-align:center;margin-top:12px;line-height:1.6">Klucze API są przechowywane wyłącznie na serwerze.</div>
+  <div style="width:100%;margin-top:24px;padding-top:24px;border-top:0.5px solid #2c2c2e;text-align:center">
+    <button onclick="openAdminFromSetup()" style="background:transparent;border:0.5px solid #3a3a3c;border-radius:24px;padding:12px 24px;font-size:14px;color:#8e8e93;cursor:pointer;font-family:-apple-system,sans-serif;width:100%">Panel administratora</button>
+  </div>
+</div>
+
+<!-- LOCK SCREEN -->
+<div id="s-lock" class="screen hidden" style="position:fixed;inset:0;overflow:hidden;justify-content:space-between;padding:0;max-width:100%;z-index:10">
+  <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.55) 0%,rgba(0,0,0,0.15) 40%,rgba(0,0,0,0.15) 70%,rgba(0,0,0,0.7) 100%),url('https://images.unsplash.com/photo-1540479859555-17af45c78602?w=600&q=80') center/cover no-repeat;z-index:0"></div>
+  <div style="position:relative;z-index:1;display:flex;justify-content:center;padding-top:52px;width:100%">
+    <div style="background:rgba(0,0,0,0.75);border-radius:24px;padding:8px 20px;display:flex;align-items:center;gap:28px">
+      <svg width="22" height="26" viewBox="0 0 22 26" fill="white"><rect x="3" y="11" width="16" height="13" rx="3" fill="white"/><path d="M6 11V7.5a5 5 0 0110 0V11" stroke="white" stroke-width="2" fill="none"/></svg>
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M4 9V5a1 1 0 011-1h4" stroke="#34c759" stroke-width="2" stroke-linecap="round"/><path d="M24 9V5a1 1 0 00-1-1h-4" stroke="#34c759" stroke-width="2" stroke-linecap="round"/><path d="M4 19v4a1 1 0 001 1h4" stroke="#34c759" stroke-width="2" stroke-linecap="round"/><path d="M24 19v4a1 1 0 01-1 1h-4" stroke="#34c759" stroke-width="2" stroke-linecap="round"/><circle cx="9" cy="12" r="1.5" fill="#34c759"/><circle cx="19" cy="12" r="1.5" fill="#34c759"/><path d="M9 18c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="#34c759" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </div>
+  </div>
+  <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:32px">
+    <div id="lock-time" style="font-size:72px;font-weight:200;letter-spacing:-2px;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,0.5)">00:00</div>
+    <div id="lock-date" style="font-size:17px;color:rgba(255,255,255,0.85)"></div>
+    <div id="lock-hint" style="font-size:15px;color:rgba(255,255,255,0.75);text-align:center;margin-top:16px;line-height:1.7;padding:0 24px"></div>
+    <div style="display:flex;gap:18px;margin-top:8px">
+      <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.7)"></div>
+      <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.7)"></div>
+      <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.7)"></div>
+      <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.7)"></div>
+      <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.7)"></div>
+      <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.7)"></div>
+    </div>
+    <div id="lock-token-info" style="margin-top:8px;display:none;flex-direction:column;align-items:center;gap:4px">
+      <div class="token-badge">🔑 <span id="lock-token-code"></span></div>
+      <div class="credits-badge">Pozostałe sesje: <span id="lock-credits" style="color:#fff;font-weight:600"></span></div>
+    </div>
+  </div>
+  <div style="position:relative;z-index:1;display:flex;justify-content:space-between;align-items:flex-end;padding:0 32px 44px;width:100%">
+    <button onclick="goToEmergency()" style="background:rgba(30,30,30,0.75);backdrop-filter:blur(12px);border:none;border-radius:20px;padding:12px 22px;color:#fff;font-size:16px;cursor:pointer;font-family:-apple-system,sans-serif;display:flex;flex-direction:column;align-items:center;gap:6px">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
+      <span id="lock-emergency-label"></span>
+    </button>
+    <button onclick="show('s-setup')" style="background:rgba(30,30,30,0.75);backdrop-filter:blur(12px);border:none;border-radius:20px;padding:12px 22px;color:#fff;font-size:16px;cursor:pointer;font-family:-apple-system,sans-serif"><span id="lock-cancel-label"></span></button>
+  </div>
+</div>
+
+<!-- DIALER -->
+<div id="s-dialer" class="screen hidden" style="justify-content:flex-start">
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;padding:16px 0 0">
+    <div id="dialer-top-label" style="font-size:11px;color:#636666;letter-spacing:2px"></div>
+    <div id="display" style="margin-top:8px;font-size:40px;letter-spacing:12px;height:52px;text-align:center;color:#fff;min-width:160px"><span style="color:#2c2c2e">_ _ _</span></div>
+    <div id="dialer-hint" style="height:22px;font-size:13px;margin-bottom:8px;text-align:center"></div>
+    <div class="grid">
+      <button class="key" onclick="pressDigit('1')"><span class="key-num">1</span></button>
+      <button class="key" onclick="pressDigit('2')"><span class="key-num">2</span><span class="key-sub">ABC</span></button>
+      <button class="key" onclick="pressDigit('3')"><span class="key-num">3</span><span class="key-sub">DEF</span></button>
+      <button class="key" onclick="pressDigit('4')"><span class="key-num">4</span><span class="key-sub">GHI</span></button>
+      <button class="key" onclick="pressDigit('5')"><span class="key-num">5</span><span class="key-sub">JKL</span></button>
+      <button class="key" onclick="pressDigit('6')"><span class="key-num">6</span><span class="key-sub">MNO</span></button>
+      <button class="key" onclick="pressDigit('7')"><span class="key-num">7</span><span class="key-sub">PQRS</span></button>
+      <button class="key" onclick="pressDigit('8')"><span class="key-num">8</span><span class="key-sub">TUV</span></button>
+      <button class="key" onclick="pressDigit('9')"><span class="key-num">9</span><span class="key-sub">WXYZ</span></button>
+      <button class="key" onclick="pressDigit('*')"><span class="key-num" style="font-size:22px">*</span></button>
+      <button class="key" onclick="pressDigit('0')"><span class="key-num">0</span><span class="key-sub">+</span></button>
+      <button class="key" onclick="pressDigit('#')"><span class="key-num" style="font-size:22px">#</span></button>
+    </div>
+    <div style="display:flex;align-items:center;gap:52px;margin-top:20px">
+      <div style="width:64px"></div>
+      <button class="call-btn" onclick="startCall()">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
+      </button>
+      <button onclick="pressDelete()" style="background:transparent;border:none;cursor:pointer;padding:8px">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="#8e8e93"><path d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3 12.59L17.59 17 14 13.41 10.41 17 9 15.59 12.59 12 9 8.41 10.41 7 14 10.59 17.59 7 19 8.41 15.41 12 19 15.59z"/></svg>
+      </button>
+    </div>
+    <div id="dialer-hint-bottom" style="font-size:13px;color:#636366;margin-top:10px;text-align:center;padding-bottom:16px"></div>
+  </div>
+</div>
+
+<!-- CALLING — natywny styl iOS -->
+<div id="s-calling" class="screen hidden" style="background:#000;justify-content:space-between;padding:60px 0 48px">
+  <!-- górna część: status + numer -->
+  <div style="display:flex;flex-direction:column;align-items:flex-start;width:100%;padding:0 28px">
+    <div id="calling-status" style="font-size:17px;color:rgba(255,255,255,0.6);margin-bottom:8px"></div>
+    <div id="calling-title" style="font-size:52px;font-weight:700;color:#fff;line-height:1.1;letter-spacing:-1px"></div>
+    <div id="logo-tap" style="margin-top:16px;cursor:pointer;opacity:0.4;font-size:13px;color:#fff">☞ 3× aby otworzyć panel</div>
+  </div>
+  <!-- środek pusty — jak w iOS -->
+  <div style="flex:1"></div>
+  <!-- dolna część: przyciski akcji -->
+  <div style="width:100%;padding:0 24px">
+    <!-- rząd 1 -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+        <button class="call-action-btn" disabled style="opacity:0.4">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+        </button>
+        <span style="font-size:12px;color:rgba(255,255,255,0.6)">Głośnik</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+        <button class="call-action-btn" disabled style="opacity:0.4">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/><rect x="8" y="9" width="4" height="4" rx="1" fill="#8e8e93"/></svg>
+        </button>
+        <span style="font-size:12px;color:rgba(255,255,255,0.6)">FaceTime</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+        <button class="call-action-btn" disabled style="opacity:0.4">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><line x1="3" y1="3" x2="21" y2="21" stroke="white" stroke-width="2"/></svg>
+        </button>
+        <span style="font-size:12px;color:rgba(255,255,255,0.6)">Wycisz</span>
+      </div>
+    </div>
+    <!-- rząd 2 -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+        <button class="call-action-btn" disabled style="opacity:0.4">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><circle cx="12" cy="12" r="2"/><circle cx="6" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg>
+        </button>
+        <span style="font-size:12px;color:rgba(255,255,255,0.6)">Więcej</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+        <button class="call-end-big" onclick="cancelCall()">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="white" transform="rotate(135)"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
+        </button>
+        <span style="font-size:12px;color:rgba(255,255,255,0.6)">Zakończ</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+        <button class="call-action-btn" disabled style="opacity:0.4">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z"/></svg>
+        </button>
+        <span style="font-size:12px;color:rgba(255,255,255,0.6)">Przyciski</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TALKING -->
+<div id="s-talking" class="screen hidden" style="height:100%">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 10px;border-bottom:0.5px solid #222;width:100%;flex-shrink:0">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:38px;height:38px;border-radius:50%;background:#ff3b30;display:flex;align-items:center;justify-content:center;font-size:20px">🚨</div>
+      <div>
+        <div id="talking-title" style="font-size:15px;font-weight:500"></div>
+        <div id="call-status" style="font-size:12px;color:#34c759">00:00</div>
+      </div>
+    </div>
+    <button class="end-btn" onclick="endCall()">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="white" transform="rotate(135)"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
+    </button>
+  </div>
+  <div id="messages" style="flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:10px;width:100%"></div>
+  <!-- USUNIĘTY przycisk [ log ] — tylko wewnętrzny log w konsoli -->
+  <div style="padding:12px 20px 28px;display:flex;flex-direction:column;align-items:center;gap:8px;border-top:0.5px solid #222;width:100%;flex-shrink:0">
+    <div id="transcript-box" style="font-size:13px;color:#8e8e93;font-style:italic;text-align:center;min-height:18px"></div>
+    <div id="mic-hint" style="font-size:13px;color:#8e8e93;text-align:center"></div>
+    <button id="mic-btn" class="mic-btn" style="background:#34c759"
+      ontouchstart="startListening(event)" ontouchend="stopListening(event)"
+      onmousedown="startListening(event)" onmouseup="stopListening(event)">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- SUMMARY -->
+<div id="s-summary" class="screen hidden" style="justify-content:center;gap:18px;padding:28px;text-align:center">
+  <div style="font-size:72px">🦸</div>
+  <div id="summary-title" style="font-size:26px;font-weight:600"></div>
+  <div id="summary-subtitle" style="font-size:15px;color:#8e8e93;line-height:1.7"></div>
+  <div id="stars-row" style="display:flex;gap:8px;font-size:44px"></div>
+  <div id="summary-tips-box" style="background:#1c1c1e;border-radius:16px;padding:18px 20px;width:100%;font-size:14px;color:#e5e5ea;line-height:2;text-align:left"></div>
+  <div id="summary-disclaimer" style="font-size:12px;color:#636366"></div>
+  <button onclick="resetApp()" id="summary-retry-btn" style="background:#0a84ff;color:#fff;border:none;border-radius:24px;padding:14px 44px;font-size:17px;cursor:pointer;margin-top:4px"></button>
+  <button onclick="openAdminFromSetup('s-summary')" id="summary-admin-btn" style="background:transparent;border:0.5px solid #3a3a3c;border-radius:24px;padding:12px 24px;font-size:14px;color:#8e8e93;cursor:pointer;font-family:-apple-system,sans-serif;width:100%;margin-top:8px"></button>
+</div>
+
+<!-- ADMIN LOGIN -->
+<div id="s-admin-login" class="screen hidden" style="padding:40px 24px;gap:0;justify-content:center">
+  <div style="font-size:48px;text-align:center;margin-bottom:16px">🔐</div>
+  <div id="admin-login-title" style="font-size:20px;font-weight:600;text-align:center;margin-bottom:6px"></div>
+  <div id="admin-login-subtitle" style="font-size:14px;color:#8e8e93;text-align:center;margin-bottom:24px;line-height:1.6"></div>
+  <input id="admin-pass-input" class="api-input" type="password" placeholder="..."/>
+  <div id="admin-login-err" style="font-size:13px;color:#ff3b30;text-align:center;min-height:20px;margin-top:8px"></div>
+  <button onclick="checkAdminPass()" class="api-btn" id="admin-login-btn"></button>
+  <button onclick="show(window._adminReturnTo||'s-rodo')" style="background:transparent;border:none;color:#8e8e93;cursor:pointer;font-size:14px;margin-top:16px;font-family:-apple-system,sans-serif" id="admin-login-cancel"></button>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="s-admin" class="screen hidden" style="padding:24px;gap:0">
+  <div style="display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:20px;margin-bottom:16px">
+    <div id="admin-panel-title" style="font-size:18px;font-weight:600"></div>
+    <button onclick="show(window._adminReturnTo||'s-rodo')" style="background:transparent;border:none;color:#8e8e93;cursor:pointer;font-size:14px;font-family:-apple-system,sans-serif" id="admin-panel-close"></button>
+  </div>
+
+  <!-- JĘZYK — przeniesiony do admina (usunięty z setup) -->
+  <div style="width:100%;margin-bottom:20px">
+    <div id="admin-lang-section-title" style="font-size:13px;color:#8e8e93;margin-bottom:8px"></div>
+    <div style="display:flex;gap:8px;width:100%">
+      <button id="admin-lang-btn-pl" class="lang-btn active" onclick="setLang('pl');refreshAdminExtra()">🇵🇱 Polski</button>
+      <button id="admin-lang-btn-de" class="lang-btn inactive" onclick="setLang('de');refreshAdminExtra()">🇩🇪 Deutsch</button>
+    </div>
+    <div id="admin-lang-note" style="font-size:11px;color:#636366;margin-top:8px;line-height:1.5"></div>
+  </div>
+
+  <!-- Token info -->
+  <div id="admin-token-section" style="width:100%;margin-bottom:16px;background:#0d2818;border:0.5px solid #34c759;border-radius:12px;padding:14px 16px;display:none">
+    <div style="font-size:12px;color:#34c759;margin-bottom:8px;font-weight:600">🔑 Token szkoły</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <span style="font-size:13px;color:#8e8e93">Kod:</span>
+      <span id="admin-token-code" style="font-family:monospace;font-size:13px;color:#fff"></span>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <span style="font-size:13px;color:#8e8e93">Pozostałe sesje:</span>
+      <span id="admin-token-credits" style="font-size:13px;color:#34c759;font-weight:600"></span>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:13px;color:#8e8e93">Szkoła:</span>
+      <span id="admin-token-school" style="font-size:13px;color:#8e8e93"></span>
+    </div>
+  </div>
+
+  <!-- Baza promptu -->
+  <div style="width:100%;margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <div id="admin-base-label" style="font-size:13px;color:#8e8e93"></div>
+      <div id="admin-readonly-badge" style="font-size:11px;color:#636366;background:#1c1c1e;padding:3px 8px;border-radius:6px"></div>
+    </div>
+    <div id="admin-base-desc" style="background:#111;border:0.5px solid #2c2c2e;border-radius:12px;padding:12px;font-size:12px;color:#636366;line-height:1.6"></div>
+  </div>
+
+  <!-- Dodatkowe instrukcje -->
+  <div style="width:100%;margin-bottom:12px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <div id="admin-extra-label" style="font-size:13px;color:#8e8e93"></div>
+      <div id="admin-editable-badge" style="font-size:11px;color:#34c759;background:#0d2818;padding:3px 8px;border-radius:6px"></div>
+    </div>
+    <div id="admin-extra-hint" style="font-size:12px;color:#636366;margin-bottom:8px;line-height:1.5"></div>
+    <textarea id="admin-extra" style="background:#1c1c1e;border:0.5px solid #3a3a3c;border-radius:12px;color:#fff;font-size:13px;padding:14px;width:100%;height:160px;outline:none;font-family:-apple-system,sans-serif;line-height:1.6;resize:vertical"></textarea>
+  </div>
+
+  <!-- Hasło -->
+  <div style="width:100%;margin-bottom:12px">
+    <div id="admin-pass-label" style="font-size:13px;color:#8e8e93;margin-bottom:6px"></div>
+    <input id="admin-new-pass" class="api-input" type="password" placeholder="..."/>
+  </div>
+  <div id="admin-msg" style="font-size:13px;color:#34c759;text-align:center;min-height:20px;margin-bottom:8px"></div>
+  <button onclick="saveAdminSettings()" class="api-btn" id="admin-save-btn"></button>
+  <button onclick="clearExtra()" style="background:transparent;color:#ff9f0a;border:0.5px solid #ff9f0a;border-radius:24px;padding:12px;font-size:14px;cursor:pointer;width:100%;margin-top:10px;font-family:-apple-system,sans-serif" id="admin-clear-btn"></button>
+
+  <!-- Link do panelu dyrektora -->
+  <div style="width:100%;margin-top:20px;padding-top:16px;border-top:0.5px solid #2c2c2e;text-align:center">
+    <div style="font-size:12px;color:#636366;margin-bottom:8px">Panel dyrektora / administratora szkoły</div>
+    <a href="https://kmusialski.github.io/Telefon112/panel.html" target="_blank" style="display:block;background:transparent;border:0.5px solid #0a84ff;border-radius:24px;padding:12px 24px;font-size:14px;color:#0a84ff;text-decoration:none;text-align:center">Otwórz panel szkoły →</a>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// KONFIGURACJA
+// ============================================================
+const BACKEND_URL = "https://telefon112-dev.up.railway.app"; // dev
+// const BACKEND_URL = "https://telefon112-production.up.railway.app"; // prod
+const VOICE_ID_PL = "pqHfZKP75CvOlQylNhV4";
+const VOICE_ID_DE = "EXAVITQu4vr4xnSDxMaL";
+const ADMIN_DEFAULT_PASS = "admin112";
+
+// Stan tokenów (v1.5a)
+let ACCESS_TOKEN = localStorage.getItem("access_token") || "";
+let TOKEN_CREDITS = parseInt(localStorage.getItem("token_credits") || "0");
+let TOKEN_SCHOOL = localStorage.getItem("token_school") || "";
+
+// ============================================================
+// LOKALIZACJE
+// ============================================================
+const LOCALES = {
+  pl: {
+    code:"pl", sttLang:"pl-PL", voiceId:VOICE_ID_PL,
+    setupTitle:"Zadzwoń pod 112",
+    setupSubtitle:"Symulator rozmowy z dyspozytorem\ndla przedszkolaków",
+    setupStartBtn:"Rozpocznij", setupCheckingBtn:"Sprawdzam...",
+    lockHint:"Przesuń palcem w górę i użyj Face ID,\nlub podaj kod",
+    lockEmergency:"Alarmowe", lockCancel:"Anuluj",
+    lockDays:["niedziela","poniedziałek","wtorek","środa","czwartek","piątek","sobota"],
+    lockMonths:["stycznia","lutego","marca","kwietnia","maja","czerwca","lipca","sierpnia","września","października","listopada","grudnia"],
+    dialerTopLabel:"NUMER AWARYJNY",
+    dialerHintOk:"Numer alarmowy", dialerHintWrong:"Wpisz: 1 - 1 - 2",
+    dialerHintBottom:"Wpisz 1 - 1 - 2 i naciśnij zielony przycisk",
+    callingTitle:"Numer alarmowy 112", callingStatus:"Połączenie alarmowe — łączę...",
+    talkingTitle:"Numer alarmowy 112", talkingConnected:"Połączono",
+    micHoldToTalk:"Przytrzymaj przycisk i mów",
+    micSpeaking:"Dyspozytor mówi...",
+    micListening:"Mów teraz! (zwolnij gdy skończysz)",
+    micPressToTalk:"Naciśnij przycisk i mów",
+    operatorLabel:"Dyspozytor 112", youLabel:"Ty",
+    summaryTitle:"Brawo! Jesteś bohaterem!",
+    summarySubtitle:"Nauczyłeś się jak rozmawiać\nz operatorem numeru 112.",
+    summaryTipsTitle:"Co mówić pod 112:",
+    summaryTips:["🔴 Co się stało (pożar, wypadek)","📍 Gdzie jesteś (adres, miasto)","👦 Jak masz na imię i nazwisko","🤕 Czy ktoś jest ranny","🚪 Czy drzwi są otwarte dla ratowników"],
+    summaryDisclaimer:"Pamiętaj: dzwoń tylko w prawdziwej nagłej sytuacji!",
+    summaryRetryBtn:"Spróbuj jeszcze raz", summaryAdminBtn:"Panel administratora",
+    adminLoginTitle:"Panel administratora",
+    adminLoginSubtitle:"Dostęp tylko dla nauczycieli i opiekunów",
+    adminLoginPassPh:"Hasło administratora", adminLoginBtn:"Zaloguj się",
+    adminLoginCancel:"Anuluj", adminLoginErr:"Nieprawidłowe hasło!",
+    adminPanelTitle:"Panel administratora", adminPanelClose:"Zamknij",
+    adminLangSectionTitle:"Język aplikacji",
+    adminLangNote:"Zmiana języka wpływa na interfejs, głos TTS oraz język rozmowy z dyspozytorem.",
+    adminBaseLabel:"Baza systemu", adminReadonlyBadge:"Stała - tylko odczyt",
+    adminBaseDesc:"Dyspozytor 112 prowadzi rozmowę z dzieckiem. Pierwsza wiadomość profesjonalna. Kolejne dostosowane do dziecka. Zbiera: co się stało, imię, czy samo, adres, czy drzwi otwarte. Pozostaje na linii do przyjazdu służb.",
+    adminExtraLabel:"Dodatkowe instrukcje", adminEditableBadge:"Edytowalne",
+    adminExtraHint:"Wpisz dodatkowe pytania lub scenariusze dla dyspozytora.",
+    adminExtraPh:"Np:\n- Zapytaj czy dziecko czuje dym lub ogień\n- Zapytaj czy w domu jest zwierzę\n...",
+    adminPassLabel:"Zmiana hasła (opcjonalnie)", adminPassPh:"Nowe hasło (min. 4 znaki)",
+    adminSaveBtn:"Zapisz ustawienia", adminClearBtn:"Wyczyść dodatkowe instrukcje",
+    adminSavedMsg:"Zapisano pomyślnie!", adminClearedMsg:"Wyczyszczono.",
+    adminClearConfirm:"Wyczyścić dodatkowe instrukcje?",
+    logCopyBtn:"Kopiuj", logCopiedBtn:"Skopiowano!",
+    wrongNumberMsg:"To nie jest numer alarmowy. Spróbuj wpisać sto dwanaście.",
+    startMsg:"[START] Dziecko właśnie zadzwoniło pod numer 112. Rozpocznij rozmowę.",
+    errorMsg:"Przepraszam, mam chwilowy problem. Spróbuj jeszcze raz.",
+    srAlert:"Rozpoznawanie mowy działa w Safari (iOS) lub Chrome (Android).",
+    extraHeader:"DODATKOWE INSTRUKCJE OD NAUCZYCIELA:",
+    noCreditsMsg:"Brak dostępnych sesji. Skontaktuj się z administratorem szkoły.",
+    invalidTokenMsg:"Nieprawidłowy kod dostępu.",
+  },
+  de: {
+    code:"de", sttLang:"de-DE", voiceId:VOICE_ID_DE,
+    setupTitle:"Notruf 112",
+    setupSubtitle:"Notruf-Simulator für Vorschulkinder\nund Grundschüler",
+    setupStartBtn:"Starten", setupCheckingBtn:"Prüfe...",
+    lockHint:"Nach oben wischen und Face ID verwenden\noder Code eingeben",
+    lockEmergency:"Notruf", lockCancel:"Abbrechen",
+    lockDays:["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"],
+    lockMonths:["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"],
+    dialerTopLabel:"NOTRUFNUMMER",
+    dialerHintOk:"Notrufnummer", dialerHintWrong:"Eingabe: 1 - 1 - 2",
+    dialerHintBottom:"Gib 1 - 1 - 2 ein und drücke den grünen Knopf",
+    callingTitle:"Notrufnummer 112", callingStatus:"Notruf — Verbinden...",
+    talkingTitle:"Notrufnummer 112", talkingConnected:"Verbunden",
+    micHoldToTalk:"Knopf halten und sprechen",
+    micSpeaking:"Disponent spricht...",
+    micListening:"Jetzt sprechen! (loslassen wenn fertig)",
+    micPressToTalk:"Knopf drücken und sprechen",
+    operatorLabel:"Notruf 112", youLabel:"Du",
+    summaryTitle:"Bravo! Du bist ein Held!",
+    summarySubtitle:"Du hast gelernt, wie man mit dem\nNotruf 112 spricht.",
+    summaryTipsTitle:"Was man beim Notruf sagt:",
+    summaryTips:["🔴 Was passiert ist (Feuer, Unfall)","📍 Wo du bist (Adresse, Stadt)","👦 Wie du heißt (Vor- und Nachname)","🤕 Ob jemand verletzt ist","🚪 Ob die Tür für die Retter offen ist"],
+    summaryDisclaimer:"Denk daran: Ruf nur in einem echten Notfall an!",
+    summaryRetryBtn:"Nochmal versuchen", summaryAdminBtn:"Administratorbereich",
+    adminLoginTitle:"Administratorbereich",
+    adminLoginSubtitle:"Zugang nur für Lehrer und Betreuer",
+    adminLoginPassPh:"Administratorpasswort", adminLoginBtn:"Anmelden",
+    adminLoginCancel:"Abbrechen", adminLoginErr:"Falsches Passwort!",
+    adminPanelTitle:"Administratorbereich", adminPanelClose:"Schließen",
+    adminLangSectionTitle:"App-Sprache",
+    adminLangNote:"Die Sprachänderung wirkt sich auf die Benutzeroberfläche, die TTS-Stimme und die Disponentensprache aus.",
+    adminBaseLabel:"Systembasis", adminReadonlyBadge:"Fest – nur lesen",
+    adminBaseDesc:"Der Disponent führt ein Gespräch mit einem Kind. Erste Nachricht professionell. Weitere kindgerecht. Erfasst: was passiert ist, Name, ob allein, Adresse, ob Tür offen. Bleibt in der Leitung.",
+    adminExtraLabel:"Zusätzliche Anweisungen", adminEditableBadge:"Bearbeitbar",
+    adminExtraHint:"Zusätzliche Fragen oder Szenarien für den Disponenten eingeben.",
+    adminExtraPh:"Z.B.:\n- Frage ob das Kind Rauch oder Feuer riecht\n...",
+    adminPassLabel:"Passwort ändern (optional)", adminPassPh:"Neues Passwort (mind. 4 Zeichen)",
+    adminSaveBtn:"Einstellungen speichern", adminClearBtn:"Zusätzliche Anweisungen löschen",
+    adminSavedMsg:"Erfolgreich gespeichert!", adminClearedMsg:"Gelöscht.",
+    adminClearConfirm:"Zusätzliche Anweisungen löschen?",
+    logCopyBtn:"Kopieren", logCopiedBtn:"Kopiert!",
+    wrongNumberMsg:"Das ist keine Notrufnummer. Versuche eins-eins-zwei einzugeben.",
+    startMsg:"[START] Ein Kind hat gerade die Notrufnummer 112 angerufen. Beginne das Gespräch.",
+    errorMsg:"Entschuldigung, ich habe ein kurzes Problem. Bitte versuche es nochmal.",
+    srAlert:"Spracherkennung funktioniert in Safari (iOS) oder Chrome (Android).",
+    extraHeader:"ZUSÄTZLICHE ANWEISUNGEN VOM LEHRER:",
+    noCreditsMsg:"Keine Sessions verfügbar. Bitte kontaktiere den Schuladministrator.",
+    invalidTokenMsg:"Ungültiger Zugangscode.",
+  }
+};
+
+// ============================================================
+// PROMPTY
+// ============================================================
+const BASE_PROMPT_PL = `Symulujesz dyspozytora numeru alarmowego 112. To jest symulacja edukacyjna dla dzieci w wieku przedszkolnym i wczesnoszkolnym.
+
+JĘZYK I ZNAKI — KRYTYCZNE:
+- Każda Twoja wiadomość MUSI zawierać poprawne polskie znaki diakrytyczne
+- ZAWSZE pisz: ą ć ę ł ń ó ś ź ż — NIGDY nie zastępuj ich: a c e l n o s z z
+- Przykłady OBOWIĄZKOWE: "Świetnie!" NIE "Swietnie!", "już" NIE "juz", "wysyłam" NIE "wysylam", "się" NIE "sie"
+- Nigdy nie używaj cyrylicy ani żadnego innego alfabetu
+- Zamiast "nazywasz" pisz zawsze "masz na imię"
+
+DETEKCJA UŻYTKOWNIKA:
+- Jeśli rozmówca używa złożonego języka dorosłego lub pyta o techniczne aspekty symulatora, odpowiedz: "Witam, to symulator edukacyjny dla dzieci. Czy chce Pan lub Pani przetestować aplikację?" i prowadź rozmowę w trybie testowym.
+
+PIERWSZA WIADOMOŚĆ (zawsze dokładnie taka):
+"Tu dyspozytor numeru alarmowego 112, w czym mogę pomóc?"
+
+STYL ROZMOWY:
+- Jedno pytanie na raz — nigdy nie zadawaj dwóch pytań naraz
+- Mów krótko i prosto — maksymalnie 2 zdania na odpowiedź
+- Od drugiej wiadomości dodawaj słowa otuchy: "Świetnie!", "Bardzo dobrze!", "Jesteś dzielna/dzielny!"
+- Nigdy nie używaj emoji ani znaków specjalnych
+
+KOLEJNOŚĆ PYTAŃ (jedno na raz):
+1. CO się stało
+2. Czy dziecko jest samo
+3. Imię i nazwisko — "A jak masz na imię?"
+4. GDZIE — miejscowość, ulica, numer domu
+5. Dom czy mieszkanie
+6. Drzwi dla ratowników
+7. Z czyjego telefonu dzwoni
+8. "Okej, dobrze — już wysyłam informacje, żeby ktoś do Was przyjechał."
+9. Pozostań na linii
+
+ZAKOŃCZENIE — tylko gdy służby dotarły:
+"Ratownicy już są przy Tobie. Jesteś bardzo dzielna/dzielny!" i dodaj [KONIEC_ROZMOWY]`;
+
+const BASE_PROMPT_DE = `Du simulierst einen Disponenten der Notrufnummer 112. Dies ist eine Bildungssimulation für Vorschulkinder und Grundschüler.
+
+SPRACHE: Antworte AUSSCHLIESSLICH auf Deutsch mit korrekten Sonderzeichen: ä, ö, ü, ß.
+
+BENUTZERERKENNUNG: Wenn der Gesprächspartner eine komplexe Erwachsenensprache verwendet: "Guten Tag, das ist ein Bildungssimulator für Kinder. Möchten Sie die App testen?"
+
+ERSTE NACHRICHT: "Hier ist die Notrufleitung 112, was ist passiert?"
+
+STIL: Immer nur eine Frage auf einmal. Max. 2 Sätze. Ab der zweiten Nachricht: "Super!", "Sehr gut!", "Du bist sehr tapfer!"
+
+FRAGENREIHENFOLGE:
+1. WAS ist passiert
+2. Ob das Kind allein ist
+3. Name des Kindes
+4. WO — Ort, Straße, Hausnummer
+5. Haus oder Wohnung
+6. Tür für die Retter
+7. Von welchem Telefon
+8. "Okay, ich schicke jetzt jemanden zu euch."
+9. Bleib in der Leitung
+
+ABSCHLUSS: "Die Retter sind jetzt bei dir. Du bist sehr tapfer!" und [KONIEC_ROZMOWY]`;
+
+// ============================================================
+// STAN JĘZYKA
+// ============================================================
+let currentLang = localStorage.getItem("app_lang") || "pl";
+function getLoc(){return LOCALES[currentLang];}
+function getActivePrompt(){
+  const base=currentLang==="de"?BASE_PROMPT_DE:BASE_PROMPT_PL;
+  const extra=localStorage.getItem("admin_extra_"+currentLang)||"";
+  if(extra.trim())return base+"\n\n"+getLoc().extraHeader+"\n"+extra;
+  return base;
+}
+function getAdminPass(){return localStorage.getItem("admin_pass")||ADMIN_DEFAULT_PASS;}
+function setLang(lang){currentLang=lang;localStorage.setItem("app_lang",lang);applyLocale();}
+function refreshAdminExtra(){document.getElementById("admin-extra").value=localStorage.getItem("admin_extra_"+currentLang)||"";}
+
+function applyLocale(){
+  const L=getLoc(); document.documentElement.lang=L.code;
+  const pl=currentLang==="pl";
+  ["admin-lang-btn-pl"].forEach(id=>{const el=document.getElementById(id);if(el)el.className="lang-btn "+(pl?"active":"inactive");});
+  ["admin-lang-btn-de"].forEach(id=>{const el=document.getElementById(id);if(el)el.className="lang-btn "+(!pl?"active":"inactive");});
+  function setText(id,val){const el=document.getElementById(id);if(el)el.textContent=val;}
+  function setHTML(id,val){const el=document.getElementById(id);if(el)el.innerHTML=val;}
+  function setPH(id,val){const el=document.getElementById(id);if(el)el.placeholder=val;}
+  setText("setup-title",L.setupTitle);
+  setHTML("setup-subtitle",L.setupSubtitle.replace("\n","<br/>"));
+  setText("start-btn",L.setupStartBtn);
+  setHTML("lock-hint",L.lockHint.replace("\n","<br/>"));
+  setText("lock-emergency-label",L.lockEmergency);
+  setText("lock-cancel-label",L.lockCancel);
+  setText("dialer-top-label",L.dialerTopLabel);
+  setText("dialer-hint-bottom",L.dialerHintBottom);
+  setText("calling-title",L.callingTitle);
+  setText("calling-status",L.callingStatus);
+  setText("talking-title",L.talkingTitle);
+  setText("summary-title",L.summaryTitle);
+  setHTML("summary-subtitle",L.summarySubtitle.replace("\n","<br/>"));
+  setText("summary-disclaimer",L.summaryDisclaimer);
+  setText("summary-retry-btn",L.summaryRetryBtn);
+  setText("summary-admin-btn",L.summaryAdminBtn);
+  setHTML("summary-tips-box",`<div style="font-weight:600;margin-bottom:6px;color:#fff;font-size:15px">${L.summaryTipsTitle}</div>`+L.summaryTips.map(t=>`<div>${t}</div>`).join(""));
+  setText("admin-login-title",L.adminLoginTitle);
+  setText("admin-login-subtitle",L.adminLoginSubtitle);
+  setPH("admin-pass-input",L.adminLoginPassPh);
+  setText("admin-login-btn",L.adminLoginBtn);
+  setText("admin-login-cancel",L.adminLoginCancel);
+  setText("admin-panel-title",L.adminPanelTitle);
+  setText("admin-panel-close",L.adminPanelClose);
+  setText("admin-lang-section-title",L.adminLangSectionTitle);
+  setText("admin-lang-note",L.adminLangNote);
+  setText("admin-base-label",L.adminBaseLabel);
+  setText("admin-readonly-badge",L.adminReadonlyBadge);
+  setText("admin-base-desc",L.adminBaseDesc);
+  setText("admin-extra-label",L.adminExtraLabel);
+  setText("admin-editable-badge",L.adminEditableBadge);
+  setText("admin-extra-hint",L.adminExtraHint);
+  setPH("admin-extra",L.adminExtraPh);
+  setText("admin-pass-label",L.adminPassLabel);
+  setPH("admin-new-pass",L.adminPassPh);
+  setText("admin-save-btn",L.adminSaveBtn);
+  setText("admin-clear-btn",L.adminClearBtn);
+  updateLockClock(); updateDisplay(); updateMicState(); updateTokenUI();
+}
+
+// ============================================================
+// ZEGAR
+// ============================================================
+function updateLockClock(){
+  const now=new Date();
+  const h=String(now.getHours()).padStart(2,"0"),m=String(now.getMinutes()).padStart(2,"0");
+  const el=document.getElementById("lock-time");if(el)el.textContent=h+":"+m;
+  const L=getLoc(),d=document.getElementById("lock-date");
+  if(d)d.textContent=L.lockDays[now.getDay()]+", "+now.getDate()+" "+L.lockMonths[now.getMonth()];
+}
+updateLockClock(); setInterval(updateLockClock,10000);
+function goToEmergency(){show("s-dialer");}
+
+// ============================================================
+// TOKEN UI
+// ============================================================
+function updateTokenUI(){
+  const lockInfo=document.getElementById("lock-token-info");
+  const adminSection=document.getElementById("admin-token-section");
+  if(ACCESS_TOKEN){
+    if(lockInfo){lockInfo.style.display="flex";document.getElementById("lock-token-code").textContent=ACCESS_TOKEN;document.getElementById("lock-credits").textContent=TOKEN_CREDITS;}
+    if(adminSection){adminSection.style.display="block";document.getElementById("admin-token-code").textContent=ACCESS_TOKEN;document.getElementById("admin-token-credits").textContent=TOKEN_CREDITS;document.getElementById("admin-token-school").textContent=TOKEN_SCHOOL||"—";}
+  }else{
+    if(lockInfo)lockInfo.style.display="none";
+    if(adminSection)adminSection.style.display="none";
+  }
+}
+
+// ============================================================
+// TOKEN WALIDACJA
+// ============================================================
+function checkToken(){
+  const val=document.getElementById("token-input").value.trim().toUpperCase();
+  document.getElementById("start-btn").disabled=val.length<8;
+  document.getElementById("setup-error").textContent="";
+  document.getElementById("token-status").textContent="";
+}
+
+async function validateTokenAndStart(){
+  const L=getLoc();
+  const token=document.getElementById("token-input").value.trim().toUpperCase();
+  const btn=document.getElementById("start-btn");
+  const errEl=document.getElementById("setup-error");
+  const statusEl=document.getElementById("token-status");
+  btn.textContent=L.setupCheckingBtn;btn.disabled=true;errEl.textContent="";
+  statusEl.textContent="Weryfikuję kod...";statusEl.style.color="#8e8e93";
+  try{
+    const res=await fetch(BACKEND_URL+"/api/validate-token",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token})});
+    const data=await res.json();
+    if(!res.ok||!data.valid){errEl.textContent=data.message||L.invalidTokenMsg;btn.textContent=L.setupStartBtn;btn.disabled=false;statusEl.textContent="";return;}
+    if(data.credits<=0){errEl.textContent=L.noCreditsMsg;btn.textContent=L.setupStartBtn;btn.disabled=false;statusEl.textContent="";return;}
+    ACCESS_TOKEN=token;TOKEN_CREDITS=data.credits;TOKEN_SCHOOL=data.school_name||"";
+    localStorage.setItem("access_token",ACCESS_TOKEN);localStorage.setItem("token_credits",TOKEN_CREDITS);localStorage.setItem("token_school",TOKEN_SCHOOL);
+    statusEl.textContent="✅ Kod aktywny · Sesje: "+TOKEN_CREDITS;statusEl.style.color="#34c759";
+    updateTokenUI();unlockAudioContext();
+    setTimeout(()=>show("s-rodo"),800);
+  }catch(e){errEl.textContent="Błąd połączenia: "+e.message;btn.textContent=L.setupStartBtn;btn.disabled=false;statusEl.textContent="";}
+}
+
+// ============================================================
+// AUDIO
+// ============================================================
+let audioCtx=null;
+function unlockAudioContext(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==="suspended")audioCtx.resume();}
+function playTone(freq,duration,type="sine",gain=0.15){if(!audioCtx)return;try{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(0,audioCtx.currentTime);g.gain.linearRampToValueAtTime(gain,audioCtx.currentTime+0.01);g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+duration);o.start(audioCtx.currentTime);o.stop(audioCtx.currentTime+duration);}catch(e){}}
+function playKeyClick(){playTone(1200,0.06,"sine",0.12);}
+function playDialTone(){if(!audioCtx)return;let count=0;const iv=setInterval(()=>{if(count>=4||document.getElementById("s-calling").classList.contains("hidden")){clearInterval(iv);return;}playTone(440,0.4,"sine",0.1);setTimeout(()=>playTone(480,0.4,"sine",0.08),20);count++;},1000);}
+
+// ============================================================
+// ADMIN
+// ============================================================
+let tapCount=0,tapTimer=null;
+document.getElementById("logo-tap").addEventListener("click",()=>{
+  tapCount++;clearTimeout(tapTimer);tapTimer=setTimeout(()=>{tapCount=0;},800);
+  if(tapCount>=3){tapCount=0;window._adminReturnTo="s-calling";document.getElementById("admin-pass-input").value="";document.getElementById("admin-login-err").textContent="";show("s-admin-login");}
+});
+function openAdminFromSetup(ret){
+  document.getElementById("admin-pass-input").value="";document.getElementById("admin-login-err").textContent="";
+  window._adminReturnTo=ret||"s-rodo";show("s-admin-login");
+}
+function checkAdminPass(){
+  const v=document.getElementById("admin-pass-input").value;
+  if(v===getAdminPass()){document.getElementById("admin-extra").value=localStorage.getItem("admin_extra_"+currentLang)||"";document.getElementById("admin-new-pass").value="";document.getElementById("admin-msg").textContent="";updateTokenUI();show("s-admin");}
+  else{document.getElementById("admin-login-err").textContent=getLoc().adminLoginErr;}
+}
+function saveAdminSettings(){
+  const L=getLoc();
+  const extra=document.getElementById("admin-extra").value.trim();
+  const newPass=document.getElementById("admin-new-pass").value.trim();
+  localStorage.setItem("admin_extra_"+currentLang,extra);
+  if(newPass.length>=4)localStorage.setItem("admin_pass",newPass);
+  const msg=document.getElementById("admin-msg");msg.style.color="#34c759";msg.textContent=L.adminSavedMsg;setTimeout(()=>{msg.textContent="";},2000);
+}
+function clearExtra(){
+  const L=getLoc();if(!confirm(L.adminClearConfirm))return;
+  localStorage.removeItem("admin_extra_"+currentLang);document.getElementById("admin-extra").value="";
+  const msg=document.getElementById("admin-msg");msg.style.color="#ff9f0a";msg.textContent=L.adminClearedMsg;setTimeout(()=>{msg.textContent="";},2000);
+}
+
+// ============================================================
+// STAN APLIKACJI
+// ============================================================
+let digits="",callSecs=0,timerInt=null;
+let speaking=false,listening=false,rec=null,currentTranscript="";
+let childAnswers=0,conversationHistory=[];
+let callActive=false,sessionId=null;
+let lastResponseWasError=false;
+const logs=[];
+
+// ============================================================
+// LOG (tylko wewnętrzny)
+// ============================================================
+function log(type,msg){
+  const t=new Date().toLocaleTimeString("pl-PL",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+  const entry=`[${t}] [${type}] ${msg}`;logs.push(entry);console.log(entry);
+}
+
+// ============================================================
+// NAWIGACJA
+// ============================================================
+const ALL_SCREENS=["s-rodo","s-setup","s-lock","s-dialer","s-calling","s-talking","s-summary","s-admin-login","s-admin"];
+function show(id){ALL_SCREENS.forEach(s=>{document.getElementById(s).classList.toggle("hidden",s!==id);});document.body.style.overflow=(id==="s-lock")?"hidden":"";}
+
+// ============================================================
+// DIALER
+// ============================================================
+function pressDigit(d){if(digits.length>=3)return;playKeyClick();digits+=d;updateDisplay();}
+function pressDelete(){if(digits.length>0)playKeyClick();digits=digits.slice(0,-1);updateDisplay();}
+function updateDisplay(){
+  const L=getLoc();
+  const el=document.getElementById("display"),hint=document.getElementById("dialer-hint");
+  if(!digits){el.innerHTML='<span style="color:#2c2c2e">_ _ _</span>';}else{el.textContent=digits;}
+  if(digits==="112")hint.innerHTML='<span style="color:#34c759">'+L.dialerHintOk+'</span>';
+  else if(digits.length>0)hint.innerHTML='<span style="color:#ff9f0a">'+L.dialerHintWrong+'</span>';
+  else hint.textContent="";
+}
+
+// ============================================================
+// TTS — przez backend
+// ============================================================
+async function speakEL(text,onEnd){
+  speaking=true;updateMicState();
+  const L=getLoc();log("EL","TTS ["+L.code+"]: "+text.substring(0,40)+"...");
+  try{
+    const isChild=childAnswers>=1;
+    const vs=isChild?{stability:0.35,similarity_boost:0.80,style:0.45,use_speaker_boost:true}:{stability:0.75,similarity_boost:0.75,style:0.0,use_speaker_boost:true};
+    const res=await fetch(BACKEND_URL+"/api/tts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text,lang:L.code,voice_id:L.voiceId,voice_settings:vs,token:ACCESS_TOKEN})});
+    log(res.ok?"OK":"ERR","EL response: "+res.status);
+    if(!res.ok)throw new Error("TTS "+res.status);
+    const ab=await res.arrayBuffer();
+    if(!audioCtx)unlockAudioContext();
+    if(audioCtx.state==="suspended")await audioCtx.resume();
+    const decoded=await audioCtx.decodeAudioData(ab);
+    const src=audioCtx.createBufferSource();
+    src.buffer=decoded;src.connect(audioCtx.destination);
+    src.onended=()=>{log("OK","EL ended");speaking=false;updateMicState();if(onEnd)onEnd();else if(!lastResponseWasError)autoStartListening();};
+    src.start(0);
+  }catch(e){log("ERR","EL error: "+e.message);speaking=false;updateMicState();if(onEnd)onEnd();}
+}
+
+// ============================================================
+// CLAUDE — przez backend
+// ============================================================
+async function askClaude(userMessage){
+  conversationHistory.push({role:"user",content:userMessage});
+  log("API","Claude ["+currentLang+"]: "+userMessage.substring(0,40));
+  try{
+    const res=await fetch(BACKEND_URL+"/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:userMessage,history:conversationHistory.slice(0,-1),system:getActivePrompt(),lang:currentLang,token:ACCESS_TOKEN,session_id:sessionId})});
+    log(res.ok?"OK":"ERR","Claude: "+res.status);
+    if(res.status===402){TOKEN_CREDITS=0;updateTokenUI();return getLoc().noCreditsMsg;}
+    if(!res.ok)throw new Error("Claude "+res.status);
+    const data=await res.json();
+    const reply=data.reply;
+    if(data.session_id)sessionId=data.session_id;
+    if(typeof data.credits==="number"){TOKEN_CREDITS=data.credits;localStorage.setItem("token_credits",TOKEN_CREDITS);updateTokenUI();}
+    log("OK","Reply: "+reply.substring(0,60));
+    conversationHistory.push({role:"assistant",content:reply});
+    return reply;
+  }catch(e){log("ERR","Claude error: "+e.message);return getLoc().errorMsg;}
+}
+
+// ============================================================
+// MIC STATE
+// ============================================================
+function updateMicState(){
+  const L=getLoc();
+  const btn=document.getElementById("mic-btn"),hint=document.getElementById("mic-hint"),status=document.getElementById("call-status");
+  if(!btn)return;
+  if(speaking){btn.style.background="#34c759";btn.style.opacity="0.4";btn.style.animation="none";if(hint){hint.style.color="#ff9f0a";hint.textContent=L.micSpeaking;}if(status){status.style.color="#ff9f0a";status.textContent=L.micSpeaking;}}
+  else if(listening){btn.style.background="#ff3b30";btn.style.opacity="1";btn.style.animation="pulse 0.8s infinite";if(hint){hint.style.color="#34c759";hint.textContent=L.micListening;}}
+  else{btn.style.background="#34c759";btn.style.opacity="1";btn.style.animation="none";if(hint){hint.style.color="#8e8e93";hint.textContent=L.micHoldToTalk;}const mm=Math.floor(callSecs/60),ss=callSecs%60;if(status){status.style.color="#34c759";status.textContent=String(mm).padStart(2,"0")+":"+String(ss).padStart(2,"0")+" "+L.talkingConnected;}}
+}
+
+// ============================================================
+// CHAT UI
+// ============================================================
+function addMessage(role,text){
+  const L=getLoc();const msgs=document.getElementById("messages");
+  const wrap=document.createElement("div");wrap.style.cssText="display:flex;flex-direction:column";
+  const lbl=document.createElement("div");lbl.className="lbl";lbl.style.alignSelf=role==="operator"?"flex-start":"flex-end";lbl.textContent=role==="operator"?L.operatorLabel:L.youLabel;
+  const bub=document.createElement("div");bub.className=role==="operator"?"bubble-op":"bubble-me";bub.textContent=text.replace("[KONIEC_ROZMOWY]","").trim();
+  wrap.appendChild(lbl);wrap.appendChild(bub);msgs.appendChild(wrap);msgs.scrollTop=msgs.scrollHeight;
+}
+function showTyping(){
+  const L=getLoc();const msgs=document.getElementById("messages");
+  const wrap=document.createElement("div");wrap.id="typing-indicator";wrap.style.cssText="display:flex;flex-direction:column";
+  wrap.innerHTML='<div class="lbl">'+L.operatorLabel+'</div><div class="bubble-op dots"><span></span><span></span><span></span></div>';
+  msgs.appendChild(wrap);msgs.scrollTop=msgs.scrollHeight;
+}
+function removeTyping(){const el=document.getElementById("typing-indicator");if(el)el.remove();}
+
+// ============================================================
+// POŁĄCZENIE
+// ============================================================
+async function startCall(){
+  const L=getLoc();
+  if(!ACCESS_TOKEN){alert("Brak tokenu dostępu.");show("s-setup");return;}
+  if(TOKEN_CREDITS<=0){alert(L.noCreditsMsg);return;}
+  if(digits!=="112"){unlockAudioContext();await speakEL(L.wrongNumberMsg);digits="";updateDisplay();return;}
+  show("s-calling");conversationHistory=[];childAnswers=0;callSecs=0;sessionId=null;
+  unlockAudioContext();playDialTone();
+  setTimeout(async()=>{
+    show("s-talking");document.getElementById("messages").innerHTML="";
+    timerInt=setInterval(()=>{callSecs++;if(!speaking&&!listening)updateMicState();},1000);
+    callActive=true;showTyping();
+    const firstMsg=await askClaude(L.startMsg);removeTyping();
+    const clean=firstMsg.replace("[KONIEC_ROZMOWY]","").trim();
+    addMessage("operator",clean);await speakEL(clean);
+  },2800);
+}
+
+function cancelCall(){digits="";updateDisplay();show("s-dialer");}
+
+// ============================================================
+// STT
+// ============================================================
+function autoStartListening(){
+  const L=getLoc();if(speaking)return;
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return;
+  rec=new SR();rec.lang=L.sttLang;rec.interimResults=true;rec.maxAlternatives=1;currentTranscript="";
+  rec.onresult=(ev)=>{currentTranscript=Array.from(ev.results).map(r=>r[0].transcript).join("");document.getElementById("transcript-box").textContent='"'+currentTranscript+'"';};
+  rec.onend=()=>{listening=false;document.getElementById("transcript-box").textContent="";updateMicState();if(currentTranscript.trim())handleAnswer(currentTranscript.trim());currentTranscript="";};
+  rec.onerror=(e)=>{log("ERR","SR: "+e.error);listening=false;updateMicState();if(e.error==="aborted"&&!speaking){setTimeout(()=>{if(!speaking&&!listening)autoStartListening();},500);return;}if(e.error==="not-allowed"||e.error==="service-not-allowed"){const hint=document.getElementById("mic-hint");if(hint){hint.textContent=L.micPressToTalk;hint.style.color="#ff9f0a";}}};
+  rec.onstart=()=>{log("OK","Auto-listen ["+L.sttLang+"]");listening=true;updateMicState();};
+  try{rec.start();}catch(err){log("ERR","Auto-listen failed: "+err.message);listening=false;const btn=document.getElementById("mic-btn"),hint=document.getElementById("mic-hint");if(btn){btn.style.background="#ff9f0a";btn.style.animation="pulse 1s infinite";btn.style.opacity="1";}if(hint){hint.textContent=L.micPressToTalk;hint.style.color="#ff9f0a";}}
+}
+function startListening(e){
+  const L=getLoc();e.preventDefault();if(speaking)return;
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){alert(L.srAlert);return;}
+  if(rec){try{rec.abort();}catch(x){}}
+  rec=new SR();rec.lang=L.sttLang;rec.interimResults=true;rec.maxAlternatives=1;currentTranscript="";
+  rec.onresult=(ev)=>{currentTranscript=Array.from(ev.results).map(r=>r[0].transcript).join("");document.getElementById("transcript-box").textContent='"'+currentTranscript+'"';};
+  rec.onend=()=>{listening=false;document.getElementById("transcript-box").textContent="";updateMicState();if(currentTranscript.trim())handleAnswer(currentTranscript.trim());currentTranscript="";};
+  rec.onerror=()=>{listening=false;updateMicState();};
+  try{rec.start();listening=true;updateMicState();}catch(err){console.error(err);}
+}
+function stopListening(e){e.preventDefault();if(rec)rec.stop();}
+
+// ============================================================
+// ODPOWIEDŹ
+// ============================================================
+async function handleAnswer(answer){
+  if(!callActive)return;
+  addMessage("child",answer);childAnswers++;showTyping();
+  const reply=await askClaude(answer);removeTyping();
+  const L=getLoc();
+  lastResponseWasError=(reply===L.errorMsg||reply===L.noCreditsMsg);
+  const clean=reply.replace("[KONIEC_ROZMOWY]","").trim();
+  addMessage("operator",clean);
+  if(reply.includes("[KONIEC_ROZMOWY]")){await speakEL(clean,()=>setTimeout(()=>finishCall(),1500));}
+  else{await speakEL(clean);}
+}
+
+// ============================================================
+// ZAKOŃCZENIE
+// ============================================================
+function finishCall(){
+  callActive=false;clearInterval(timerInt);speaking=false;listening=false;
+  if(rec){try{rec.onend=null;rec.onresult=null;rec.onerror=null;rec.abort();}catch(x){}rec=null;}
+  const stars=childAnswers>=4?3:childAnswers>=2?2:1;
+  document.getElementById("stars-row").innerHTML=[1,2,3].map(i=>'<span style="color:'+(i<=stars?"#ffd60a":"#3a3a3c")+'">★</span>').join("");
+  if(sessionId){fetch(BACKEND_URL+"/api/session-end",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({session_id:sessionId,token:ACCESS_TOKEN,stars,messages:childAnswers,duration:callSecs,lang:currentLang})}).catch(()=>{});}
+  show("s-summary");
+}
+function endCall(){
+  callActive=false;clearInterval(timerInt);speaking=false;listening=false;
+  if(rec){try{rec.onend=null;rec.onresult=null;rec.onerror=null;rec.abort();}catch(x){}rec=null;}
+  const stars=childAnswers>=4?3:childAnswers>=2?2:1;
+  document.getElementById("stars-row").innerHTML=[1,2,3].map(i=>'<span style="color:'+(i<=stars?"#ffd60a":"#3a3a3c")+'">★</span>').join("");
+  if(sessionId){fetch(BACKEND_URL+"/api/session-end",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({session_id:sessionId,token:ACCESS_TOKEN,stars,messages:childAnswers,duration:callSecs,lang:currentLang,ended_by:"user"})}).catch(()=>{});}
+  show("s-summary");
+}
+function resetApp(){callActive=false;digits="";conversationHistory=[];childAnswers=0;callSecs=0;sessionId=null;updateDisplay();show("s-rodo");}
+
+// ============================================================
+// INIT
+// ============================================================
+show("s-rodo");
+applyLocale();
+if(ACCESS_TOKEN){document.getElementById("token-input").value=ACCESS_TOKEN;checkToken();}
+</script>
+</body>
+</html>
