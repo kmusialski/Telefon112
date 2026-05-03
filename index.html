@@ -35,27 +35,7 @@
     .nav-links a.active { color:var(--red); font-weight:500; }
     .nav-btn { background:var(--red); color:#fff; border:none; padding:9px 20px; font-family:var(--sans); font-size:13px; font-weight:500; cursor:pointer; letter-spacing:0.3px; border-radius:2px; transition:background .2s; text-decoration:none; display:inline-block; white-space:nowrap; }
     .nav-btn:hover { background:var(--red-dark); }
-    .nav-actions { display:flex; align-items:center; gap:10px; }
-    .nav-app-btn { text-decoration:none; color:var(--ink-mid); font-size:13px; font-weight:400; padding:7px 14px; border-radius:2px; border:1.5px solid var(--border); transition:all .2s; white-space:nowrap; }
-    .nav-app-btn:hover { color:var(--red); border-color:var(--red); background:var(--red-pale); }
-    .nav-hamburger { display:none; flex-direction:column; gap:5px; background:none; border:none; cursor:pointer; padding:6px; }
-    .nav-hamburger span { display:block; width:22px; height:2px; background:var(--ink); border-radius:2px; transition:all .3s; }
-    .nav-hamburger.open span:nth-child(1) { transform:translateY(7px) rotate(45deg); }
-    .nav-hamburger.open span:nth-child(2) { opacity:0; }
-    .nav-hamburger.open span:nth-child(3) { transform:translateY(-7px) rotate(-45deg); }
-    @media (max-width:700px) {
-      .nav-links { display:none; }
-      .nav-app-btn { display:none; }
-      .nav-hamburger { display:flex; }
-      .nav-actions .nav-btn { display:none; }
-      .mobile-menu { display:none; position:fixed; top:56px; left:0; right:0; background:var(--white); border-bottom:1px solid var(--border); z-index:998; padding:16px 20px 20px; flex-direction:column; gap:4px; box-shadow:0 8px 24px rgba(0,0,0,0.08); }
-      .mobile-menu.open { display:flex; }
-      .mobile-menu a { text-decoration:none; color:var(--ink-mid); font-size:15px; padding:11px 14px; border-radius:4px; transition:all .2s; }
-      .mobile-menu a:hover { color:var(--red); background:var(--red-pale); }
-      .mobile-menu .mobile-app-btn { color:var(--red); font-weight:500; border:1.5px solid var(--red); margin-top:4px; }
-      .mobile-menu .mobile-panel-btn { background:var(--red); color:#fff; font-weight:500; margin-top:4px; }
-      .mobile-menu .mobile-panel-btn:hover { background:var(--red-dark); color:#fff; }
-    }
+    @media (max-width:700px) { .nav-links { display:none; } }
 
     /* HERO */
     .hero-wrap { background:var(--white); border-bottom:1px solid var(--border); border-top:4px solid var(--red); position:relative; overflow:hidden; }
@@ -79,17 +59,49 @@
 
     /* Phone */
     .hero-phone { display:flex; justify-content:center; align-items:center; animation:fadeUp .6s .25s ease both; }
-    .phone-frame { width:210px; height:370px; background:#0a0a0a; border-radius:36px; padding:12px; box-shadow:0 0 0 1px rgba(0,0,0,0.12),0 32px 64px rgba(0,0,0,0.18); }
-    .phone-screen { width:100%; height:100%; background:#111; border-radius:26px; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; position:relative; }
-    .phone-notch { position:absolute; top:0; left:50%; transform:translateX(-50%); width:76px; height:18px; background:#0a0a0a; border-radius:0 0 12px 12px; }
-    .phone-status { font-size:11px; color:#444; letter-spacing:0.5px; }
-    .phone-num { font-family:var(--serif); font-size:46px; font-weight:900; color:#fff; letter-spacing:6px; line-height:1; }
-    .phone-sub { font-size:10px; color:#555; letter-spacing:1.5px; text-transform:uppercase; }
-    .phone-btn-wrap { position:relative; display:flex; align-items:center; justify-content:center; margin-top:8px; }
-    .phone-pulse { position:absolute; width:56px; height:56px; border-radius:50%; background:rgba(29,185,84,0.25); animation:pulse 1.8s ease-out infinite; }
+    .phone-frame { width:218px; height:420px; background:#0a0a0a; border-radius:40px; padding:11px; box-shadow:0 0 0 1px rgba(0,0,0,0.14),0 32px 64px rgba(0,0,0,0.22); }
+    .phone-screen { width:100%; height:100%; background:#111; border-radius:30px; overflow:hidden; display:flex; flex-direction:column; position:relative; }
+    .phone-notch { position:absolute; top:0; left:50%; transform:translateX(-50%); width:74px; height:18px; background:#0a0a0a; border-radius:0 0 12px 12px; z-index:10; }
+    .phone-topbar { flex-shrink:0; padding:22px 12px 8px; display:flex; align-items:center; gap:8px; border-bottom:1px solid rgba(255,255,255,0.06); }
+    .phone-dot { width:7px; height:7px; border-radius:50%; background:#1db954; flex-shrink:0; animation:pdot 2s ease-in-out infinite; }
+    @keyframes pdot { 0%,100%{opacity:1;} 50%{opacity:.25;} }
+    .phone-topinfo { flex:1; }
+    .phone-topnum { font-size:13px; font-weight:600; color:#fff; letter-spacing:1px; line-height:1.2; }
+    .phone-topdur { font-size:9px; color:#555; letter-spacing:0.5px; }
+    .phone-endcall { width:26px; height:26px; border-radius:50%; background:#c8001e; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .phone-endcall svg { width:12px; height:12px; fill:#fff; transform:rotate(135deg); }
+    .phone-chat { flex:1; overflow:hidden; position:relative; }
+    .phone-chat-track { display:flex; flex-direction:column; gap:7px; padding:10px 9px 10px; }
+    .pmsg { display:flex; flex-direction:column; }
+    .pmsg.d { align-items:flex-start; }
+    .pmsg.c { align-items:flex-end; }
+    .pmsg-lbl { font-size:8px; color:#3a3a3a; letter-spacing:0.4px; margin-bottom:2px; text-transform:uppercase; }
+    .pmsg-bubble { max-width:84%; padding:6px 9px; border-radius:10px; font-size:10.5px; line-height:1.45; }
+    .pmsg.d .pmsg-bubble { background:#1e1e1e; color:#aaa; border-radius:10px 10px 10px 3px; }
+    .pmsg.c .pmsg-bubble { background:#c8001e; color:#fff; border-radius:10px 10px 3px 10px; }
+    .pconv-sep { align-self:center; font-size:8.5px; color:#333; background:#191919; border:1px solid #2a2a2a; padding:3px 9px; border-radius:8px; margin:4px auto; letter-spacing:0.4px; text-align:center; }
+    .ptype { display:flex; align-items:center; gap:3px; padding:7px 10px; background:#1e1e1e; border-radius:10px 10px 10px 3px; align-self:flex-start; margin-left:0; }
+    .ptype span { width:5px; height:5px; border-radius:50%; background:#555; animation:ptyp 1.2s ease-in-out infinite; }
+    .ptype span:nth-child(2) { animation-delay:.2s; }
+    .ptype span:nth-child(3) { animation-delay:.4s; }
+    @keyframes ptyp { 0%,80%,100%{transform:translateY(0);opacity:.4;} 40%{transform:translateY(-4px);opacity:1;} }
+    .phone-micbar { flex-shrink:0; border-top:1px solid rgba(255,255,255,0.06); padding:9px 14px; display:flex; align-items:center; justify-content:center; gap:10px; background:#0e0e0e; }
+    .phone-mic-icon { width:22px; height:22px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .phone-mic-icon svg { width:22px; height:22px; fill:#c8001e; }
+    .phone-waves { display:flex; align-items:center; gap:2px; height:18px; }
+    .phone-waves span { display:block; width:2.5px; border-radius:2px; background:#c8001e; opacity:0.7; animation:wave 1.1s ease-in-out infinite; }
+    .phone-waves span:nth-child(1) { height:4px;  animation-delay:0s; }
+    .phone-waves span:nth-child(2) { height:8px;  animation-delay:.1s; }
+    .phone-waves span:nth-child(3) { height:14px; animation-delay:.2s; }
+    .phone-waves span:nth-child(4) { height:10px; animation-delay:.3s; }
+    .phone-waves span:nth-child(5) { height:16px; animation-delay:.15s; }
+    .phone-waves span:nth-child(6) { height:7px;  animation-delay:.25s; }
+    .phone-waves span:nth-child(7) { height:12px; animation-delay:.05s; }
+    .phone-waves span:nth-child(8) { height:5px;  animation-delay:.35s; }
+    .phone-waves span:nth-child(9) { height:9px;  animation-delay:.2s; }
+    @keyframes wave { 0%,100%{transform:scaleY(0.4);opacity:0.35;} 50%{transform:scaleY(1);opacity:0.85;} }
+    .phone-mic-label { font-size:8px; color:#444; letter-spacing:0.8px; text-transform:uppercase; white-space:nowrap; }
     @keyframes pulse { 0%{transform:scale(1);opacity:.8;} 100%{transform:scale(2.4);opacity:0;} }
-    .phone-call { position:relative; width:56px; height:56px; border-radius:50%; background:#1db954; display:flex; align-items:center; justify-content:center; }
-    .phone-call svg { width:24px; height:24px; fill:#fff; }
 
     /* TRUST BAR */
     .trust-bar { border-bottom:1px solid var(--border); padding:18px var(--pad); display:flex; justify-content:center; gap:clamp(20px,4vw,56px); flex-wrap:wrap; }
@@ -218,50 +230,12 @@
     footer p { color:var(--ink-light); }
     footer a { color:var(--ink-mid); text-decoration:none; }
     footer a:hover { color:var(--red); }
-
-    /* MODAL */
-    .modal-overlay { display:none; position:fixed; inset:0; z-index:999; background:rgba(24,24,27,0.55); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); align-items:center; justify-content:center; padding:20px; }
-    .modal-overlay.open { display:flex; }
-    .modal { background:var(--white); width:100%; max-width:440px; position:relative; border-top:4px solid var(--red); box-shadow:0 32px 80px rgba(0,0,0,0.2); animation:fadeUp .3s ease both; }
-    .modal-close { position:absolute; top:16px; right:16px; background:none; border:none; font-size:22px; color:var(--ink-light); cursor:pointer; line-height:1; padding:4px; }
-    .modal-close:hover { color:var(--red); }
-    .modal-inner { padding:36px 36px 32px; }
-    @media (max-width:480px) { .modal-inner { padding:28px 22px 24px; } }
-    .modal-eyebrow { font-size:11px; font-weight:500; letter-spacing:2px; text-transform:uppercase; color:var(--red); margin-bottom:10px; display:block; }
-    .modal-title { font-family:var(--serif); font-size:26px; font-weight:700; letter-spacing:-0.8px; color:var(--ink); margin-bottom:6px; }
-    .modal-sub { font-size:13px; color:var(--ink-mid); margin-bottom:28px; line-height:1.55; }
-    .modal-tabs { display:flex; border-bottom:1px solid var(--border); margin-bottom:28px; }
-    .modal-tab { flex:1; padding:10px 0; font-size:13px; font-weight:500; color:var(--ink-mid); background:none; border:none; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; transition:all .2s; }
-    .modal-tab.active { color:var(--red); border-bottom-color:var(--red); }
-    .modal-tab:hover:not(.active) { color:var(--ink); }
-    .form-group { display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
-    .form-group label { font-size:12px; font-weight:500; color:var(--ink); letter-spacing:0.3px; }
-    .form-group input { border:1.5px solid var(--border); padding:11px 14px; font-family:var(--sans); font-size:14px; color:var(--ink); background:var(--white); border-radius:2px; outline:none; transition:border-color .2s; }
-    .form-group input:focus { border-color:var(--red); }
-    .form-group input::placeholder { color:var(--ink-light); }
-    .form-group input.error { border-color:#ef4444; }
-    .form-error { font-size:12px; color:#ef4444; margin-top:2px; display:none; }
-    .form-error.show { display:block; }
-    .form-submit { width:100%; padding:13px; background:var(--red); color:#fff; border:none; font-family:var(--sans); font-size:14px; font-weight:500; cursor:pointer; border-radius:2px; letter-spacing:0.3px; transition:background .2s; margin-top:8px; }
-    .form-submit:hover { background:var(--red-dark); }
-    .form-submit:disabled { opacity:0.6; cursor:not-allowed; }
-    .form-note { font-size:11px; color:var(--ink-light); text-align:center; margin-top:14px; line-height:1.6; }
-    .form-note a { color:var(--red); text-decoration:none; }
-    .form-msg { padding:12px 14px; border-radius:2px; font-size:13px; margin-bottom:16px; display:none; }
-    .form-msg.show { display:block; }
-    .form-msg.success { background:#f0fdf4; border:1px solid #86efac; color:#166534; }
-    .form-msg.error { background:#fef2f2; border:1px solid #fca5a5; color:#991b1b; }
-    .modal-pane { display:none; }
-    .modal-pane.active { display:block; }
   </style>
-
-  <!-- Supabase CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
 <nav>
-  <a class="nav-logo" href="/">
+  <a class="nav-logo" href="#">
     <strong>Hero</strong>Kids
     <span class="nav-badge">PL</span>
   </a>
@@ -272,87 +246,8 @@
     <li><a href="#cennik">Cennik</a></li>
     <li><a href="#faq">FAQ</a></li>
   </ul>
-  <div class="nav-actions">
-    <a class="nav-app-btn" href="/aplikacja/" id="navAppBtn">▶ Aplikacja</a>
-    <a class="nav-btn" href="#" id="navAuthBtn" onclick="openModal(); return false;">Panel dyrektora →</a>
-    <button class="nav-hamburger" id="hamburgerBtn" onclick="toggleMobileMenu()" aria-label="Menu">
-      <span></span><span></span><span></span>
-    </button>
-  </div>
+  <a class="nav-btn" href="mailto:kontakt@herokids.pl">Umów pilotaż →</a>
 </nav>
-
-<!-- MOBILE MENU -->
-<div class="mobile-menu" id="mobileMenu">
-  <a href="#film" onclick="closeMobileMenu()">Film</a>
-  <a href="#jak-dziala" onclick="closeMobileMenu()">Jak działa</a>
-  <a href="#pilotaz" onclick="closeMobileMenu()">Pilotaż</a>
-  <a href="#cennik" onclick="closeMobileMenu()">Cennik</a>
-  <a href="#faq" onclick="closeMobileMenu()">FAQ</a>
-  <a href="/aplikacja/" class="mobile-app-btn">▶ Uruchom Aplikację</a>
-  <a href="#" class="mobile-panel-btn" id="mobilePanelBtn" onclick="closeMobileMenu(); openModal(); return false;">Panel dyrektora →</a>
-</div>
-
-<!-- MODAL REJESTRACJA / LOGOWANIE -->
-<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <button class="modal-close" onclick="closeModal()" aria-label="Zamknij">×</button>
-    <div class="modal-inner">
-      <span class="modal-eyebrow">Platforma HeroKids</span>
-      <h2 class="modal-title" id="modalTitle">Panel dyrektora</h2>
-      <p class="modal-sub">Zarządzaj sesjami, śledź postępy i dokupuj pakiety dla swojej placówki.</p>
-
-      <div class="modal-tabs" role="tablist">
-        <button class="modal-tab active" onclick="switchTab('login')" id="tabLogin" role="tab">Zaloguj się</button>
-        <button class="modal-tab" onclick="switchTab('register')" id="tabRegister" role="tab">Zarejestruj placówkę</button>
-      </div>
-
-      <!-- LOGOWANIE -->
-      <div class="modal-pane active" id="paneLogin">
-        <div class="form-msg" id="loginMsg"></div>
-        <div class="form-group">
-          <label for="loginEmail">Adres e-mail</label>
-          <input type="email" id="loginEmail" placeholder="dyrektor@szkola.pl" autocomplete="email">
-        </div>
-        <div class="form-group">
-          <label for="loginPassword">Hasło</label>
-          <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
-        </div>
-        <button class="form-submit" id="loginBtn" onclick="handleLogin()">Zaloguj się →</button>
-        <p class="form-note">
-          Nie masz konta? <a href="#" onclick="switchTab('register'); return false;">Zarejestruj placówkę</a><br>
-          <a href="#" onclick="handleForgot(); return false;">Zapomniałem/am hasła</a>
-        </p>
-      </div>
-
-      <!-- REJESTRACJA -->
-      <div class="modal-pane" id="paneRegister">
-        <div class="form-msg" id="registerMsg"></div>
-        <div class="form-group">
-          <label for="regSchool">Nazwa placówki</label>
-          <input type="text" id="regSchool" placeholder="Przedszkole nr 5 w Warszawie" autocomplete="organization">
-        </div>
-        <div class="form-group">
-          <label for="regEmail">Adres e-mail dyrektora</label>
-          <input type="email" id="regEmail" placeholder="dyrektor@szkola.pl" autocomplete="email">
-        </div>
-        <div class="form-group">
-          <label for="regPassword">Hasło (min. 8 znaków)</label>
-          <input type="password" id="regPassword" placeholder="Ustaw hasło do panelu" autocomplete="new-password">
-        </div>
-        <div class="form-group">
-          <label for="regPassword2">Powtórz hasło</label>
-          <input type="password" id="regPassword2" placeholder="••••••••" autocomplete="new-password">
-        </div>
-        <button class="form-submit" id="registerBtn" onclick="handleRegister()">Zarejestruj placówkę →</button>
-        <p class="form-note">
-          Rejestracja jest bezpłatna i daje dostęp do 10 sesji pilotażowych.<br>
-          Masz już konto? <a href="#" onclick="switchTab('login'); return false;">Zaloguj się</a>
-        </p>
-      </div>
-
-    </div>
-  </div>
-</div>
 
 <!-- HERO -->
 <div class="hero-wrap">
@@ -371,14 +266,27 @@
       <div class="phone-frame">
         <div class="phone-screen">
           <div class="phone-notch"></div>
-          <div class="phone-status">Połączenie alarmowe</div>
-          <div class="phone-num">112</div>
-          <div class="phone-sub">Wybieranie…</div>
-          <div class="phone-btn-wrap">
-            <div class="phone-pulse"></div>
-            <div class="phone-call">
+          <div class="phone-topbar">
+            <div class="phone-dot"></div>
+            <div class="phone-topinfo">
+              <div class="phone-topnum">112</div>
+              <div class="phone-topdur" id="phone-timer">0:00</div>
+            </div>
+            <div class="phone-endcall">
               <svg viewBox="0 0 24 24"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
             </div>
+          </div>
+          <div class="phone-chat">
+            <div class="phone-chat-track" id="phone-track"></div>
+          </div>
+          <div class="phone-micbar">
+            <div class="phone-mic-icon">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4zm-1.5 3.5v3h3v-3h-3zM8 10a4 4 0 0 0 8 0M12 17v3m-3 0h6" stroke="#c8001e" stroke-width="1.5" stroke-linecap="round" fill="none"/><rect x="8" y="1" width="8" height="10" rx="4" fill="#c8001e" opacity="0.15"/></svg>
+            </div>
+            <div class="phone-waves">
+              <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <div class="phone-mic-label">symulator głosowy</div>
           </div>
         </div>
       </div>
@@ -482,7 +390,9 @@
           <li>Instrukcja dla nauczyciela</li>
           <li>Wsparcie przez cały czas pilotażu</li>
         </ul>
-        <a class="btn btn-red" href="#" onclick="openModal('register'); return false;" style="display:block;text-align:center;text-decoration:none;padding:13px;">Zarejestruj placówkę — 10 sesji gratis →</a>
+        <a class="btn btn-red" href="mailto:kontakt@herokids.pl" style="display:block;text-align:center;text-decoration:none;padding:13px;">
+          Napisz po kod dostępu →
+        </a>
         <p class="pilot-disclaimer">Pilotaż przeznaczony dla placówek edukacyjnych w Polsce. Jeden pilotaż na placówkę. Nie dotyczy osób prywatnych.</p>
       </div>
     </div>
@@ -588,8 +498,8 @@
   <div class="cta-inner">
     <span class="section-eyebrow" style="color:rgba(255,255,255,0.55);">Zacznij teraz</span>
     <h2>10 sesji gratis.<br>Bez karty. Bez umów.</h2>
-    <p>Załóż konto, odbierz kod dostępu i zacznij pierwsze sesje z dziećmi — dziś.</p>
-    <a class="btn-white" href="#" onclick="openModal('register'); return false;">Zarejestruj placówkę — to trwa 60 sekund</a>
+    <p>Jeden email — i w ciągu 24 godzin Twoja placówka ma kod dostępu i może zacząć.</p>
+    <a class="btn-white" href="mailto:kontakt@herokids.pl">Napisz: kontakt@herokids.pl</a>
     <p class="cta-note">Jeden pilotaż na placówkę · Tylko dla placówek edukacyjnych w Polsce</p>
   </div>
 </div>
@@ -600,21 +510,6 @@
 </footer>
 
 <script>
-  // ── Mobile menu ───────────────────────────────────────────
-  function toggleMobileMenu() {
-    const menu = document.getElementById('mobileMenu');
-    const btn = document.getElementById('hamburgerBtn');
-    const isOpen = menu.classList.toggle('open');
-    btn.classList.toggle('open', isOpen);
-    document.body.style.overflow = isOpen ? 'hidden' : '';
-  }
-  function closeMobileMenu() {
-    document.getElementById('mobileMenu').classList.remove('open');
-    document.getElementById('hamburgerBtn').classList.remove('open');
-    document.body.style.overflow = '';
-  }
-
-  // ── Scroll animations ──────────────────────────────────────
   const io = new IntersectionObserver(
     e => e.forEach(el => { if (el.isIntersecting) el.target.classList.add('visible'); }),
     { threshold: 0.08 }
@@ -633,146 +528,197 @@
     });
   }, { rootMargin: '-40% 0px -55% 0px' });
   sections.forEach(s => ao.observe(s));
-
-  // ── Supabase ───────────────────────────────────────────────
-  const SUPABASE_URL = "https://vnennalmoexaqkohzjkm.supabase.co";
-  const SUPABASE_ANON_KEY = "sb_publishable_fcOplky2nD4ERYlDpaa1zw_04Us8URx";
-  const { createClient } = supabase;
-  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  // ── Modal ──────────────────────────────────────────────────
-  function openModal(tab) {
-    document.getElementById('modalOverlay').classList.add('open');
-    document.body.style.overflow = 'hidden';
-    if (tab) switchTab(tab);
-  }
-  function closeModal() {
-    document.getElementById('modalOverlay').classList.remove('open');
-    document.body.style.overflow = '';
-  }
-  function closeModalOutside(e) {
-    if (e.target === document.getElementById('modalOverlay')) closeModal();
-  }
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
-
-  function switchTab(tab) {
-    ['login','register'].forEach(t => {
-      document.getElementById('pane' + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('active', t === tab);
-      document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('active', t === tab);
-    });
-    clearMsgs();
-  }
-
-  function showMsg(id, type, text) {
-    const el = document.getElementById(id);
-    el.className = 'form-msg show ' + type;
-    el.textContent = text;
-  }
-  function clearMsgs() {
-    ['loginMsg','registerMsg'].forEach(id => {
-      const el = document.getElementById(id);
-      el.className = 'form-msg';
-      el.textContent = '';
-    });
-  }
-  function setLoading(btnId, loading) {
-    const btn = document.getElementById(btnId);
-    btn.disabled = loading;
-    btn.textContent = loading ? 'Proszę czekać…' : btn.dataset.label;
-  }
-
-  // Zapisz oryginalne etykiety przycisków
-  document.addEventListener('DOMContentLoaded', () => {
-    ['loginBtn','registerBtn'].forEach(id => {
-      const btn = document.getElementById(id);
-      if (btn) btn.dataset.label = btn.textContent;
-    });
-
-    // Sprawdź czy użytkownik jest już zalogowany
-    sb.auth.getSession().then(({ data: { session } }) => {
-      if (session) updateNavForLoggedIn(session.user);
-    });
-    sb.auth.onAuthStateChange((_event, session) => {
-      if (session) updateNavForLoggedIn(session.user);
-      else updateNavForLoggedOut();
-    });
-  });
-
-  function updateNavForLoggedIn(user) {
-    const btn = document.getElementById('navAuthBtn');
-    if (btn) {
-      btn.textContent = 'Mój panel →';
-      btn.onclick = () => { window.location.href = 'panel.html'; return false; };
-    }
-  }
-  function updateNavForLoggedOut() {
-    const btn = document.getElementById('navAuthBtn');
-    if (btn) {
-      btn.textContent = 'Panel dyrektora →';
-      btn.onclick = () => { openModal(); return false; };
-    }
-  }
-
-  // ── Logowanie ──────────────────────────────────────────────
-  async function handleLogin() {
-    const email = document.getElementById('loginEmail').value.trim();
-    const password = document.getElementById('loginPassword').value;
-    if (!email || !password) { showMsg('loginMsg', 'error', 'Wpisz email i hasło.'); return; }
-
-    setLoading('loginBtn', true);
-    const { data, error } = await sb.auth.signInWithPassword({ email, password });
-    setLoading('loginBtn', false);
-
-    if (error) {
-      const msg = error.message.includes('Invalid') ? 'Nieprawidłowy email lub hasło.' : error.message;
-      showMsg('loginMsg', 'error', msg);
-      return;
-    }
-    showMsg('loginMsg', 'success', '✓ Zalogowano! Przekierowuję do panelu…');
-    setTimeout(() => { window.location.href = 'panel.html'; }, 1000);
-  }
-
-  // ── Rejestracja ────────────────────────────────────────────
-  async function handleRegister() {
-    const school = document.getElementById('regSchool').value.trim();
-    const email  = document.getElementById('regEmail').value.trim();
-    const pass   = document.getElementById('regPassword').value;
-    const pass2  = document.getElementById('regPassword2').value;
-
-    if (!school) { showMsg('registerMsg', 'error', 'Podaj nazwę placówki.'); return; }
-    if (!email)  { showMsg('registerMsg', 'error', 'Podaj adres e-mail.'); return; }
-    if (pass.length < 8) { showMsg('registerMsg', 'error', 'Hasło musi mieć co najmniej 8 znaków.'); return; }
-    if (pass !== pass2)  { showMsg('registerMsg', 'error', 'Hasła nie są zgodne.'); return; }
-
-    setLoading('registerBtn', true);
-
-    // 1. Utwórz konto w Supabase Auth
-    const { data: authData, error: authError } = await sb.auth.signUp({
-      email, password: pass,
-      options: { data: { school_name: school } }
-    });
-
-    if (authError) {
-      setLoading('registerBtn', false);
-      const msg = authError.message.includes('already') ? 'Ten adres email jest już zarejestrowany.' : authError.message;
-      showMsg('registerMsg', 'error', msg);
-      return;
-    }
-    setLoading('registerBtn', false);
-    showMsg('registerMsg', 'success', '✓ Konto założone! Sprawdź email, aby potwierdzić adres, a następnie zaloguj się.');
-    setTimeout(() => switchTab('login'), 3500);
-  }
-
-  // ── Reset hasła ────────────────────────────────────────────
-  async function handleForgot() {
-    const email = document.getElementById('loginEmail').value.trim();
-    if (!email) { showMsg('loginMsg', 'error', 'Wpisz swój adres email powyżej, a następnie kliknij "Zapomniałem/am hasła".'); return; }
-    const { error } = await sb.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + '/panel.html'
-    });
-    if (error) { showMsg('loginMsg', 'error', error.message); return; }
-    showMsg('loginMsg', 'success', '✓ Link do resetowania hasła wysłany na ' + email);
-  }
 </script>
 </body>
 </html>
+<script>
+(function() {
+  var CONVS = [
+    {
+      label: 'Rozmowa 1 — Ola, 5 lat',
+      msgs: [
+        { t:'d', text:'Tu dyspozytor numeru alarmowego 112, w czym mogę pomóc?' },
+        { t:'c', text:'yyyy dzień dobry... dzwonię bo dziadek dziadek siedzi na fotelu i złapał się za serce i teraz się nie rusza i nic nie mówi' },
+        { t:'d', text:'Świetnie, że dzwonisz! To bardzo ważne — już wysyłam pomoc. Czy jesteś teraz sama, czy jest przy Tobie ktoś dorosły?' },
+        { t:'c', text:'jestem sama... tylko dziadek jest ale on się nie rusza' },
+        { t:'d', text:'Dobrze, że jesteś przy dziadku. Jak masz na imię?' },
+        { t:'c', text:'Ola. Znaczy Aleksandra ale wszyscy mówią Ola' },
+        { t:'d', text:'Bardzo dobrze, Olu! Teraz powiedz mi — w jakim mieście mieszkacie?' },
+        { t:'c', text:'W Krakowie.' },
+        { t:'d', text:'Świetnie! A na jakiej ulicy macie dom lub mieszkanie?' },
+        { t:'c', text:'na Kwiatowej' },
+        { t:'d', text:'Dobrze, ulica Kwiatana?' },
+        { t:'c', text:'nie... Kwiatowa. Kwiatowa.' },
+        { t:'d', text:'Aha, ulica Kwiatowa — dobrze zrozumiałem?' },
+        { t:'c', text:'tak! Kwiatowa.' },
+        { t:'d', text:'Okej! Czy mieszkacie w domu czy w bloku?' },
+        { t:'c', text:'w domu. takim niebieskim z czerwonym dachem' },
+        { t:'d', text:'Świetnie! A jaki jest numer domu?' },
+        { t:'c', text:'eee... nie pamiętam numeru. Ale dom jest niebieski i ma czerwony dach' },
+        { t:'d', text:'Dobrze, Olu! Czy drzwi do domu są otwarte, czy zamknięte?' },
+        { t:'c', text:'eee poczeka pan chwilkę zaraz sprawdzę...' },
+        { t:'c', text:'drzwi są zamknięte ale jest klucz w takim w zamku jest klucz' },
+        { t:'d', text:'Świetnie! Ratownicy będą mogli wejść. Zostań na linii ze mną, dobrze?' },
+        { t:'d', text:'Tak, Olu, na pewno! Ratownicy już jadą. Jesteś bardzo dzielna, że pomogłaś dziadkowi!' },
+        { t:'c', text:'yyyy okej... dziękuję' }
+      ]
+    },
+    {
+      label: 'Rozmowa 2 — Marek, 6 lat',
+      msgs: [
+        { t:'d', text:'Tu dyspozytor numeru alarmowego 112, w czym mogę pomóc?' },
+        { t:'c', text:'yyyy... potrzebuję pomocy' },
+        { t:'d', text:'Świetnie, że do nas zadzwoniłeś! Co się stało?' },
+        { t:'c', text:'moja mama mama się przewróciła i i leży na podłodze' },
+        { t:'d', text:'Bardzo dobrze, że mi powiedziałeś. Czy Twoja mama jest przy Tobie, czy jesteś sam?' },
+        { t:'c', text:'siedzę obok mamy... w łazience siedzimy' },
+        { t:'d', text:'Świetnie, że jesteś przy mamie! Jak masz na imię?' },
+        { t:'c', text:'Marek' },
+        { t:'d', text:'Marku, to piękne imię! W jakim mieście mieszkacie?' },
+        { t:'c', text:'W Warszawie.' },
+        { t:'d', text:'Świetnie! A na której ulicy mieszkacie?' },
+        { t:'c', text:'na Słonecznej.' },
+        { t:'d', text:'Bardzo dobrze! A jaki jest numer Waszego domu?' },
+        { t:'c', text:'czternasty. Czternaście.' },
+        { t:'d', text:'Mieszkacie w domu czy w bloku?' },
+        { t:'c', text:'w bloku takim dużym... chyba na czwartym piętrze jesteśmy' },
+        { t:'d', text:'Dobrze, Marku! To wysyłam pomoc na ulicę Słoneczną 14, czwarte piętro, Warszawa — zgadza się?' },
+        { t:'c', text:'tak!' },
+        { t:'d', text:'Już wysyłam pomoc — ktoś do Was przyjedzie. Zostań na linii ze mną, dobrze?' },
+        { t:'c', text:'dobrze ale... ale czy to przyjedzie ktoś bo mama się nie rusza i nie nie mówi nic' },
+        { t:'d', text:'Rozumiem, że się boisz — jesteś bardzo dzielny! Ratownicy już jadą i będą za chwileczkę.' },
+        { t:'c', text:'okej...' },
+        { t:'d', text:'Świetnie! Zostań przy mamie i mów do mnie, dobrze?' },
+        { t:'c', text:'yyyy dobrze. Zostanę.' }
+      ]
+    }
+  ];
+
+  var track = document.getElementById('phone-track');
+  var timerEl = document.getElementById('phone-timer');
+  if (!track || !timerEl) return;
+  var chatEl = track.parentElement;
+
+  var allNodes = [];
+  var visibleCount = 0;
+  var seconds = 0;
+  var timerInt = null;
+
+  function buildNodes() {
+    allNodes = [];
+    CONVS.forEach(function(conv) {
+      var sep = document.createElement('div');
+      sep.className = 'pconv-sep';
+      sep.textContent = conv.label;
+      allNodes.push({ el: sep, isSep: true });
+      conv.msgs.forEach(function(m) {
+        var wrap = document.createElement('div');
+        wrap.className = 'pmsg ' + m.t;
+        var lbl = document.createElement('div');
+        lbl.className = 'pmsg-lbl';
+        lbl.textContent = m.t === 'd' ? 'Dyspozytor' : 'Dziecko';
+        var bubble = document.createElement('div');
+        bubble.className = 'pmsg-bubble';
+        bubble.textContent = m.text;
+        wrap.appendChild(lbl);
+        wrap.appendChild(bubble);
+        allNodes.push({ el: wrap, isSep: false });
+      });
+    });
+  }
+
+  function pruneOld() {
+    var maxH = chatEl.clientHeight * 1.8;
+    var total = track.scrollHeight;
+    while (total > maxH && track.children.length > 4) {
+      track.removeChild(track.firstChild);
+      total = track.scrollHeight;
+    }
+  }
+
+  function startTimer() {
+    seconds = 0;
+    timerEl.textContent = '0:00';
+    clearInterval(timerInt);
+    timerInt = setInterval(function() {
+      seconds++;
+      var m = Math.floor(seconds / 60);
+      var s = seconds % 60;
+      timerEl.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+    }, 1000);
+  }
+
+  function showTyping() {
+    var wrap = document.createElement('div');
+    wrap.className = 'pmsg c';
+    wrap.id = 'typing-ind';
+    var bubble = document.createElement('div');
+    bubble.className = 'ptype';
+    bubble.innerHTML = '<span></span><span></span><span></span>';
+    wrap.appendChild(bubble);
+    wrap.style.opacity = '0';
+    wrap.style.transform = 'translateY(6px)';
+    wrap.style.transition = 'opacity .3s ease, transform .3s ease';
+    track.appendChild(wrap);
+    requestAnimationFrame(function() { requestAnimationFrame(function() {
+      wrap.style.opacity = '1'; wrap.style.transform = 'translateY(0)';
+    }); });
+    setTimeout(function() { chatEl.scrollTop = chatEl.scrollHeight; }, 50);
+  }
+
+  function removeTyping() {
+    var ind = document.getElementById('typing-ind');
+    if (ind) ind.parentNode.removeChild(ind);
+  }
+
+  function appendNode(node) {
+    removeTyping();
+    node.el.style.opacity = '0';
+    node.el.style.transform = 'translateY(8px)';
+    node.el.style.transition = 'opacity .4s ease, transform .4s ease';
+    track.appendChild(node.el);
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() {
+        node.el.style.opacity = '1';
+        node.el.style.transform = 'translateY(0)';
+      });
+    });
+    setTimeout(function() { chatEl.scrollTop = chatEl.scrollHeight; }, 50);
+  }
+
+  function showNext() {
+    if (visibleCount >= allNodes.length) {
+      setTimeout(reset, 3500);
+      return;
+    }
+    var node = allNodes[visibleCount];
+    var isSep = node.isSep;
+    var isChild = !isSep && node.el.classList.contains('c');
+    var delay = isSep ? 1000 : isChild ? (2400 + Math.random() * 2000) : (1400 + Math.random() * 900);
+
+    if (isChild) {
+      var typingDelay = delay - 900;
+      setTimeout(function() { showTyping(); pruneOld(); }, typingDelay > 0 ? typingDelay : 0);
+    }
+
+    setTimeout(function() {
+      appendNode(node);
+      pruneOld();
+      visibleCount++;
+      setTimeout(showNext, 120);
+    }, delay);
+  }
+
+  function reset() {
+    track.innerHTML = '';
+    visibleCount = 0;
+    buildNodes();
+    startTimer();
+    setTimeout(showNext, 700);
+  }
+
+  buildNodes();
+  startTimer();
+  setTimeout(showNext, 900);
+})();
+</script>
