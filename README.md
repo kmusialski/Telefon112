@@ -1,4 +1,3 @@
 # Telefon112
 Apkac cloude
-
-25042026 - wersja 1.2
+Wersja 1.2 25042026
