@@ -50,9 +50,9 @@ const PAYU_BASE = PAYU_SANDBOX === "true"
 
 // Pakiety — ceny w groszach (PayU wymaga groszy)
 const PACKAGES = {
-  starter:  { name: "Starter",  sessions: 50,   amount: 2900,  label: "50 sesji · 29 zł" },
-  standard: { name: "Standard", sessions: 200,  amount: 7900,  label: "200 sesji · 79 zł" },
-  roczny:   { name: "Roczny",   sessions: 9999, amount: 14900, label: "Nieograniczone · 149 zł/rok" }
+  basic:    { name: "Basic",    sessions: 30,  amount: 2900, label: "30 sesji · 29 zł" },
+  standard: { name: "Standard", sessions: 60,  amount: 4900, label: "60 sesji · 49 zł" },
+  pro:      { name: "Pro",      sessions: 100, amount: 7900, label: "100 sesji · 79 zł" }
 };
 
 // ============================================================
