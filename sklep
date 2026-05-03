@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Kup pakiet — Zadzwoń pod 112</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0a0a0a;color:#e5e5ea;min-height:100vh}
+.container{max-width:680px;margin:0 auto;padding:24px 16px}
+.card{background:#1c1c1e;border-radius:16px;padding:20px;margin-bottom:16px}
+.card-title{font-size:13px;color:#8e8e93;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px}
+h1{font-size:24px;font-weight:700;margin-bottom:4px}
+.subtitle{font-size:14px;color:#636366}
+button{border:none;border-radius:12px;padding:12px 20px;font-size:15px;cursor:pointer;font-family:-apple-system,sans-serif;transition:opacity 0.15s}
+button:disabled{opacity:0.4;cursor:not-allowed}
+.btn-primary{background:#0a84ff;color:#fff;width:100%}
+.btn-secondary{background:#2c2c2e;color:#fff;font-size:14px;padding:10px 18px}
+.hidden{display:none!important}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid #8e8e93;border-top-color:#0a84ff;border-radius:50%;animation:spin 0.6s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Pakiety */
+.packages{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+@media(max-width:520px){.packages{grid-template-columns:1fr}}
+.pkg{background:#111;border-radius:14px;padding:18px;text-align:center;cursor:pointer;border:1.5px solid #2c2c2e;transition:border-color 0.15s,transform 0.1s;position:relative}
+.pkg:hover{border-color:#0a84ff;transform:translateY(-2px)}
+.pkg.selected{border-color:#0a84ff;background:#001a2e}
+.pkg.popular::before{content:"Popularny";position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#0a84ff;color:#fff;font-size:10px;font-weight:700;padding:2px 10px;border-radius:6px;white-space:nowrap}
+.pkg-sessions{font-size:28px;font-weight:800;line-height:1}
+.pkg-unit{font-size:11px;color:#636366;margin-top:3px}
+.pkg-price{font-size:20px;color:#ffd60a;font-weight:700;margin-top:10px}
+.pkg-name{font-size:11px;color:#8e8e93;margin-top:4px;text-transform:uppercase;letter-spacing:0.5px}
+.pkg-check{position:absolute;top:10px;right:10px;width:20px;height:20px;border-radius:50%;background:#0a84ff;display:none;align-items:center;justify-content:center;font-size:12px}
+.pkg.selected .pkg-check{display:flex}
+
+/* Podsumowanie */
+.summary-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:0.5px solid #2c2c2e;font-size:14px}
+.summary-row:last-child{border-bottom:none}
+.summary-label{color:#8e8e93}
+.summary-value{font-weight:600}
+.summary-total{font-size:18px;font-weight:700;color:#ffd60a}
+
+/* Komunikaty */
+.msg{padding:12px 14px;border-radius:10px;font-size:13px;margin-bottom:12px;line-height:1.5}
+.msg-ok{background:#0d2818;color:#34c759;border:0.5px solid #34c759}
+.msg-err{background:#1a0000;color:#ff3b30;border:0.5px solid #ff3b30}
+.msg-info{background:#001a2e;color:#0a84ff;border:0.5px solid #0a84ff}
+
+/* Status płatności */
+.status-icon{font-size:64px;text-align:center;margin-bottom:16px}
+.status-title{font-size:22px;font-weight:700;text-align:center;margin-bottom:8px}
+.status-sub{font-size:14px;color:#8e8e93;text-align:center;margin-bottom:24px}
+.token-box{background:#0d2818;border:1px solid #34c759;border-radius:12px;padding:16px;text-align:center;margin-bottom:16px}
+.token-code{font-family:monospace;font-size:22px;font-weight:700;color:#34c759;letter-spacing:3px}
+.token-label{font-size:12px;color:#8e8e93;margin-top:6px}
+
+/* Nawigacja */
+.nav{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+.nav-back{background:transparent;color:#0a84ff;font-size:14px;padding:0;border:none;cursor:pointer}
+</style>
+</head>
+<body>
+
+<!-- WIDOK: Ładowanie -->
+<div id="view-loading" class="container" style="padding-top:80px;text-align:center">
+  <div class="spinner" style="width:32px;height:32px;border-width:3px"></div>
+  <div style="margin-top:16px;color:#636366;font-size:14px">Ładowanie...</div>
+</div>
+
+<!-- WIDOK: Niezalogowany -->
+<div id="view-unauth" class="container hidden" style="padding-top:80px;text-align:center">
+  <div style="font-size:48px;margin-bottom:16px">🔒</div>
+  <h1 style="margin-bottom:8px">Zaloguj się</h1>
+  <div class="subtitle" style="margin-bottom:24px">Musisz być zalogowany aby kupić pakiet</div>
+  <a href="panel.html"><button class="btn-primary" style="max-width:280px;margin:0 auto">Przejdź do logowania</button></a>
+</div>
+
+<!-- WIDOK: Sklep -->
+<div id="view-shop" class="container hidden">
+  <div class="nav">
+    <button class="nav-back" onclick="goToPanel()">← Panel</button>
+    <div style="flex:1"></div>
+    <div style="font-size:13px;color:#636366" id="user-email-display"></div>
+  </div>
+
+  <div style="text-align:center;margin-bottom:28px">
+    <div style="font-size:40px;margin-bottom:10px">🚨</div>
+    <h1>Kup pakiet sesji</h1>
+    <div class="subtitle">Zadzwoń pod 112 · Symulator edukacyjny</div>
+  </div>
+
+  <!-- Aktualny stan -->
+  <div class="card" id="credits-card">
+    <div class="card-title">Aktualny stan konta</div>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:13px;color:#8e8e93">Pozostałe sesje</div>
+        <div style="font-size:28px;font-weight:700" id="current-credits">—</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:13px;color:#8e8e93">Token</div>
+        <div style="font-family:monospace;font-size:14px;color:#34c759" id="current-token">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wybór pakietu -->
+  <div class="card">
+    <div class="card-title">Wybierz pakiet</div>
+    <div class="packages">
+      <div class="pkg" id="pkg-starter" onclick="selectPackage('starter')">
+        <div class="pkg-check">✓</div>
+        <div class="pkg-sessions">50</div>
+        <div class="pkg-unit">sesji</div>
+        <div class="pkg-price">29 zł</div>
+        <div class="pkg-name">Starter</div>
+      </div>
+      <div class="pkg popular" id="pkg-standard" onclick="selectPackage('standard')">
+        <div class="pkg-check">✓</div>
+        <div class="pkg-sessions">200</div>
+        <div class="pkg-unit">sesji</div>
+        <div class="pkg-price">79 zł</div>
+        <div class="pkg-name">Standard</div>
+      </div>
+      <div class="pkg" id="pkg-roczny" onclick="selectPackage('roczny')">
+        <div class="pkg-check">✓</div>
+        <div class="pkg-sessions">∞</div>
+        <div class="pkg-unit">sesji / rok</div>
+        <div class="pkg-price">149 zł</div>
+        <div class="pkg-name">Roczny</div>
+      </div>
+    </div>
+
+    <!-- Podsumowanie -->
+    <div id="summary-box" class="hidden" style="background:#111;border-radius:12px;padding:14px;margin-bottom:16px">
+      <div class="summary-row">
+        <span class="summary-label">Pakiet</span>
+        <span class="summary-value" id="sum-name">—</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">Sesje</span>
+        <span class="summary-value" id="sum-sessions">—</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">Metody płatności</span>
+        <span class="summary-value" style="color:#8e8e93;font-size:13px">BLIK · Przelew · Karta</span>
+      </div>
+      <div class="summary-row" style="border-bottom:none;margin-top:4px">
+        <span class="summary-label" style="font-size:16px;font-weight:600">Do zapłaty</span>
+        <span class="summary-total" id="sum-price">—</span>
+      </div>
+    </div>
+
+    <div id="shop-msg"></div>
+
+    <button class="btn-primary" id="pay-btn" onclick="startPayment()" disabled>
+      Wybierz pakiet aby kontynuować
+    </button>
+
+    <div style="margin-top:12px;text-align:center;font-size:12px;color:#636366">
+      🔒 Bezpieczna płatność przez PayU · Faktury VAT na życzenie
+    </div>
+  </div>
+
+  <!-- Regulamin -->
+  <div class="card" style="font-size:12px;color:#636366;line-height:1.8">
+    <div class="card-title">Informacje o zakupie</div>
+    Kupując pakiet, akceptujesz regulamin serwisu. Sesje są ważne 12 miesięcy od daty zakupu.
+    Pakiet Roczny zapewnia dostęp bez limitu sesji przez rok szkolny.
+    W razie pytań: <a href="mailto:musialski.k@gmail.com" style="color:#0a84ff">musialski.k@gmail.com</a>
+  </div>
+</div>
+
+<!-- WIDOK: Przetwarzanie płatności -->
+<div id="view-processing" class="container hidden" style="padding-top:80px;text-align:center">
+  <div class="spinner" style="width:40px;height:40px;border-width:3px;margin:0 auto 20px"></div>
+  <div style="font-size:18px;font-weight:600;margin-bottom:8px">Przekierowuję do PayU...</div>
+  <div style="font-size:14px;color:#636366">Za chwilę zostaniesz przeniesiony na stronę płatności</div>
+</div>
+
+<!-- WIDOK: Sukces płatności -->
+<div id="view-success" class="container hidden" style="padding-top:60px">
+  <div class="status-icon">✅</div>
+  <div class="status-title">Płatność zakończona!</div>
+  <div class="status-sub">Sesje zostały doliczone do Twojego konta</div>
+
+  <div class="token-box">
+    <div style="font-size:13px;color:#8e8e93;margin-bottom:6px">Twój kod dostępu</div>
+    <div class="token-code" id="success-token">—</div>
+    <div class="token-label" id="success-credits">— sesji dostępnych</div>
+  </div>
+
+  <div class="card">
+    <div class="summary-row">
+      <span class="summary-label">Pakiet</span>
+      <span class="summary-value" id="success-package">—</span>
+    </div>
+    <div class="summary-row" style="border:none">
+      <span class="summary-label">Dodano sesji</span>
+      <span class="summary-value" id="success-sessions">—</span>
+    </div>
+  </div>
+
+  <button class="btn-primary" onclick="goToPanel()">Przejdź do panelu →</button>
+</div>
+
+<!-- WIDOK: Oczekiwanie na płatność -->
+<div id="view-pending" class="container hidden" style="padding-top:60px;text-align:center">
+  <div class="status-icon">⏳</div>
+  <div class="status-title">Płatność w toku</div>
+  <div class="status-sub" style="margin-bottom:24px">Czekamy na potwierdzenie od PayU. Może to potrwać kilka minut.</div>
+  <button class="btn-secondary" onclick="checkOrderStatus()" style="margin:0 auto 12px;display:block">Sprawdź status</button>
+  <button class="btn-primary" onclick="goToPanel()">Wróć do panelu</button>
+</div>
+
+<!-- WIDOK: Błąd płatności -->
+<div id="view-error" class="container hidden" style="padding-top:60px;text-align:center">
+  <div class="status-icon">❌</div>
+  <div class="status-title">Płatność nieudana</div>
+  <div class="status-sub" id="error-msg" style="margin-bottom:24px">Spróbuj ponownie lub skontaktuj się z obsługą.</div>
+  <button class="btn-primary" onclick="showView('view-shop')">Spróbuj ponownie</button>
+</div>
+
+<script>
+// ============================================================
+// KONFIGURACJA
+// ============================================================
+const SUPABASE_URL = "https://vnennalmoexaqkohzjkm.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_fcOplky2nD4ERYlDpaa1zw_04Us8URx";
+const BACKEND_URL = "https://telefon112-production.up.railway.app";
+const PANEL_URL = "panel.html";
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const PACKAGES = {
+  starter:  { name: "Starter",  sessions: 50,   price: "29 zł",  sessionsLabel: "50 sesji" },
+  standard: { name: "Standard", sessions: 200,  price: "79 zł",  sessionsLabel: "200 sesji" },
+  roczny:   { name: "Roczny",   sessions: 9999, price: "149 zł", sessionsLabel: "Nieograniczone (rok)" }
+};
+
+let currentUser = null;
+let currentSchool = null;
+let currentToken = null;
+let selectedPackage = null;
+let pendingExtOrderId = null;
+
+// ============================================================
+// INIT
+// ============================================================
+async function init() {
+  // Sprawdź czy wracamy z płatności PayU
+  const params = new URLSearchParams(window.location.search);
+  const extOrderId = params.get("order");
+  const error = params.get("error");
+
+  if (extOrderId) {
+    pendingExtOrderId = extOrderId;
+    showView("view-loading");
+    await loadUser();
+    await checkOrderStatus();
+    return;
+  }
+
+  if (error) {
+    showView("view-error");
+    document.getElementById("error-msg").textContent = decodeURIComponent(error);
+    return;
+  }
+
+  await loadUser();
+}
+
+async function loadUser() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    showView("view-unauth");
+    return;
+  }
+
+  currentUser = session.user;
+  document.getElementById("user-email-display").textContent = currentUser.email;
+
+  // Pobierz dane szkoły i tokenu
+  await loadSchoolData();
+  showView("view-shop");
+}
+
+async function loadSchoolData() {
+  try {
+    const { data: school } = await sb
+      .from("schools")
+      .select("id, name")
+      .eq("director_email", currentUser.email)
+      .single();
+    currentSchool = school;
+
+    if (school) {
+      const { data: token } = await sb
+        .from("tokens")
+        .select("id, token_code, credits")
+        .eq("school_id", school.id)
+        .eq("active", true)
+        .order("credits", { ascending: false })
+        .limit(1)
+        .single();
+      currentToken = token;
+    }
+
+    document.getElementById("current-credits").textContent =
+      currentToken ? currentToken.credits : "0";
+    document.getElementById("current-token").textContent =
+      currentToken ? currentToken.token_code : "Brak aktywnego tokenu";
+  } catch (e) {
+    console.error("loadSchoolData error:", e);
+  }
+}
+
+// ============================================================
+// WYBÓR PAKIETU
+// ============================================================
+function selectPackage(key) {
+  selectedPackage = key;
+
+  // Aktualizuj UI pakietów
+  document.querySelectorAll(".pkg").forEach(el => el.classList.remove("selected"));
+  document.getElementById("pkg-" + key).classList.add("selected");
+
+  // Podsumowanie
+  const pkg = PACKAGES[key];
+  document.getElementById("sum-name").textContent = pkg.name;
+  document.getElementById("sum-sessions").textContent = pkg.sessionsLabel;
+  document.getElementById("sum-price").textContent = pkg.price;
+  document.getElementById("summary-box").classList.remove("hidden");
+
+  // Przycisk
+  const btn = document.getElementById("pay-btn");
+  btn.disabled = false;
+  btn.textContent = `Zapłać ${pkg.price} przez PayU →`;
+}
+
+// ============================================================
+// PŁATNOŚĆ
+// ============================================================
+async function startPayment() {
+  if (!selectedPackage) return;
+
+  const btn = document.getElementById("pay-btn");
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Łączę z PayU...';
+  showMsg("", "");
+
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { showView("view-unauth"); return; }
+
+    const returnUrl = window.location.href.split("?")[0];
+
+    const res = await fetch(`${BACKEND_URL}/api/create-order`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        package: selectedPackage,
+        school_id: currentSchool?.id || null,
+        token_id: currentToken?.id || null,
+        buyer_email: currentUser.email,
+        buyer_name: currentSchool?.name || currentUser.email,
+        return_url: returnUrl + "?order={extOrderId}"
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.redirect_url) {
+      throw new Error(data.error || "Błąd tworzenia zamówienia");
+    }
+
+    // Zapisz ext_order_id w sessionStorage
+    sessionStorage.setItem("payu_ext_order_id", data.ext_order_id);
+
+    showView("view-processing");
+
+    // Przekieruj do PayU po krótkiej chwili
+    setTimeout(() => {
+      window.location.href = data.redirect_url;
+    }, 800);
+
+  } catch (e) {
+    console.error("startPayment error:", e);
+    btn.disabled = false;
+    btn.textContent = `Zapłać przez PayU →`;
+    showMsg("❌ " + e.message, "err");
+  }
+}
+
+// ============================================================
+// SPRAWDZENIE STATUSU ZAMÓWIENIA
+// ============================================================
+async function checkOrderStatus() {
+  const extOrderId = pendingExtOrderId || sessionStorage.getItem("payu_ext_order_id");
+  if (!extOrderId) {
+    showView("view-shop");
+    return;
+  }
+
+  showView("view-loading");
+
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/order-status/${extOrderId}`);
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.error || "Błąd sprawdzania statusu");
+
+    if (data.status === "completed") {
+      sessionStorage.removeItem("payu_ext_order_id");
+      document.getElementById("success-token").textContent = data.token_code || "—";
+      document.getElementById("success-credits").textContent = `${data.credits || 0} sesji dostępnych`;
+      document.getElementById("success-package").textContent = PACKAGES[data.package]?.name || data.package;
+      document.getElementById("success-sessions").textContent = PACKAGES[data.package]?.sessionsLabel || data.sessions;
+      showView("view-success");
+
+    } else if (data.status === "pending" || data.status === "waiting_for_confirmation") {
+      showView("view-pending");
+
+    } else if (data.status === "canceled" || data.status === "rejected") {
+      sessionStorage.removeItem("payu_ext_order_id");
+      document.getElementById("error-msg").textContent = "Płatność została anulowana lub odrzucona.";
+      showView("view-error");
+
+    } else {
+      // Nieznany status — pokaż oczekiwanie
+      showView("view-pending");
+    }
+  } catch (e) {
+    console.error("checkOrderStatus error:", e);
+    document.getElementById("error-msg").textContent = e.message;
+    showView("view-error");
+  }
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function showView(id) {
+  ["view-loading","view-unauth","view-shop","view-processing","view-success","view-pending","view-error"]
+    .forEach(v => document.getElementById(v).classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
+}
+
+function showMsg(text, type) {
+  const el = document.getElementById("shop-msg");
+  if (!text) { el.innerHTML = ""; return; }
+  el.innerHTML = `<div class="msg msg-${type}">${text}</div>`;
+}
+
+function goToPanel() {
+  window.location.href = PANEL_URL;
+}
+
+// ============================================================
+// START
+// ============================================================
+init();
+</script>
+</body>
+</html>
