@@ -1,16 +1,18 @@
 // ============================================================
-// server.js — Zadzwoń pod 112 · Backend v1.5a
+// server.js — Zadzwoń pod 112 · Backend v1.5b
+// ============================================================
+// Nowe w v1.5b: integracja PayU (create-order, notify, order-status)
 // ============================================================
 
 const express = require("express");
 const cors = require("cors");
 const fetch = require("node-fetch");
+const crypto = require("crypto");
 const { createClient } = require("@supabase/supabase-js");
-// nodemailer usunięty — Railway blokuje SMTP. Używamy Resend API (HTTPS port 443)
 
 const app = express();
 app.use(express.json({ limit: "2mb" }));
-app.set("trust proxy", 1); // Railway używa proxy
+app.set("trust proxy", 1);
 
 app.use(cors({
   origin: [
@@ -32,12 +34,26 @@ const {
   ELEVENLABS_API_KEY,
   SUPABASE_URL,
   SUPABASE_SERVICE_KEY,
-  RESEND_API_KEY,   // Resend.com — działa przez HTTPS (Railway nie blokuje)
+  RESEND_API_KEY,
+  PAYU_POS_ID,
+  PAYU_CLIENT_ID,
+  PAYU_CLIENT_SECRET,
+  PAYU_NOTIFY_KEY,
+  PAYU_SANDBOX,
   PORT = 3000
 } = process.env;
 
-// Stały adres aplikacji — CC na każdym mailu
 const APP_EMAIL = "musialski.k@gmail.com";
+const PAYU_BASE = PAYU_SANDBOX === "true"
+  ? "https://secure.snd.payu.com"
+  : "https://secure.payu.com";
+
+// Pakiety — ceny w groszach (PayU wymaga groszy)
+const PACKAGES = {
+  starter:  { name: "Starter",  sessions: 50,   amount: 2900,  label: "50 sesji · 29 zł" },
+  standard: { name: "Standard", sessions: 200,  amount: 7900,  label: "200 sesji · 79 zł" },
+  roczny:   { name: "Roczny",   sessions: 9999, amount: 14900, label: "Nieograniczone · 149 zł/rok" }
+};
 
 // ============================================================
 // SUPABASE
@@ -46,17 +62,14 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
 // ============================================================
 // RATE LIMITER (in-memory)
-// /api/chat: max 120/h — aktywna sesja może mieć ~20 wiadomości
-// pozostałe endpointy: max 30/h
 // ============================================================
 const rateMap = new Map();
 function rateLimit(ip, max = 30, windowMs = 3600000) {
   const now = Date.now();
-  const key = `${ip}:${max}`; // osobny licznik per limit
-  const entry = rateMap.get(key) || { count: 0, reset: now + windowMs };
+  const entry = rateMap.get(ip) || { count: 0, reset: now + windowMs };
   if (now > entry.reset) { entry.count = 0; entry.reset = now + windowMs; }
   entry.count++;
-  rateMap.set(key, entry);
+  rateMap.set(ip, entry);
   return entry.count <= max;
 }
 
@@ -72,6 +85,20 @@ async function getTokenData(token) {
     .single();
   if (error || !data || !data.active) return null;
   return data;
+}
+
+// ============================================================
+// HELPER — pobierz token PayU OAuth2
+// ============================================================
+async function getPayuToken() {
+  const res = await fetch(`${PAYU_BASE}/pl/standard/user/oauth/authorize`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: `grant_type=client_credentials&client_id=${PAYU_CLIENT_ID}&client_secret=${PAYU_CLIENT_SECRET}`
+  });
+  if (!res.ok) throw new Error(`PayU OAuth error: ${res.status}`);
+  const data = await res.json();
+  return data.access_token;
 }
 
 // ============================================================
@@ -226,24 +253,17 @@ app.post("/api/session-end", async (req, res) => {
 
 // ============================================================
 // POST /api/send-log-email
-// Wysyłka zanonimizowanego logu mailem
-// Odbiorcy: email dyrektora (z konta Supabase) + APP_EMAIL
 // ============================================================
 app.post("/api/send-log-email", async (req, res) => {
   const { session_id, access_jwt } = req.body;
   console.log(`[EMAIL] ▶ Żądanie wysyłki — session_id: ${session_id}`);
 
-  // Weryfikacja JWT
-  console.log(`[EMAIL] Weryfikacja JWT (długość: ${access_jwt?.length || 0})`);
   const { data: { user }, error: authError } = await supabase.auth.getUser(access_jwt);
   if (authError || !user) {
-    console.error(`[EMAIL] ❌ Auth error: ${authError?.message || "brak usera"}`);
+    console.error(`[EMAIL] ❌ Auth error: ${authError?.message}`);
     return res.status(401).json({ error: "Brak autoryzacji: " + (authError?.message || "brak usera") });
   }
-  console.log(`[EMAIL] ✅ Użytkownik: ${user.email}`);
 
-  // Pobierz sesję
-  console.log(`[EMAIL] Pobieranie sesji z Supabase...`);
   const { data: session, error: sessionError } = await supabase
     .from("sessions")
     .select("*, session_messages(*), schools(name, director_email)")
@@ -251,22 +271,16 @@ app.post("/api/send-log-email", async (req, res) => {
     .single();
 
   if (sessionError || !session) {
-    console.error(`[EMAIL] ❌ Sesja nie znaleziona: ${sessionError?.message}`);
-    return res.status(404).json({ error: "Sesja nie znaleziona: " + (sessionError?.message || "") });
+    return res.status(404).json({ error: "Sesja nie znaleziona" });
   }
-  console.log(`[EMAIL] ✅ Sesja pobrana. Wiadomości: ${session.session_messages?.length || 0}, Szkoła: ${session.schools?.name}`);
 
-  // Zbuduj surowy log
   const rawLog = (session.session_messages || [])
     .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
     .map(m => `[${m.role === "user" ? "DZIECKO" : "DYSPOZYTOR"}] ${m.content}`)
     .join("\n");
-  console.log(`[EMAIL] Surowy log: ${rawLog.length} znaków`);
 
-  // Anonimizuj — jeśli już mamy zanonimizowany, użyj go
   let anonLog = session.anonymized_log || rawLog;
   if (!session.anonymized_log) {
-    console.log(`[EMAIL] Anonimizuję przez Claude...`);
     try {
       const anonRes = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
@@ -279,125 +293,273 @@ app.post("/api/send-log-email", async (req, res) => {
       });
       const anonData = await anonRes.json();
       if (anonData.content?.[0]?.text) anonLog = anonData.content[0].text;
-      console.log(`[EMAIL] ✅ Anonimizacja OK (${anonLog.length} znaków)`);
     } catch (e) {
-      console.error(`[EMAIL] ⚠️ Anonimizacja failed: ${e.message} — używam surowego logu`);
+      console.error(`[EMAIL] Anonimizacja failed: ${e.message}`);
     }
-  } else {
-    console.log(`[EMAIL] Zanonimizowany log już istnieje — pomijam anonimizację`);
   }
 
-  // Zapisz w Supabase
   await supabase.from("sessions").update({
     anonymized_log: anonLog,
     log_sent_at: new Date().toISOString()
   }).eq("id", session_id);
-  console.log(`[EMAIL] ✅ Supabase zaktualizowany`);
 
-  // Przygotuj dane do maila
   const directorEmail = session.schools?.director_email || user.email;
   const schoolName = session.schools?.name || "Szkoła";
   const date = new Date(session.started_at).toLocaleString("pl-PL");
   const dur = session.duration_seconds ? Math.round(session.duration_seconds / 60) + " min" : "—";
 
-  // Na razie wysyłamy tylko na APP_EMAIL (Resend darmowy = tylko zweryfikowany adres)
-  // Docelowo po dodaniu domeny: recipients = [directorEmail, APP_EMAIL]
-  const recipient = APP_EMAIL;
-  console.log(`[EMAIL] Odbiorca: ${recipient} (tryb testowy — brak własnej domeny Resend)`);
-  console.log(`[EMAIL] Dyrektor szkoły (info w treści): ${directorEmail}`);
-  console.log(`[EMAIL] Resend API key: ${RESEND_API_KEY ? "ustawiony ✅" : "BRAK ❌"}`);
-
-  if (!RESEND_API_KEY) {
-    console.error(`[EMAIL] ❌ Brak RESEND_API_KEY!`);
-    return res.status(500).json({ error: "Brak konfiguracji Resend na serwerze (RESEND_API_KEY)" });
-  }
+  if (!RESEND_API_KEY) return res.status(500).json({ error: "Brak RESEND_API_KEY" });
 
   const subject = `[112] Log sesji — ${schoolName} · ${date}`;
-  const textBody = [
-    `=== LOG SESJI EDUKACYJNEJ — ZADZWOŃ POD 112 ===`,
-    ``,
-    `DANE SZKOŁY:`,
-    `Szkoła:         ${schoolName}`,
-    `Dyrektor/email: ${directorEmail}`,
-    `Wysłano przez:  ${user.email}`,
-    ``,
-    `DANE SESJI:`,
-    `Data:           ${date}`,
-    `Czas rozmowy:   ${dur}`,
-    `Gwiazdki:       ${session.stars || 0}/3`,
-    `Język:          ${session.lang}`,
-    `Session ID:     ${session_id}`,
-    ``,
-    `=== LOG ROZMOWY (zanonimizowany) ===`,
-    ``,
-    anonLog,
-    ``,
-    `===`,
-    `Zadzwoń pod 112 · Symulator edukacyjny`,
-    `Wysłano automatycznie na żądanie dyrektora: ${user.email}`,
-    `UWAGA: Mail docelowo będzie też wysyłany bezpośrednio do dyrektora (po konfiguracji domeny).`
-  ].join("\n");
-
   const htmlBody = `
     <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
       <h2 style="color:#c00;border-bottom:2px solid #c00;padding-bottom:8px">🚨 Log sesji — Zadzwoń pod 112</h2>
-      <div style="background:#f0f7ff;border-radius:8px;padding:16px;margin-bottom:16px">
-        <h3 style="margin:0 0 10px;color:#333">Dane szkoły</h3>
-        <table style="font-size:14px;border-collapse:collapse;width:100%">
-          <tr><td style="padding:4px 16px 4px 0;color:#666;width:140px">Szkoła:</td><td><b>${schoolName}</b></td></tr>
-          <tr><td style="padding:4px 16px 4px 0;color:#666">Dyrektor / email:</td><td><b>${directorEmail}</b></td></tr>
-          <tr><td style="padding:4px 16px 4px 0;color:#666">Wysłano przez:</td><td>${user.email}</td></tr>
-        </table>
-      </div>
-      <div style="background:#f5f5f5;border-radius:8px;padding:16px;margin-bottom:16px">
-        <h3 style="margin:0 0 10px;color:#333">Dane sesji</h3>
-        <table style="font-size:14px;border-collapse:collapse;width:100%">
-          <tr><td style="padding:4px 16px 4px 0;color:#666;width:140px">Data:</td><td>${date}</td></tr>
-          <tr><td style="padding:4px 16px 4px 0;color:#666">Czas rozmowy:</td><td>${dur}</td></tr>
-          <tr><td style="padding:4px 16px 4px 0;color:#666">Gwiazdki:</td><td>${"★".repeat(session.stars || 0)}${"☆".repeat(3 - (session.stars || 0))} (${session.stars || 0}/3)</td></tr>
-          <tr><td style="padding:4px 16px 4px 0;color:#666">Język:</td><td>${session.lang}</td></tr>
-        </table>
-      </div>
-      <h3 style="color:#333">Log rozmowy (zanonimizowany)</h3>
-      <pre style="background:#111;color:#a0ffa0;padding:16px;border-radius:8px;font-size:12px;line-height:1.7;white-space:pre-wrap;overflow-x:auto">${anonLog}</pre>
-      <p style="font-size:11px;color:#999;margin-top:16px;border-top:1px solid #eee;padding-top:12px">
-        Wysłano automatycznie na żądanie: ${user.email}<br/>
-        <i>Uwaga: W fazie testowej maile trafiają tylko na adres administratora aplikacji. Po konfiguracji domeny będą wysyłane bezpośrednio do dyrektora szkoły.</i>
-      </p>
-    </div>
-  `;
+      <p><b>Szkoła:</b> ${schoolName}<br/><b>Data:</b> ${date}<br/><b>Czas:</b> ${dur}<br/><b>Gwiazdki:</b> ${"★".repeat(session.stars||0)}${"☆".repeat(3-(session.stars||0))}</p>
+      <h3>Log rozmowy (zanonimizowany)</h3>
+      <pre style="background:#111;color:#a0ffa0;padding:16px;border-radius:8px;font-size:12px;white-space:pre-wrap">${anonLog}</pre>
+    </div>`;
 
-  console.log(`[EMAIL] Wysyłam przez Resend API...`);
   try {
     const resendRes = await fetch("https://api.resend.com/emails", {
       method: "POST",
-      headers: {
-        "Authorization": `Bearer ${RESEND_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        from: "Zadzwoń pod 112 <onboarding@resend.dev>",
-        to: [recipient],
-        subject,
-        text: textBody,
-        html: htmlBody
-      })
+      headers: { "Authorization": `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ from: "Zadzwoń pod 112 <onboarding@resend.dev>", to: [APP_EMAIL], subject, html: htmlBody })
     });
-
     const resendData = await resendRes.json();
-    console.log(`[EMAIL] Resend response: ${resendRes.status} — ${JSON.stringify(resendData)}`);
-
-    if (!resendRes.ok) {
-      console.error(`[EMAIL] ❌ Resend error: ${JSON.stringify(resendData)}`);
-      return res.status(500).json({ error: "Błąd Resend: " + (resendData.message || JSON.stringify(resendData)) });
-    }
-
-    console.log(`[EMAIL] ✅ Wysłano! ID: ${resendData.id}`);
-    return res.json({ ok: true, sent_to: [recipient], director_notified: false, messageId: resendData.id });
+    if (!resendRes.ok) return res.status(500).json({ error: "Błąd Resend: " + resendData.message });
+    return res.json({ ok: true, messageId: resendData.id });
   } catch (e) {
-    console.error(`[EMAIL] ❌ Wyjątek: ${e.message}`);
     return res.status(500).json({ error: "Błąd wysyłki: " + e.message });
   }
+});
+
+// ============================================================
+// POST /api/create-order  [v1.5b — PayU]
+// Tworzy zamówienie PayU i zwraca URL do strony płatności
+// Body: { package: "starter"|"standard"|"roczny", school_id, token_id, buyer_email, buyer_name, return_url }
+// ============================================================
+app.post("/api/create-order", async (req, res) => {
+  const { package: packageKey, school_id, token_id, buyer_email, buyer_name, return_url } = req.body;
+
+  const pkg = PACKAGES[packageKey];
+  if (!pkg) return res.status(400).json({ error: "Nieznany pakiet" });
+  if (!buyer_email) return res.status(400).json({ error: "Brak email kupującego" });
+
+  // Unikalny identyfikator zamówienia po naszej stronie
+  const extOrderId = `112-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
+
+  // Zapisz zamówienie w Supabase ze statusem pending
+  const { data: order, error: orderError } = await supabase
+    .from("orders")
+    .insert({
+      school_id: school_id || null,
+      token_id: token_id || null,
+      package_name: packageKey,
+      sessions_count: pkg.sessions,
+      amount_pln: pkg.amount,
+      payu_ext_order_id: extOrderId,
+      status: "pending"
+    })
+    .select("id").single();
+
+  if (orderError) {
+    console.error("[PAYU] Błąd zapisu zamówienia:", orderError);
+    return res.status(500).json({ error: "Błąd zapisu zamówienia" });
+  }
+
+  // Pobierz token OAuth PayU
+  let accessToken;
+  try {
+    accessToken = await getPayuToken();
+  } catch (e) {
+    console.error("[PAYU] OAuth error:", e.message);
+    return res.status(502).json({ error: "Błąd autoryzacji PayU" });
+  }
+
+  // Adres notify — webhook PayU
+  const notifyUrl = PAYU_SANDBOX === "true"
+    ? "https://telefon112-dev.up.railway.app/api/payu-notify"
+    : "https://telefon112-production.up.railway.app/api/payu-notify";
+
+  const continueUrl = return_url || "https://herokids.eu/panel";
+
+  // Payload zamówienia PayU
+  const orderPayload = {
+    extOrderId,
+    notifyUrl,
+    continueUrl,
+    customerIp: req.headers["x-forwarded-for"]?.split(",")[0] || req.ip || "127.0.0.1",
+    merchantPosId: PAYU_POS_ID,
+    description: `Zadzwoń pod 112 — ${pkg.label}`,
+    currencyCode: "PLN",
+    totalAmount: String(pkg.amount),
+    buyer: {
+      email: buyer_email,
+      firstName: buyer_name || "Dyrektor",
+      lastName: "",
+      language: "pl"
+    },
+    products: [{
+      name: `Pakiet ${pkg.name} — Zadzwoń pod 112`,
+      unitPrice: String(pkg.amount),
+      quantity: "1"
+    }]
+  };
+
+  try {
+    const payuRes = await fetch(`${PAYU_BASE}/api/v2_1/orders`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${accessToken}`
+      },
+      body: JSON.stringify(orderPayload),
+      redirect: "manual" // PayU zwraca 302 redirect — przechwytujemy zamiast podążać
+    });
+
+    // PayU zwraca 302 z Location = URL płatności
+    const payuData = await payuRes.json().catch(() => ({}));
+    console.log(`[PAYU] Odpowiedź: ${payuRes.status}`, payuData);
+
+    const payuOrderId = payuData.orderId;
+    const redirectUri = payuData.redirectUri;
+
+    if (!redirectUri) {
+      console.error("[PAYU] Brak redirectUri:", payuData);
+      return res.status(502).json({ error: "Błąd PayU: brak URL płatności", details: payuData });
+    }
+
+    // Zaktualizuj zamówienie o payu_order_id
+    await supabase.from("orders").update({ payu_order_id: payuOrderId }).eq("id", order.id);
+
+    console.log(`[PAYU] ✅ Zamówienie created: ${extOrderId} → ${redirectUri}`);
+    return res.json({ ok: true, redirect_url: redirectUri, order_id: order.id, ext_order_id: extOrderId });
+
+  } catch (e) {
+    console.error("[PAYU] create-order error:", e.message);
+    return res.status(500).json({ error: "Błąd tworzenia zamówienia: " + e.message });
+  }
+});
+
+// ============================================================
+// POST /api/payu-notify  [v1.5b — PayU webhook]
+// PayU wysyła potwierdzenie płatności — aktywujemy kredyty
+// ============================================================
+app.post("/api/payu-notify", async (req, res) => {
+  console.log("[PAYU-NOTIFY] ▶ Otrzymano webhook");
+
+  // Weryfikacja podpisu PayU
+  const signature = req.headers["openpayu-signature"];
+  if (signature && PAYU_NOTIFY_KEY) {
+    const bodyStr = JSON.stringify(req.body);
+    const expectedSig = crypto
+      .createHash("md5")
+      .update(bodyStr + PAYU_NOTIFY_KEY)
+      .digest("hex");
+
+    // Wyciągnij signature z nagłówka (format: "sender=checkout;signature=HASH;algorithm=MD5")
+    const sigMatch = signature.match(/signature=([a-f0-9]+)/i);
+    const receivedSig = sigMatch?.[1];
+
+    if (receivedSig && receivedSig !== expectedSig) {
+      console.error("[PAYU-NOTIFY] ❌ Nieprawidłowy podpis!");
+      return res.status(401).send("Invalid signature");
+    }
+  }
+
+  const order = req.body?.order;
+  if (!order) {
+    console.error("[PAYU-NOTIFY] Brak danych zamówienia");
+    return res.status(400).send("No order data");
+  }
+
+  const { extOrderId, orderId, status } = order;
+  console.log(`[PAYU-NOTIFY] extOrderId: ${extOrderId}, status: ${status}`);
+
+  // Zapisz aktualny status w bazie
+  await supabase.from("orders")
+    .update({ payu_order_id: orderId, status: status.toLowerCase() })
+    .eq("payu_ext_order_id", extOrderId);
+
+  // Jeśli płatność zakończona — doliczy kredyty
+  if (status === "COMPLETED") {
+    console.log(`[PAYU-NOTIFY] ✅ Płatność COMPLETED — doliczam kredyty`);
+
+    const { data: orderData } = await supabase
+      .from("orders")
+      .select("token_id, sessions_count")
+      .eq("payu_ext_order_id", extOrderId)
+      .single();
+
+    if (orderData?.token_id) {
+      // Dolicz kredyty do istniejącego tokenu
+      const { data: tokenData } = await supabase
+        .from("tokens")
+        .select("credits")
+        .eq("id", orderData.token_id)
+        .single();
+
+      const newCredits = (tokenData?.credits || 0) + orderData.sessions_count;
+      await supabase.from("tokens")
+        .update({ credits: newCredits, active: true })
+        .eq("id", orderData.token_id);
+
+      console.log(`[PAYU-NOTIFY] ✅ Token ${orderData.token_id} → +${orderData.sessions_count} kredytów (razem: ${newCredits})`);
+
+    } else if (orderData) {
+      // Brak token_id — stwórz nowy token dla szkoły
+      console.log(`[PAYU-NOTIFY] Tworzę nowy token dla zamówienia ${extOrderId}`);
+      const newTokenCode = "PSZ-" + Math.random().toString(36).slice(2,6).toUpperCase() + "-" + Math.random().toString(36).slice(2,6).toUpperCase();
+
+      const { data: newToken } = await supabase.from("tokens").insert({
+        token_code: newTokenCode,
+        school_id: orderData.school_id || null,
+        credits: orderData.sessions_count,
+        active: true
+      }).select("id").single();
+
+      // Przypisz token do zamówienia
+      await supabase.from("orders")
+        .update({ token_id: newToken?.id, status: "completed", completed_at: new Date().toISOString() })
+        .eq("payu_ext_order_id", extOrderId);
+
+      console.log(`[PAYU-NOTIFY] ✅ Nowy token: ${newTokenCode} (${orderData.sessions_count} sesji)`);
+    }
+
+    // Oznacz zamówienie jako completed
+    await supabase.from("orders")
+      .update({ status: "completed", completed_at: new Date().toISOString() })
+      .eq("payu_ext_order_id", extOrderId);
+  }
+
+  // PayU wymaga odpowiedzi 200 z tym body
+  return res.status(200).json({ status: "OK" });
+});
+
+// ============================================================
+// GET /api/order-status/:extOrderId  [v1.5b — PayU]
+// Sprawdzenie statusu zamówienia po powrocie ze strony płatności
+// ============================================================
+app.get("/api/order-status/:extOrderId", async (req, res) => {
+  const { extOrderId } = req.params;
+
+  const { data: order, error } = await supabase
+    .from("orders")
+    .select("id, package_name, sessions_count, amount_pln, status, payu_order_id, completed_at, token_id, tokens(token_code, credits)")
+    .eq("payu_ext_order_id", extOrderId)
+    .single();
+
+  if (error || !order) return res.status(404).json({ error: "Zamówienie nie znalezione" });
+
+  return res.json({
+    ok: true,
+    status: order.status,
+    package: order.package_name,
+    sessions: order.sessions_count,
+    completed_at: order.completed_at,
+    token_code: order.tokens?.token_code || null,
+    credits: order.tokens?.credits || null
+  });
 });
 
 // ============================================================
@@ -411,10 +573,10 @@ app.get("/api/health", async (req, res) => {
       anthropic: !!ANTHROPIC_API_KEY,
       elevenlabs: !!ELEVENLABS_API_KEY,
       supabase: !!SUPABASE_URL && !!SUPABASE_SERVICE_KEY,
-      resend: !!RESEND_API_KEY
+      resend: !!RESEND_API_KEY,
+      payu: !!PAYU_POS_ID && !!PAYU_CLIENT_SECRET,
+      payu_sandbox: PAYU_SANDBOX === "true"
     },
-    rate_limits: { chat: "120/h", other: "30/h" },
-    cors_origins: ["kmusialski.github.io", "herokids.eu"],
     app_email: APP_EMAIL,
     timestamp: new Date().toISOString()
   });
@@ -424,12 +586,11 @@ app.get("/api/health", async (req, res) => {
 // START
 // ============================================================
 app.listen(PORT, () => {
-  console.log(`✅ HeroKids 112 backend v1.5b — port ${PORT}`);
-  console.log(`   Anthropic: ${ANTHROPIC_API_KEY ? "✅" : "❌"}`);
+  console.log(`✅ Zadzwoń pod 112 backend v1.5b — port ${PORT}`);
+  console.log(`   Anthropic:  ${ANTHROPIC_API_KEY ? "✅" : "❌"}`);
   console.log(`   ElevenLabs: ${ELEVENLABS_API_KEY ? "✅" : "❌"}`);
-  console.log(`   Supabase: ${SUPABASE_URL ? "✅" : "❌"}`);
-  console.log(`   Resend: ${RESEND_API_KEY ? "✅" : "❌"}`);
-  console.log(`   CORS: herokids.eu + kmusialski.github.io`);
-  console.log(`   Rate limit: /api/chat 120/h, pozostałe 30/h`);
-  console.log(`   App email (CC): ${APP_EMAIL}`);
+  console.log(`   Supabase:   ${SUPABASE_URL ? "✅" : "❌"}`);
+  console.log(`   Resend:     ${RESEND_API_KEY ? "✅" : "❌"}`);
+  console.log(`   PayU:       ${PAYU_POS_ID ? "✅" : "❌"} ${PAYU_SANDBOX === "true" ? "(SANDBOX)" : "(PRODUKCJA)"}`);
+  console.log(`   PayU URL:   ${PAYU_BASE}`);
 });
