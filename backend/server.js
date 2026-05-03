@@ -381,7 +381,8 @@ app.post("/api/create-order", async (req, res) => {
     ? "https://telefon112-dev.up.railway.app/api/payu-notify"
     : "https://telefon112-production.up.railway.app/api/payu-notify";
 
-  const continueUrl = return_url || "https://herokids.eu/panel";
+  const continueUrl = (return_url || "https://herokids.eu/sklep.html") 
+  .replace("{extOrderId}", extOrderId);
 
   // Payload zamówienia PayU
   const orderPayload = {
