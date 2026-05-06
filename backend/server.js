@@ -2,22 +2,22 @@
 // server.js — Zadzwoń pod 112 · Backend v1.6
 // ============================================================
 // Zmiany v1.6 względem v1.5b:
-//   - Resend API zastąpiony nodemailer + Zimbra OVH SMTP
+//   - Resend API zastąpiony Zimbra SOAP API (HTTPS port 443, Railway nie blokuje)
 //   - Nadawca: noreply@herokids.eu
 //   - Odbiorcy: dyrektor szkoły (TO) + support@herokids.eu (CC)
 //   - /api/send-log-email przyjmuje nowe pola:
 //       user_message  — wiadomość od dyrektora wpisana w panelu
 //       client_info   — dane techniczne z przeglądarki (debug)
 //   - Mail rozbudowany: sekcja techniczna (zwijana) + wiadomość od użytkownika
-//   - /api/health sprawdza SMTP przez transporter.verify(), raportuje smtp zamiast resend
+//   - /api/health raportuje zimbra zamiast resend
 //   - Zachowana pełna integracja PayU z v1.5b
+//   - Brak zewnętrznych zależności email — tylko node-fetch (już w package.json)
 // ============================================================
 
 const express = require("express");
 const cors = require("cors");
 const fetch = require("node-fetch");
 const crypto = require("crypto");
-const nodemailer = require("nodemailer");
 const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
@@ -44,10 +44,9 @@ const {
   ELEVENLABS_API_KEY,
   SUPABASE_URL,
   SUPABASE_SERVICE_KEY,
-  SMTP_HOST = "ssl0.ovh.net",  // Zimbra OVH
-  SMTP_PORT = "587",
-  SMTP_USER,                    // noreply@herokids.eu
-  SMTP_PASSWORD,
+  ZIMBRA_URL = "https://webmail.mail.ovh.net/service/soap",
+  ZIMBRA_USER,      // noreply@herokids.eu
+  ZIMBRA_PASSWORD,
   PAYU_POS_ID,
   PAYU_CLIENT_ID,
   PAYU_CLIENT_SECRET,
@@ -71,20 +70,81 @@ const PACKAGES = {
 };
 
 // ============================================================
-// SMTP TRANSPORTER — Zimbra OVH
+// ZIMBRA SOAP — helper do wysyłki maila przez HTTPS
 // ============================================================
-const smtpTransporter = nodemailer.createTransport({
-  host: SMTP_HOST,
-  port: parseInt(SMTP_PORT, 10),
-  secure: false,        // STARTTLS na porcie 587
-  auth: {
-    user: SMTP_USER,
-    pass: SMTP_PASSWORD
-  },
-  tls: {
-    rejectUnauthorized: false  // OVH relay może używać self-signed cert
+
+// Krok 1: Pobierz auth token (ważny ~24h, ale nie cachujemy — SMTP jest transakcyjny)
+async function zimbraAuth() {
+  const body = {
+    Header: { context: { _jsns: "urn:zimbra" } },
+    Body: {
+      AuthRequest: {
+        _jsns: "urn:zimbraAccount",
+        account: { by: "name", _content: ZIMBRA_USER },
+        password: { _content: ZIMBRA_PASSWORD }
+      }
+    }
+  };
+  const res = await fetch(ZIMBRA_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error(`Zimbra auth HTTP error: ${res.status}`);
+  const data = await res.json();
+  const token = data?.Body?.AuthResponse?.authToken?.[0]?._content;
+  if (!token) throw new Error("Zimbra auth: brak authToken w odpowiedzi");
+  return token;
+}
+
+// Krok 2: Wyślij maila używając auth tokena
+async function zimbraSendMail({ authToken, to, cc, subject, textBody, htmlBody }) {
+  // Budujemy adresy e (from, to, cc)
+  const addresses = [
+    { t: "f", a: ZIMBRA_USER, p: "HeroKids 112" },
+    ...(Array.isArray(to) ? to : [to]).map(a => ({ t: "t", a })),
+    ...(cc ? (Array.isArray(cc) ? cc : [cc]).map(a => ({ t: "c", a })) : [])
+  ];
+
+  const body = {
+    Header: {
+      context: {
+        _jsns: "urn:zimbra",
+        authToken: { _content: authToken }
+      }
+    },
+    Body: {
+      SendMsgRequest: {
+        _jsns: "urn:zimbraMail",
+        m: {
+          su: { _content: subject },
+          e: addresses,
+          mp: [
+            {
+              ct: "multipart/alternative",
+              mp: [
+                { ct: "text/plain", content: { _content: textBody } },
+                { ct: "text/html",  content: { _content: htmlBody  } }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  };
+
+  const res = await fetch(ZIMBRA_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error(`Zimbra sendMail HTTP error: ${res.status}`);
+  const data = await res.json();
+  if (data?.Body?.Fault) {
+    throw new Error("Zimbra sendMail fault: " + data.Body.Fault.Reason?.Text);
   }
-});
+  return data?.Body?.SendMsgResponse?.m?.[0]?.id || "sent";
+}
 
 // ============================================================
 // SUPABASE
@@ -284,7 +344,7 @@ app.post("/api/session-end", async (req, res) => {
 
 // ============================================================
 // POST /api/send-log-email
-// Wysyłka zanonimizowanego logu mailem przez Zimbra OVH SMTP
+// Wysyłka zanonimizowanego logu mailem przez Zimbra SOAP API (HTTPS/443)
 //
 // Body:
 //   session_id   — ID sesji w Supabase
@@ -327,7 +387,7 @@ app.post("/api/send-log-email", async (req, res) => {
     .map(m => `[${m.role === "user" ? "DZIECKO" : "DYSPOZYTOR"}] ${m.content}`)
     .join("\n");
 
-  // Anonimizuj — jeśli już mamy zanonimizowany, użyj go
+  // Anonimizuj
   let anonLog = session.anonymized_log || rawLog;
   if (!session.anonymized_log) {
     console.log(`[EMAIL] Anonimizuję przez Claude...`);
@@ -365,7 +425,6 @@ app.post("/api/send-log-email", async (req, res) => {
   const clientIp      = req.headers["x-forwarded-for"]?.split(",")[0] || req.ip || "—";
   const serverVersion = "1.6";
 
-  // Dane techniczne od frontendu
   const ua            = client_info.userAgent      || "—";
   const platform      = client_info.platform       || "—";
   const browserLang   = client_info.language       || "—";
@@ -375,16 +434,16 @@ app.post("/api/send-log-email", async (req, res) => {
   const sessionErrors = client_info.sessionErrors  || "—";
 
   console.log(`[EMAIL] TO: ${directorEmail}, CC: ${SUPPORT_EMAIL}`);
-  console.log(`[EMAIL] SMTP: ${SMTP_HOST}:${SMTP_PORT}, user: ${SMTP_USER ? "✅" : "❌ BRAK"}`);
+  console.log(`[EMAIL] Zimbra: ${ZIMBRA_URL}, user: ${ZIMBRA_USER ? "✅" : "❌ BRAK"}`);
 
-  if (!SMTP_USER || !SMTP_PASSWORD) {
-    console.error(`[EMAIL] ❌ Brak konfiguracji SMTP!`);
-    return res.status(500).json({ error: "Brak konfiguracji SMTP na serwerze" });
+  if (!ZIMBRA_USER || !ZIMBRA_PASSWORD) {
+    console.error(`[EMAIL] ❌ Brak konfiguracji Zimbra (ZIMBRA_USER / ZIMBRA_PASSWORD)!`);
+    return res.status(500).json({ error: "Brak konfiguracji email na serwerze" });
   }
 
   const subject = `[112] Log sesji — ${schoolName} · ${date}`;
 
-  // ── Wiadomość od dyrektora (opcjonalna) ───────────────────
+  // ── Wiadomość od dyrektora ─────────────────────────────────
   const userMessageSection = user_message.trim()
     ? `\n💬 WIADOMOŚĆ OD DYREKTORA:\n${user_message.trim()}\n`
     : "";
@@ -396,7 +455,7 @@ app.post("/api/send-log-email", async (req, res) => {
        </div>`
     : "";
 
-  // ── Treść plain text ───────────────────────────────────────
+  // ── Plain text ─────────────────────────────────────────────
   const textBody = [
     `=== LOG SESJI EDUKACYJNEJ — ZADZWOŃ POD 112 · v${serverVersion} ===`,
     ``,
@@ -424,7 +483,7 @@ app.post("/api/send-log-email", async (req, res) => {
     `Rozdzielczość:       ${screenSize}`,
     `Typ połączenia:      ${connType}`,
     `Błędy w sesji:       ${sessionErrors}`,
-    `SMTP host:           ${SMTP_HOST}:${SMTP_PORT}`,
+    `Zimbra endpoint:     ${ZIMBRA_URL}`,
     `Supabase project:    ${SUPABASE_URL ? SUPABASE_URL.split(".")[0].replace("https://", "") : "—"}`,
     ``,
     `=== LOG ROZMOWY (zanonimizowany) ===`,
@@ -436,18 +495,15 @@ app.post("/api/send-log-email", async (req, res) => {
     `Wysłano automatycznie na żądanie: ${user.email}`,
   ].join("\n");
 
-  // ── Treść HTML ─────────────────────────────────────────────
+  // ── HTML ───────────────────────────────────────────────────
   const htmlBody = `
     <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:640px;margin:0 auto;color:#1a1a1a">
-
       <div style="background:#c00;padding:20px 24px;border-radius:12px 12px 0 0">
         <h2 style="margin:0;color:#fff;font-size:20px">🚨 Log sesji — Zadzwoń pod 112</h2>
         <p style="margin:4px 0 0;color:rgba(255,255,255,0.8);font-size:13px">Wersja backendu v${serverVersion} · ${new Date().toLocaleString("pl-PL")}</p>
       </div>
-
       <div style="background:#fff;border:1px solid #e5e5e5;border-top:none;padding:20px 24px;border-radius:0 0 12px 12px">
 
-        <!-- Dane szkoły -->
         <div style="background:#f0f7ff;border-radius:8px;padding:14px 16px;margin-bottom:16px">
           <h3 style="margin:0 0 10px;color:#333;font-size:14px;text-transform:uppercase;letter-spacing:0.5px">Dane szkoły</h3>
           <table style="font-size:14px;border-collapse:collapse;width:100%">
@@ -457,10 +513,8 @@ app.post("/api/send-log-email", async (req, res) => {
           </table>
         </div>
 
-        <!-- Wiadomość od dyrektora (opcjonalna) -->
         ${userMessageHtml}
 
-        <!-- Dane sesji -->
         <div style="background:#f5f5f5;border-radius:8px;padding:14px 16px;margin-bottom:16px">
           <h3 style="margin:0 0 10px;color:#333;font-size:14px;text-transform:uppercase;letter-spacing:0.5px">Dane sesji</h3>
           <table style="font-size:14px;border-collapse:collapse;width:100%">
@@ -474,11 +528,9 @@ app.post("/api/send-log-email", async (req, res) => {
           </table>
         </div>
 
-        <!-- Log rozmowy -->
         <h3 style="color:#333;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px">Log rozmowy (zanonimizowany)</h3>
         <pre style="background:#111;color:#a0ffa0;padding:16px;border-radius:8px;font-size:12px;line-height:1.7;white-space:pre-wrap;overflow-x:auto;margin:0 0 16px">${anonLog}</pre>
 
-        <!-- Sekcja techniczna — zwijana -->
         <details style="margin-bottom:16px">
           <summary style="cursor:pointer;font-size:13px;color:#666;padding:10px 14px;background:#f9f9f9;border-radius:8px;border:1px solid #e5e5e5;list-style:none">
             🔧 <b>Log techniczny</b> — kliknij aby rozwinąć
@@ -494,7 +546,7 @@ app.post("/api/send-log-email", async (req, res) => {
               <tr style="background:#f5f5f5"><td style="padding:4px 12px 4px 0;color:#666">Rozdzielczość:</td><td>${screenSize}</td></tr>
               <tr><td style="padding:4px 12px 4px 0;color:#666">Typ połączenia:</td><td>${connType}</td></tr>
               <tr style="background:#f5f5f5"><td style="padding:4px 12px 4px 0;color:#666">Błędy w sesji:</td><td style="word-break:break-all">${sessionErrors}</td></tr>
-              <tr><td style="padding:4px 12px 4px 0;color:#666">SMTP host:</td><td>${SMTP_HOST}:${SMTP_PORT}</td></tr>
+              <tr><td style="padding:4px 12px 4px 0;color:#666">Zimbra endpoint:</td><td>${ZIMBRA_URL}</td></tr>
               <tr style="background:#f5f5f5"><td style="padding:4px 12px 4px 0;color:#666">Supabase project:</td><td>${SUPABASE_URL ? SUPABASE_URL.split(".")[0].replace("https://", "") : "—"}</td></tr>
             </table>
           </div>
@@ -503,32 +555,35 @@ app.post("/api/send-log-email", async (req, res) => {
         <p style="font-size:11px;color:#999;margin:0;border-top:1px solid #eee;padding-top:12px">
           Wysłano automatycznie · <a href="https://herokids.eu" style="color:#0a84ff">herokids.eu</a> · na żądanie: ${user.email}
         </p>
-
       </div>
     </div>
   `;
 
-  console.log(`[EMAIL] Wysyłam przez SMTP (${SMTP_HOST}:${SMTP_PORT})...`);
+  // ── Wyślij przez Zimbra SOAP API ───────────────────────────
+  console.log(`[EMAIL] Autoryzuję w Zimbra...`);
   try {
-    const info = await smtpTransporter.sendMail({
-      from: `"HeroKids 112" <${SMTP_USER}>`,
+    const authToken = await zimbraAuth();
+    console.log(`[EMAIL] ✅ Zimbra auth OK — wysyłam...`);
+
+    const msgId = await zimbraSendMail({
+      authToken,
       to: directorEmail,
       cc: SUPPORT_EMAIL,
       subject,
-      text: textBody,
-      html: htmlBody
+      textBody,
+      htmlBody
     });
 
-    console.log(`[EMAIL] ✅ Wysłano! MessageId: ${info.messageId}`);
+    console.log(`[EMAIL] ✅ Wysłano! Zimbra msgId: ${msgId}`);
     return res.json({
       ok: true,
       sent_to: [directorEmail],
       cc: [SUPPORT_EMAIL],
-      messageId: info.messageId
+      messageId: msgId
     });
   } catch (e) {
-    console.error(`[EMAIL] ❌ SMTP error: ${e.message}`);
-    return res.status(500).json({ error: "Błąd wysyłki SMTP: " + e.message });
+    console.error(`[EMAIL] ❌ Zimbra error: ${e.message}`);
+    return res.status(500).json({ error: "Błąd wysyłki Zimbra: " + e.message });
   }
 });
 
@@ -610,8 +665,8 @@ app.post("/api/create-order", async (req, res) => {
     const payuData = await payuRes.json().catch(() => ({}));
     console.log(`[PAYU] Odpowiedź: ${payuRes.status}`, payuData);
 
-    const payuOrderId  = payuData.orderId;
-    const redirectUri  = payuData.redirectUri;
+    const payuOrderId = payuData.orderId;
+    const redirectUri = payuData.redirectUri;
 
     if (!redirectUri) {
       console.error("[PAYU] Brak redirectUri:", payuData);
@@ -729,13 +784,13 @@ app.get("/api/order-status/:extOrderId", async (req, res) => {
 // GET /api/health
 // ============================================================
 app.get("/api/health", async (req, res) => {
-  // Sprawdź SMTP — verify() łączy i autoryzuje, nie wysyła maila
-  let smtpOk = false;
+  // Sprawdź Zimbra auth (bez wysyłania maila)
+  let zimbraOk = false;
   try {
-    await smtpTransporter.verify();
-    smtpOk = true;
+    await zimbraAuth();
+    zimbraOk = true;
   } catch (e) {
-    console.warn(`[HEALTH] SMTP verify failed: ${e.message}`);
+    console.warn(`[HEALTH] Zimbra auth failed: ${e.message}`);
   }
 
   res.json({
@@ -745,11 +800,11 @@ app.get("/api/health", async (req, res) => {
       anthropic:    !!ANTHROPIC_API_KEY,
       elevenlabs:   !!ELEVENLABS_API_KEY,
       supabase:     !!SUPABASE_URL && !!SUPABASE_SERVICE_KEY,
-      smtp:         smtpOk,
+      zimbra:       zimbraOk,
       payu:         !!PAYU_POS_ID && !!PAYU_CLIENT_SECRET,
       payu_sandbox: PAYU_SANDBOX === "true"
     },
-    smtp_host:     `${SMTP_HOST}:${SMTP_PORT}`,
+    zimbra_url:    ZIMBRA_URL,
     support_email: SUPPORT_EMAIL,
     rate_limits:   { chat: "120/h", other: "30/h" },
     cors_origins:  ["kmusialski.github.io", "herokids.eu"],
@@ -765,7 +820,7 @@ app.listen(PORT, () => {
   console.log(`   Anthropic:  ${ANTHROPIC_API_KEY  ? "✅" : "❌"}`);
   console.log(`   ElevenLabs: ${ELEVENLABS_API_KEY  ? "✅" : "❌"}`);
   console.log(`   Supabase:   ${SUPABASE_URL        ? "✅" : "❌"}`);
-  console.log(`   SMTP:       ${SMTP_USER ? `✅ ${SMTP_HOST}:${SMTP_PORT}` : "❌ brak SMTP_USER"}`);
+  console.log(`   Zimbra:     ${ZIMBRA_USER ? `✅ ${ZIMBRA_URL}` : "❌ brak ZIMBRA_USER"}`);
   console.log(`   Support CC: ${SUPPORT_EMAIL}`);
   console.log(`   PayU:       ${PAYU_POS_ID ? "✅" : "❌"} ${PAYU_SANDBOX === "true" ? "(SANDBOX)" : "(PRODUKCJA)"}`);
   console.log(`   PayU URL:   ${PAYU_BASE}`);
