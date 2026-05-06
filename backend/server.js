@@ -1,16 +1,28 @@
 // ============================================================
-// server.js — Zadzwoń pod 112 · Backend v1.5a
+// server.js — Zadzwoń pod 112 · Backend v1.6
+// ============================================================
+// Zmiany v1.6 względem v1.5b:
+//   - Resend API zastąpiony Zimbra SOAP API (HTTPS port 443, Railway nie blokuje)
+//   - Nadawca: noreply@herokids.eu
+//   - Odbiorcy: dyrektor szkoły (TO) + support@herokids.eu (CC)
+//   - /api/send-log-email przyjmuje nowe pola:
+//       user_message  — wiadomość od dyrektora wpisana w panelu
+//       client_info   — dane techniczne z przeglądarki (debug)
+//   - Mail rozbudowany: sekcja techniczna (zwijana) + wiadomość od użytkownika
+//   - /api/health raportuje zimbra zamiast resend
+//   - Zachowana pełna integracja PayU z v1.5b
+//   - Brak zewnętrznych zależności email — tylko node-fetch (już w package.json)
 // ============================================================
 
 const express = require("express");
 const cors = require("cors");
 const fetch = require("node-fetch");
+const crypto = require("crypto");
 const { createClient } = require("@supabase/supabase-js");
-// nodemailer usunięty — Railway blokuje SMTP. Używamy Resend API (HTTPS port 443)
 
 const app = express();
 app.use(express.json({ limit: "2mb" }));
-app.set("trust proxy", 1); // Railway używa proxy
+app.set("trust proxy", 1);
 
 app.use(cors({
   origin: [
@@ -32,12 +44,107 @@ const {
   ELEVENLABS_API_KEY,
   SUPABASE_URL,
   SUPABASE_SERVICE_KEY,
-  RESEND_API_KEY,   // Resend.com — działa przez HTTPS (Railway nie blokuje)
+  ZIMBRA_URL = "https://webmail.mail.ovh.net/service/soap",
+  ZIMBRA_USER,      // noreply@herokids.eu
+  ZIMBRA_PASSWORD,
+  PAYU_POS_ID,
+  PAYU_CLIENT_ID,
+  PAYU_CLIENT_SECRET,
+  PAYU_NOTIFY_KEY,
+  PAYU_SANDBOX,
   PORT = 3000
 } = process.env;
 
-// Stały adres aplikacji — CC na każdym mailu
-const APP_EMAIL = "musialski.k@gmail.com";
+// Adres support — zawsze w CC każdego logu sesji
+const SUPPORT_EMAIL = "support@herokids.eu";
+
+const PAYU_BASE = PAYU_SANDBOX === "true"
+  ? "https://secure.snd.payu.com"
+  : "https://secure.payu.com";
+
+// Pakiety — ceny w groszach (PayU wymaga groszy)
+const PACKAGES = {
+  basic:    { name: "Basic",    sessions: 30,  amount: 2900, label: "30 sesji · 29 zł" },
+  standard: { name: "Standard", sessions: 60,  amount: 4900, label: "60 sesji · 49 zł" },
+  pro:      { name: "Pro",      sessions: 100, amount: 7900, label: "100 sesji · 79 zł" }
+};
+
+// ============================================================
+// ZIMBRA SOAP — helper do wysyłki maila przez HTTPS
+// ============================================================
+
+// Krok 1: Pobierz auth token (ważny ~24h, ale nie cachujemy — SMTP jest transakcyjny)
+async function zimbraAuth() {
+  const body = {
+    Header: { context: { _jsns: "urn:zimbra" } },
+    Body: {
+      AuthRequest: {
+        _jsns: "urn:zimbraAccount",
+        account: { by: "name", _content: ZIMBRA_USER },
+        password: { _content: ZIMBRA_PASSWORD }
+      }
+    }
+  };
+  const res = await fetch(ZIMBRA_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error(`Zimbra auth HTTP error: ${res.status}`);
+  const data = await res.json();
+  const token = data?.Body?.AuthResponse?.authToken?.[0]?._content;
+  if (!token) throw new Error("Zimbra auth: brak authToken w odpowiedzi");
+  return token;
+}
+
+// Krok 2: Wyślij maila używając auth tokena
+async function zimbraSendMail({ authToken, to, cc, subject, textBody, htmlBody }) {
+  // Budujemy adresy e (from, to, cc)
+  const addresses = [
+    { t: "f", a: ZIMBRA_USER, p: "HeroKids 112" },
+    ...(Array.isArray(to) ? to : [to]).map(a => ({ t: "t", a })),
+    ...(cc ? (Array.isArray(cc) ? cc : [cc]).map(a => ({ t: "c", a })) : [])
+  ];
+
+  const body = {
+    Header: {
+      context: {
+        _jsns: "urn:zimbra",
+        authToken: { _content: authToken }
+      }
+    },
+    Body: {
+      SendMsgRequest: {
+        _jsns: "urn:zimbraMail",
+        m: {
+          su: { _content: subject },
+          e: addresses,
+          mp: [
+            {
+              ct: "multipart/alternative",
+              mp: [
+                { ct: "text/plain", content: { _content: textBody } },
+                { ct: "text/html",  content: { _content: htmlBody  } }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  };
+
+  const res = await fetch(ZIMBRA_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error(`Zimbra sendMail HTTP error: ${res.status}`);
+  const data = await res.json();
+  if (data?.Body?.Fault) {
+    throw new Error("Zimbra sendMail fault: " + data.Body.Fault.Reason?.Text);
+  }
+  return data?.Body?.SendMsgResponse?.m?.[0]?.id || "sent";
+}
 
 // ============================================================
 // SUPABASE
@@ -46,17 +153,14 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
 // ============================================================
 // RATE LIMITER (in-memory)
-// /api/chat: max 120/h — aktywna sesja może mieć ~20 wiadomości
-// pozostałe endpointy: max 30/h
 // ============================================================
 const rateMap = new Map();
 function rateLimit(ip, max = 30, windowMs = 3600000) {
   const now = Date.now();
-  const key = `${ip}:${max}`; // osobny licznik per limit
-  const entry = rateMap.get(key) || { count: 0, reset: now + windowMs };
+  const entry = rateMap.get(ip) || { count: 0, reset: now + windowMs };
   if (now > entry.reset) { entry.count = 0; entry.reset = now + windowMs; }
   entry.count++;
-  rateMap.set(key, entry);
+  rateMap.set(ip, entry);
   return entry.count <= max;
 }
 
@@ -72,6 +176,20 @@ async function getTokenData(token) {
     .single();
   if (error || !data || !data.active) return null;
   return data;
+}
+
+// ============================================================
+// HELPER — pobierz token PayU OAuth2
+// ============================================================
+async function getPayuToken() {
+  const res = await fetch(`${PAYU_BASE}/pl/standard/user/oauth/authorize`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: `grant_type=client_credentials&client_id=${PAYU_CLIENT_ID}&client_secret=${PAYU_CLIENT_SECRET}`
+  });
+  if (!res.ok) throw new Error(`PayU OAuth error: ${res.status}`);
+  const data = await res.json();
+  return data.access_token;
 }
 
 // ============================================================
@@ -226,24 +344,31 @@ app.post("/api/session-end", async (req, res) => {
 
 // ============================================================
 // POST /api/send-log-email
-// Wysyłka zanonimizowanego logu mailem
-// Odbiorcy: email dyrektora (z konta Supabase) + APP_EMAIL
+// Wysyłka zanonimizowanego logu mailem przez Zimbra SOAP API (HTTPS/443)
+//
+// Body:
+//   session_id   — ID sesji w Supabase
+//   access_jwt   — JWT użytkownika Supabase (dyrektora)
+//   user_message — (opcjonalnie) wiadomość od dyrektora wpisana w panelu
+//   client_info  — (opcjonalnie) dane techniczne z przeglądarki:
+//                  { userAgent, platform, language, screenW, screenH,
+//                    connectionType, sessionErrors }
+//
+// Odbiorcy:
+//   TO  — dyrektor szkoły (director_email z Supabase)
+//   CC  — support@herokids.eu
 // ============================================================
 app.post("/api/send-log-email", async (req, res) => {
-  const { session_id, access_jwt } = req.body;
+  const { session_id, access_jwt, user_message = "", client_info = {} } = req.body;
   console.log(`[EMAIL] ▶ Żądanie wysyłki — session_id: ${session_id}`);
 
-  // Weryfikacja JWT
-  console.log(`[EMAIL] Weryfikacja JWT (długość: ${access_jwt?.length || 0})`);
   const { data: { user }, error: authError } = await supabase.auth.getUser(access_jwt);
   if (authError || !user) {
-    console.error(`[EMAIL] ❌ Auth error: ${authError?.message || "brak usera"}`);
+    console.error(`[EMAIL] ❌ Auth error: ${authError?.message}`);
     return res.status(401).json({ error: "Brak autoryzacji: " + (authError?.message || "brak usera") });
   }
   console.log(`[EMAIL] ✅ Użytkownik: ${user.email}`);
 
-  // Pobierz sesję
-  console.log(`[EMAIL] Pobieranie sesji z Supabase...`);
   const { data: session, error: sessionError } = await supabase
     .from("sessions")
     .select("*, session_messages(*), schools(name, director_email)")
@@ -252,7 +377,7 @@ app.post("/api/send-log-email", async (req, res) => {
 
   if (sessionError || !session) {
     console.error(`[EMAIL] ❌ Sesja nie znaleziona: ${sessionError?.message}`);
-    return res.status(404).json({ error: "Sesja nie znaleziona: " + (sessionError?.message || "") });
+    return res.status(404).json({ error: "Sesja nie znaleziona" });
   }
   console.log(`[EMAIL] ✅ Sesja pobrana. Wiadomości: ${session.session_messages?.length || 0}, Szkoła: ${session.schools?.name}`);
 
@@ -261,9 +386,8 @@ app.post("/api/send-log-email", async (req, res) => {
     .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
     .map(m => `[${m.role === "user" ? "DZIECKO" : "DYSPOZYTOR"}] ${m.content}`)
     .join("\n");
-  console.log(`[EMAIL] Surowy log: ${rawLog.length} znaków`);
 
-  // Anonimizuj — jeśli już mamy zanonimizowany, użyj go
+  // Anonimizuj
   let anonLog = session.anonymized_log || rawLog;
   if (!session.anonymized_log) {
     console.log(`[EMAIL] Anonimizuję przez Claude...`);
@@ -279,144 +403,412 @@ app.post("/api/send-log-email", async (req, res) => {
       });
       const anonData = await anonRes.json();
       if (anonData.content?.[0]?.text) anonLog = anonData.content[0].text;
-      console.log(`[EMAIL] ✅ Anonimizacja OK (${anonLog.length} znaków)`);
+      console.log(`[EMAIL] ✅ Anonimizacja OK`);
     } catch (e) {
       console.error(`[EMAIL] ⚠️ Anonimizacja failed: ${e.message} — używam surowego logu`);
     }
-  } else {
-    console.log(`[EMAIL] Zanonimizowany log już istnieje — pomijam anonimizację`);
   }
 
-  // Zapisz w Supabase
   await supabase.from("sessions").update({
     anonymized_log: anonLog,
     log_sent_at: new Date().toISOString()
   }).eq("id", session_id);
-  console.log(`[EMAIL] ✅ Supabase zaktualizowany`);
 
-  // Przygotuj dane do maila
+  // ── Przygotuj dane do maila ────────────────────────────────
   const directorEmail = session.schools?.director_email || user.email;
-  const schoolName = session.schools?.name || "Szkoła";
-  const date = new Date(session.started_at).toLocaleString("pl-PL");
-  const dur = session.duration_seconds ? Math.round(session.duration_seconds / 60) + " min" : "—";
+  const schoolName    = session.schools?.name || "Szkoła";
+  const date          = new Date(session.started_at).toLocaleString("pl-PL");
+  const dateEnded     = session.ended_at ? new Date(session.ended_at).toLocaleString("pl-PL") : "—";
+  const dur           = session.duration_seconds ? Math.round(session.duration_seconds / 60) + " min" : "—";
+  const msgCount      = session.session_messages?.length || session.message_count || 0;
+  const endedBy       = session.ended_by || "—";
+  const clientIp      = req.headers["x-forwarded-for"]?.split(",")[0] || req.ip || "—";
+  const serverVersion = "1.6";
 
-  // Na razie wysyłamy tylko na APP_EMAIL (Resend darmowy = tylko zweryfikowany adres)
-  // Docelowo po dodaniu domeny: recipients = [directorEmail, APP_EMAIL]
-  const recipient = APP_EMAIL;
-  console.log(`[EMAIL] Odbiorca: ${recipient} (tryb testowy — brak własnej domeny Resend)`);
-  console.log(`[EMAIL] Dyrektor szkoły (info w treści): ${directorEmail}`);
-  console.log(`[EMAIL] Resend API key: ${RESEND_API_KEY ? "ustawiony ✅" : "BRAK ❌"}`);
+  const ua            = client_info.userAgent      || "—";
+  const platform      = client_info.platform       || "—";
+  const browserLang   = client_info.language       || "—";
+  const screenSize    = (client_info.screenW && client_info.screenH)
+                        ? `${client_info.screenW}×${client_info.screenH}` : "—";
+  const connType      = client_info.connectionType || "—";
+  const sessionErrors = client_info.sessionErrors  || "—";
 
-  if (!RESEND_API_KEY) {
-    console.error(`[EMAIL] ❌ Brak RESEND_API_KEY!`);
-    return res.status(500).json({ error: "Brak konfiguracji Resend na serwerze (RESEND_API_KEY)" });
+  console.log(`[EMAIL] TO: ${directorEmail}, CC: ${SUPPORT_EMAIL}`);
+  console.log(`[EMAIL] Zimbra: ${ZIMBRA_URL}, user: ${ZIMBRA_USER ? "✅" : "❌ BRAK"}`);
+
+  if (!ZIMBRA_USER || !ZIMBRA_PASSWORD) {
+    console.error(`[EMAIL] ❌ Brak konfiguracji Zimbra (ZIMBRA_USER / ZIMBRA_PASSWORD)!`);
+    return res.status(500).json({ error: "Brak konfiguracji email na serwerze" });
   }
 
   const subject = `[112] Log sesji — ${schoolName} · ${date}`;
+
+  // ── Wiadomość od dyrektora ─────────────────────────────────
+  const userMessageSection = user_message.trim()
+    ? `\n💬 WIADOMOŚĆ OD DYREKTORA:\n${user_message.trim()}\n`
+    : "";
+
+  const userMessageHtml = user_message.trim()
+    ? `<div style="background:#fff8e1;border-left:4px solid #ffc107;border-radius:0 8px 8px 0;padding:14px 16px;margin-bottom:16px">
+        <h3 style="margin:0 0 8px;color:#333;font-size:14px">💬 Wiadomość od dyrektora</h3>
+        <p style="margin:0;font-size:14px;color:#333;white-space:pre-wrap">${user_message.trim()}</p>
+       </div>`
+    : "";
+
+  // ── Plain text ─────────────────────────────────────────────
   const textBody = [
-    `=== LOG SESJI EDUKACYJNEJ — ZADZWOŃ POD 112 ===`,
+    `=== LOG SESJI EDUKACYJNEJ — ZADZWOŃ POD 112 · v${serverVersion} ===`,
     ``,
     `DANE SZKOŁY:`,
-    `Szkoła:         ${schoolName}`,
-    `Dyrektor/email: ${directorEmail}`,
-    `Wysłano przez:  ${user.email}`,
-    ``,
+    `Szkoła:              ${schoolName}`,
+    `Dyrektor / email:    ${directorEmail}`,
+    `Wysłano przez:       ${user.email}`,
+    userMessageSection,
     `DANE SESJI:`,
-    `Data:           ${date}`,
-    `Czas rozmowy:   ${dur}`,
-    `Gwiazdki:       ${session.stars || 0}/3`,
-    `Język:          ${session.lang}`,
-    `Session ID:     ${session_id}`,
+    `Data rozpoczęcia:    ${date}`,
+    `Data zakończenia:    ${dateEnded}`,
+    `Czas rozmowy:        ${dur}`,
+    `Liczba wiadomości:   ${msgCount}`,
+    `Gwiazdki:            ${session.stars || 0}/3`,
+    `Język:               ${session.lang}`,
+    `Zakończono przez:    ${endedBy}`,
+    ``,
+    `=== LOG TECHNICZNY (debug) ===`,
+    `Session ID:          ${session_id}`,
+    `Backend wersja:      v${serverVersion}`,
+    `IP klienta:          ${clientIp}`,
+    `User-Agent:          ${ua}`,
+    `Platforma:           ${platform}`,
+    `Język przeglądarki:  ${browserLang}`,
+    `Rozdzielczość:       ${screenSize}`,
+    `Typ połączenia:      ${connType}`,
+    `Błędy w sesji:       ${sessionErrors}`,
+    `Zimbra endpoint:     ${ZIMBRA_URL}`,
+    `Supabase project:    ${SUPABASE_URL ? SUPABASE_URL.split(".")[0].replace("https://", "") : "—"}`,
     ``,
     `=== LOG ROZMOWY (zanonimizowany) ===`,
     ``,
     anonLog,
     ``,
     `===`,
-    `Zadzwoń pod 112 · Symulator edukacyjny`,
-    `Wysłano automatycznie na żądanie dyrektora: ${user.email}`,
-    `UWAGA: Mail docelowo będzie też wysyłany bezpośrednio do dyrektora (po konfiguracji domeny).`
+    `Zadzwoń pod 112 · Symulator edukacyjny · herokids.eu`,
+    `Wysłano automatycznie na żądanie: ${user.email}`,
   ].join("\n");
 
+  // ── HTML ───────────────────────────────────────────────────
   const htmlBody = `
-    <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
-      <h2 style="color:#c00;border-bottom:2px solid #c00;padding-bottom:8px">🚨 Log sesji — Zadzwoń pod 112</h2>
-      <div style="background:#f0f7ff;border-radius:8px;padding:16px;margin-bottom:16px">
-        <h3 style="margin:0 0 10px;color:#333">Dane szkoły</h3>
-        <table style="font-size:14px;border-collapse:collapse;width:100%">
-          <tr><td style="padding:4px 16px 4px 0;color:#666;width:140px">Szkoła:</td><td><b>${schoolName}</b></td></tr>
-          <tr><td style="padding:4px 16px 4px 0;color:#666">Dyrektor / email:</td><td><b>${directorEmail}</b></td></tr>
-          <tr><td style="padding:4px 16px 4px 0;color:#666">Wysłano przez:</td><td>${user.email}</td></tr>
-        </table>
+    <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:640px;margin:0 auto;color:#1a1a1a">
+      <div style="background:#c00;padding:20px 24px;border-radius:12px 12px 0 0">
+        <h2 style="margin:0;color:#fff;font-size:20px">🚨 Log sesji — Zadzwoń pod 112</h2>
+        <p style="margin:4px 0 0;color:rgba(255,255,255,0.8);font-size:13px">Wersja backendu v${serverVersion} · ${new Date().toLocaleString("pl-PL")}</p>
       </div>
-      <div style="background:#f5f5f5;border-radius:8px;padding:16px;margin-bottom:16px">
-        <h3 style="margin:0 0 10px;color:#333">Dane sesji</h3>
-        <table style="font-size:14px;border-collapse:collapse;width:100%">
-          <tr><td style="padding:4px 16px 4px 0;color:#666;width:140px">Data:</td><td>${date}</td></tr>
-          <tr><td style="padding:4px 16px 4px 0;color:#666">Czas rozmowy:</td><td>${dur}</td></tr>
-          <tr><td style="padding:4px 16px 4px 0;color:#666">Gwiazdki:</td><td>${"★".repeat(session.stars || 0)}${"☆".repeat(3 - (session.stars || 0))} (${session.stars || 0}/3)</td></tr>
-          <tr><td style="padding:4px 16px 4px 0;color:#666">Język:</td><td>${session.lang}</td></tr>
-        </table>
+      <div style="background:#fff;border:1px solid #e5e5e5;border-top:none;padding:20px 24px;border-radius:0 0 12px 12px">
+
+        <div style="background:#f0f7ff;border-radius:8px;padding:14px 16px;margin-bottom:16px">
+          <h3 style="margin:0 0 10px;color:#333;font-size:14px;text-transform:uppercase;letter-spacing:0.5px">Dane szkoły</h3>
+          <table style="font-size:14px;border-collapse:collapse;width:100%">
+            <tr><td style="padding:3px 16px 3px 0;color:#666;width:160px">Szkoła:</td><td><b>${schoolName}</b></td></tr>
+            <tr><td style="padding:3px 16px 3px 0;color:#666">Dyrektor / email:</td><td><b>${directorEmail}</b></td></tr>
+            <tr><td style="padding:3px 16px 3px 0;color:#666">Wysłano przez:</td><td>${user.email}</td></tr>
+          </table>
+        </div>
+
+        ${userMessageHtml}
+
+        <div style="background:#f5f5f5;border-radius:8px;padding:14px 16px;margin-bottom:16px">
+          <h3 style="margin:0 0 10px;color:#333;font-size:14px;text-transform:uppercase;letter-spacing:0.5px">Dane sesji</h3>
+          <table style="font-size:14px;border-collapse:collapse;width:100%">
+            <tr><td style="padding:3px 16px 3px 0;color:#666;width:160px">Rozpoczęto:</td><td>${date}</td></tr>
+            <tr><td style="padding:3px 16px 3px 0;color:#666">Zakończono:</td><td>${dateEnded}</td></tr>
+            <tr><td style="padding:3px 16px 3px 0;color:#666">Czas rozmowy:</td><td>${dur}</td></tr>
+            <tr><td style="padding:3px 16px 3px 0;color:#666">Wiadomości:</td><td>${msgCount}</td></tr>
+            <tr><td style="padding:3px 16px 3px 0;color:#666">Gwiazdki:</td><td>${"★".repeat(session.stars || 0)}${"☆".repeat(3 - (session.stars || 0))} (${session.stars || 0}/3)</td></tr>
+            <tr><td style="padding:3px 16px 3px 0;color:#666">Język:</td><td>${session.lang}</td></tr>
+            <tr><td style="padding:3px 16px 3px 0;color:#666">Zakończono przez:</td><td>${endedBy}</td></tr>
+          </table>
+        </div>
+
+        <h3 style="color:#333;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px">Log rozmowy (zanonimizowany)</h3>
+        <pre style="background:#111;color:#a0ffa0;padding:16px;border-radius:8px;font-size:12px;line-height:1.7;white-space:pre-wrap;overflow-x:auto;margin:0 0 16px">${anonLog}</pre>
+
+        <details style="margin-bottom:16px">
+          <summary style="cursor:pointer;font-size:13px;color:#666;padding:10px 14px;background:#f9f9f9;border-radius:8px;border:1px solid #e5e5e5;list-style:none">
+            🔧 <b>Log techniczny</b> — kliknij aby rozwinąć
+          </summary>
+          <div style="border:1px solid #e5e5e5;border-top:none;border-radius:0 0 8px 8px;padding:14px 16px">
+            <table style="font-size:12px;border-collapse:collapse;width:100%;font-family:monospace">
+              <tr style="background:#f5f5f5"><td style="padding:4px 12px 4px 0;color:#666;width:180px">Session ID:</td><td style="word-break:break-all">${session_id}</td></tr>
+              <tr><td style="padding:4px 12px 4px 0;color:#666">Backend wersja:</td><td>v${serverVersion}</td></tr>
+              <tr style="background:#f5f5f5"><td style="padding:4px 12px 4px 0;color:#666">IP klienta:</td><td>${clientIp}</td></tr>
+              <tr><td style="padding:4px 12px 4px 0;color:#666">User-Agent:</td><td style="word-break:break-all">${ua}</td></tr>
+              <tr style="background:#f5f5f5"><td style="padding:4px 12px 4px 0;color:#666">Platforma:</td><td>${platform}</td></tr>
+              <tr><td style="padding:4px 12px 4px 0;color:#666">Język przeglądarki:</td><td>${browserLang}</td></tr>
+              <tr style="background:#f5f5f5"><td style="padding:4px 12px 4px 0;color:#666">Rozdzielczość:</td><td>${screenSize}</td></tr>
+              <tr><td style="padding:4px 12px 4px 0;color:#666">Typ połączenia:</td><td>${connType}</td></tr>
+              <tr style="background:#f5f5f5"><td style="padding:4px 12px 4px 0;color:#666">Błędy w sesji:</td><td style="word-break:break-all">${sessionErrors}</td></tr>
+              <tr><td style="padding:4px 12px 4px 0;color:#666">Zimbra endpoint:</td><td>${ZIMBRA_URL}</td></tr>
+              <tr style="background:#f5f5f5"><td style="padding:4px 12px 4px 0;color:#666">Supabase project:</td><td>${SUPABASE_URL ? SUPABASE_URL.split(".")[0].replace("https://", "") : "—"}</td></tr>
+            </table>
+          </div>
+        </details>
+
+        <p style="font-size:11px;color:#999;margin:0;border-top:1px solid #eee;padding-top:12px">
+          Wysłano automatycznie · <a href="https://herokids.eu" style="color:#0a84ff">herokids.eu</a> · na żądanie: ${user.email}
+        </p>
       </div>
-      <h3 style="color:#333">Log rozmowy (zanonimizowany)</h3>
-      <pre style="background:#111;color:#a0ffa0;padding:16px;border-radius:8px;font-size:12px;line-height:1.7;white-space:pre-wrap;overflow-x:auto">${anonLog}</pre>
-      <p style="font-size:11px;color:#999;margin-top:16px;border-top:1px solid #eee;padding-top:12px">
-        Wysłano automatycznie na żądanie: ${user.email}<br/>
-        <i>Uwaga: W fazie testowej maile trafiają tylko na adres administratora aplikacji. Po konfiguracji domeny będą wysyłane bezpośrednio do dyrektora szkoły.</i>
-      </p>
     </div>
   `;
 
-  console.log(`[EMAIL] Wysyłam przez Resend API...`);
+  // ── Wyślij przez Zimbra SOAP API ───────────────────────────
+  console.log(`[EMAIL] Autoryzuję w Zimbra...`);
   try {
-    const resendRes = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${RESEND_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        from: "Zadzwoń pod 112 <onboarding@resend.dev>",
-        to: [recipient],
-        subject,
-        text: textBody,
-        html: htmlBody
-      })
+    const authToken = await zimbraAuth();
+    console.log(`[EMAIL] ✅ Zimbra auth OK — wysyłam...`);
+
+    const msgId = await zimbraSendMail({
+      authToken,
+      to: directorEmail,
+      cc: SUPPORT_EMAIL,
+      subject,
+      textBody,
+      htmlBody
     });
 
-    const resendData = await resendRes.json();
-    console.log(`[EMAIL] Resend response: ${resendRes.status} — ${JSON.stringify(resendData)}`);
+    console.log(`[EMAIL] ✅ Wysłano! Zimbra msgId: ${msgId}`);
+    return res.json({
+      ok: true,
+      sent_to: [directorEmail],
+      cc: [SUPPORT_EMAIL],
+      messageId: msgId
+    });
+  } catch (e) {
+    console.error(`[EMAIL] ❌ Zimbra error: ${e.message}`);
+    return res.status(500).json({ error: "Błąd wysyłki Zimbra: " + e.message });
+  }
+});
 
-    if (!resendRes.ok) {
-      console.error(`[EMAIL] ❌ Resend error: ${JSON.stringify(resendData)}`);
-      return res.status(500).json({ error: "Błąd Resend: " + (resendData.message || JSON.stringify(resendData)) });
+// ============================================================
+// POST /api/create-order  [PayU]
+// ============================================================
+app.post("/api/create-order", async (req, res) => {
+  const { package: packageKey, school_id, token_id, buyer_email, buyer_name, return_url } = req.body;
+
+  const pkg = PACKAGES[packageKey];
+  if (!pkg) return res.status(400).json({ error: "Nieznany pakiet" });
+  if (!buyer_email) return res.status(400).json({ error: "Brak email kupującego" });
+
+  const extOrderId = `112-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
+
+  const { data: order, error: orderError } = await supabase
+    .from("orders")
+    .insert({
+      school_id: school_id || null,
+      token_id: token_id || null,
+      package_name: packageKey,
+      sessions_count: pkg.sessions,
+      amount_pln: pkg.amount,
+      payu_ext_order_id: extOrderId,
+      status: "pending"
+    })
+    .select("id").single();
+
+  if (orderError) {
+    console.error("[PAYU] Błąd zapisu zamówienia:", orderError);
+    return res.status(500).json({ error: "Błąd zapisu zamówienia" });
+  }
+
+  let accessToken;
+  try {
+    accessToken = await getPayuToken();
+  } catch (e) {
+    console.error("[PAYU] OAuth error:", e.message);
+    return res.status(502).json({ error: "Błąd autoryzacji PayU" });
+  }
+
+  const notifyUrl = PAYU_SANDBOX === "true"
+    ? "https://telefon112-dev.up.railway.app/api/payu-notify"
+    : "https://telefon112-production.up.railway.app/api/payu-notify";
+
+  const continueUrl = (return_url || "https://herokids.eu/sklep.html")
+    .replace("{extOrderId}", extOrderId);
+
+  const orderPayload = {
+    extOrderId,
+    notifyUrl,
+    continueUrl,
+    customerIp: req.headers["x-forwarded-for"]?.split(",")[0] || req.ip || "127.0.0.1",
+    merchantPosId: PAYU_POS_ID,
+    description: `Zadzwoń pod 112 — ${pkg.label}`,
+    currencyCode: "PLN",
+    totalAmount: String(pkg.amount),
+    buyer: {
+      email: buyer_email,
+      firstName: buyer_name || "Dyrektor",
+      lastName: "",
+      language: "pl"
+    },
+    products: [{
+      name: `Pakiet ${pkg.name} — Zadzwoń pod 112`,
+      unitPrice: String(pkg.amount),
+      quantity: "1"
+    }]
+  };
+
+  try {
+    const payuRes = await fetch(`${PAYU_BASE}/api/v2_1/orders`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${accessToken}` },
+      body: JSON.stringify(orderPayload),
+      redirect: "manual"
+    });
+
+    const payuData = await payuRes.json().catch(() => ({}));
+    console.log(`[PAYU] Odpowiedź: ${payuRes.status}`, payuData);
+
+    const payuOrderId = payuData.orderId;
+    const redirectUri = payuData.redirectUri;
+
+    if (!redirectUri) {
+      console.error("[PAYU] Brak redirectUri:", payuData);
+      return res.status(502).json({ error: "Błąd PayU: brak URL płatności", details: payuData });
     }
 
-    console.log(`[EMAIL] ✅ Wysłano! ID: ${resendData.id}`);
-    return res.json({ ok: true, sent_to: [recipient], director_notified: false, messageId: resendData.id });
+    await supabase.from("orders").update({ payu_order_id: payuOrderId }).eq("id", order.id);
+
+    console.log(`[PAYU] ✅ Zamówienie created: ${extOrderId} → ${redirectUri}`);
+    return res.json({ ok: true, redirect_url: redirectUri, order_id: order.id, ext_order_id: extOrderId });
+
   } catch (e) {
-    console.error(`[EMAIL] ❌ Wyjątek: ${e.message}`);
-    return res.status(500).json({ error: "Błąd wysyłki: " + e.message });
+    console.error("[PAYU] create-order error:", e.message);
+    return res.status(500).json({ error: "Błąd tworzenia zamówienia: " + e.message });
   }
+});
+
+// ============================================================
+// POST /api/payu-notify  [PayU webhook]
+// ============================================================
+app.post("/api/payu-notify", async (req, res) => {
+  console.log("[PAYU-NOTIFY] ▶ Otrzymano webhook");
+
+  const signature = req.headers["openpayu-signature"];
+  if (signature && PAYU_NOTIFY_KEY) {
+    const bodyStr = JSON.stringify(req.body);
+    const expectedSig = crypto.createHash("md5").update(bodyStr + PAYU_NOTIFY_KEY).digest("hex");
+    const sigMatch = signature.match(/signature=([a-f0-9]+)/i);
+    const receivedSig = sigMatch?.[1];
+    if (receivedSig && receivedSig !== expectedSig) {
+      console.error("[PAYU-NOTIFY] ❌ Nieprawidłowy podpis!");
+      return res.status(401).send("Invalid signature");
+    }
+  }
+
+  const order = req.body?.order;
+  if (!order) {
+    console.error("[PAYU-NOTIFY] Brak danych zamówienia");
+    return res.status(400).send("No order data");
+  }
+
+  const { extOrderId, orderId, status } = order;
+  console.log(`[PAYU-NOTIFY] extOrderId: ${extOrderId}, status: ${status}`);
+
+  await supabase.from("orders")
+    .update({ payu_order_id: orderId, status: status.toLowerCase() })
+    .eq("payu_ext_order_id", extOrderId);
+
+  if (status === "COMPLETED") {
+    console.log(`[PAYU-NOTIFY] ✅ Płatność COMPLETED — doliczam kredyty`);
+
+    const { data: orderData } = await supabase
+      .from("orders")
+      .select("token_id, sessions_count")
+      .eq("payu_ext_order_id", extOrderId)
+      .single();
+
+    if (orderData?.token_id) {
+      const { data: tokenData } = await supabase
+        .from("tokens").select("credits").eq("id", orderData.token_id).single();
+      const newCredits = (tokenData?.credits || 0) + orderData.sessions_count;
+      await supabase.from("tokens")
+        .update({ credits: newCredits, active: true }).eq("id", orderData.token_id);
+      console.log(`[PAYU-NOTIFY] ✅ Token ${orderData.token_id} → +${orderData.sessions_count} kredytów (razem: ${newCredits})`);
+
+    } else if (orderData) {
+      console.log(`[PAYU-NOTIFY] Tworzę nowy token dla zamówienia ${extOrderId}`);
+      const newTokenCode = "PSZ-" + Math.random().toString(36).slice(2,6).toUpperCase() + "-" + Math.random().toString(36).slice(2,6).toUpperCase();
+      const { data: newToken } = await supabase.from("tokens").insert({
+        token_code: newTokenCode,
+        school_id: orderData.school_id || null,
+        credits: orderData.sessions_count,
+        active: true
+      }).select("id").single();
+      await supabase.from("orders")
+        .update({ token_id: newToken?.id, status: "completed", completed_at: new Date().toISOString() })
+        .eq("payu_ext_order_id", extOrderId);
+      console.log(`[PAYU-NOTIFY] ✅ Nowy token: ${newTokenCode} (${orderData.sessions_count} sesji)`);
+    }
+
+    await supabase.from("orders")
+      .update({ status: "completed", completed_at: new Date().toISOString() })
+      .eq("payu_ext_order_id", extOrderId);
+  }
+
+  return res.status(200).json({ status: "OK" });
+});
+
+// ============================================================
+// GET /api/order-status/:extOrderId  [PayU]
+// ============================================================
+app.get("/api/order-status/:extOrderId", async (req, res) => {
+  const { extOrderId } = req.params;
+
+  const { data: order, error } = await supabase
+    .from("orders")
+    .select("id, package_name, sessions_count, amount_pln, status, payu_order_id, completed_at, token_id, tokens(token_code, credits)")
+    .eq("payu_ext_order_id", extOrderId)
+    .single();
+
+  if (error || !order) return res.status(404).json({ error: "Zamówienie nie znalezione" });
+
+  return res.json({
+    ok: true,
+    status: order.status,
+    package: order.package_name,
+    sessions: order.sessions_count,
+    completed_at: order.completed_at,
+    token_code: order.tokens?.token_code || null,
+    credits: order.tokens?.credits || null
+  });
 });
 
 // ============================================================
 // GET /api/health
 // ============================================================
 app.get("/api/health", async (req, res) => {
+  // Sprawdź Zimbra auth (bez wysyłania maila)
+  let zimbraOk = false;
+  try {
+    await zimbraAuth();
+    zimbraOk = true;
+  } catch (e) {
+    console.warn(`[HEALTH] Zimbra auth failed: ${e.message}`);
+  }
+
   res.json({
     status: "ok",
-    version: "1.5b",
+    version: "1.6",
     services: {
-      anthropic: !!ANTHROPIC_API_KEY,
-      elevenlabs: !!ELEVENLABS_API_KEY,
-      supabase: !!SUPABASE_URL && !!SUPABASE_SERVICE_KEY,
-      resend: !!RESEND_API_KEY
+      anthropic:    !!ANTHROPIC_API_KEY,
+      elevenlabs:   !!ELEVENLABS_API_KEY,
+      supabase:     !!SUPABASE_URL && !!SUPABASE_SERVICE_KEY,
+      zimbra:       zimbraOk,
+      payu:         !!PAYU_POS_ID && !!PAYU_CLIENT_SECRET,
+      payu_sandbox: PAYU_SANDBOX === "true"
     },
-    rate_limits: { chat: "120/h", other: "30/h" },
-    cors_origins: ["kmusialski.github.io", "herokids.eu"],
-    app_email: APP_EMAIL,
-    timestamp: new Date().toISOString()
+    zimbra_url:    ZIMBRA_URL,
+    support_email: SUPPORT_EMAIL,
+    rate_limits:   { chat: "120/h", other: "30/h" },
+    cors_origins:  ["kmusialski.github.io", "herokids.eu"],
+    timestamp:     new Date().toISOString()
   });
 });
 
@@ -424,12 +816,12 @@ app.get("/api/health", async (req, res) => {
 // START
 // ============================================================
 app.listen(PORT, () => {
-  console.log(`✅ HeroKids 112 backend v1.5b — port ${PORT}`);
-  console.log(`   Anthropic: ${ANTHROPIC_API_KEY ? "✅" : "❌"}`);
-  console.log(`   ElevenLabs: ${ELEVENLABS_API_KEY ? "✅" : "❌"}`);
-  console.log(`   Supabase: ${SUPABASE_URL ? "✅" : "❌"}`);
-  console.log(`   Resend: ${RESEND_API_KEY ? "✅" : "❌"}`);
-  console.log(`   CORS: herokids.eu + kmusialski.github.io`);
-  console.log(`   Rate limit: /api/chat 120/h, pozostałe 30/h`);
-  console.log(`   App email (CC): ${APP_EMAIL}`);
+  console.log(`✅ HeroKids 112 backend v1.6 — port ${PORT}`);
+  console.log(`   Anthropic:  ${ANTHROPIC_API_KEY  ? "✅" : "❌"}`);
+  console.log(`   ElevenLabs: ${ELEVENLABS_API_KEY  ? "✅" : "❌"}`);
+  console.log(`   Supabase:   ${SUPABASE_URL        ? "✅" : "❌"}`);
+  console.log(`   Zimbra:     ${ZIMBRA_USER ? `✅ ${ZIMBRA_URL}` : "❌ brak ZIMBRA_USER"}`);
+  console.log(`   Support CC: ${SUPPORT_EMAIL}`);
+  console.log(`   PayU:       ${PAYU_POS_ID ? "✅" : "❌"} ${PAYU_SANDBOX === "true" ? "(SANDBOX)" : "(PRODUKCJA)"}`);
+  console.log(`   PayU URL:   ${PAYU_BASE}`);
 });
