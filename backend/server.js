@@ -1,13 +1,23 @@
 // ============================================================
-// server.js — Zadzwoń pod 112 · Backend v1.5b
+// server.js — Zadzwoń pod 112 · Backend v1.6
 // ============================================================
-// Nowe w v1.5b: integracja PayU (create-order, notify, order-status)
+// Zmiany v1.6 względem v1.5b:
+//   - Resend API zastąpiony nodemailer + Zimbra OVH SMTP
+//   - Nadawca: noreply@herokids.eu
+//   - Odbiorcy: dyrektor szkoły (TO) + support@herokids.eu (CC)
+//   - /api/send-log-email przyjmuje nowe pola:
+//       user_message  — wiadomość od dyrektora wpisana w panelu
+//       client_info   — dane techniczne z przeglądarki (debug)
+//   - Mail rozbudowany: sekcja techniczna (zwijana) + wiadomość od użytkownika
+//   - /api/health sprawdza SMTP przez transporter.verify(), raportuje smtp zamiast resend
+//   - Zachowana pełna integracja PayU z v1.5b
 // ============================================================
 
 const express = require("express");
 const cors = require("cors");
 const fetch = require("node-fetch");
 const crypto = require("crypto");
+const nodemailer = require("nodemailer");
 const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
@@ -34,7 +44,10 @@ const {
   ELEVENLABS_API_KEY,
   SUPABASE_URL,
   SUPABASE_SERVICE_KEY,
-  RESEND_API_KEY,
+  SMTP_HOST = "ssl0.ovh.net",  // Zimbra OVH
+  SMTP_PORT = "587",
+  SMTP_USER,                    // noreply@herokids.eu
+  SMTP_PASSWORD,
   PAYU_POS_ID,
   PAYU_CLIENT_ID,
   PAYU_CLIENT_SECRET,
@@ -43,7 +56,9 @@ const {
   PORT = 3000
 } = process.env;
 
-const APP_EMAIL = "musialski.k@gmail.com";
+// Adres support — zawsze w CC każdego logu sesji
+const SUPPORT_EMAIL = "support@herokids.eu";
+
 const PAYU_BASE = PAYU_SANDBOX === "true"
   ? "https://secure.snd.payu.com"
   : "https://secure.payu.com";
@@ -54,6 +69,22 @@ const PACKAGES = {
   standard: { name: "Standard", sessions: 60,  amount: 4900, label: "60 sesji · 49 zł" },
   pro:      { name: "Pro",      sessions: 100, amount: 7900, label: "100 sesji · 79 zł" }
 };
+
+// ============================================================
+// SMTP TRANSPORTER — Zimbra OVH
+// ============================================================
+const smtpTransporter = nodemailer.createTransport({
+  host: SMTP_HOST,
+  port: parseInt(SMTP_PORT, 10),
+  secure: false,        // STARTTLS na porcie 587
+  auth: {
+    user: SMTP_USER,
+    pass: SMTP_PASSWORD
+  },
+  tls: {
+    rejectUnauthorized: false  // OVH relay może używać self-signed cert
+  }
+});
 
 // ============================================================
 // SUPABASE
@@ -253,9 +284,22 @@ app.post("/api/session-end", async (req, res) => {
 
 // ============================================================
 // POST /api/send-log-email
+// Wysyłka zanonimizowanego logu mailem przez Zimbra OVH SMTP
+//
+// Body:
+//   session_id   — ID sesji w Supabase
+//   access_jwt   — JWT użytkownika Supabase (dyrektora)
+//   user_message — (opcjonalnie) wiadomość od dyrektora wpisana w panelu
+//   client_info  — (opcjonalnie) dane techniczne z przeglądarki:
+//                  { userAgent, platform, language, screenW, screenH,
+//                    connectionType, sessionErrors }
+//
+// Odbiorcy:
+//   TO  — dyrektor szkoły (director_email z Supabase)
+//   CC  — support@herokids.eu
 // ============================================================
 app.post("/api/send-log-email", async (req, res) => {
-  const { session_id, access_jwt } = req.body;
+  const { session_id, access_jwt, user_message = "", client_info = {} } = req.body;
   console.log(`[EMAIL] ▶ Żądanie wysyłki — session_id: ${session_id}`);
 
   const { data: { user }, error: authError } = await supabase.auth.getUser(access_jwt);
@@ -263,6 +307,7 @@ app.post("/api/send-log-email", async (req, res) => {
     console.error(`[EMAIL] ❌ Auth error: ${authError?.message}`);
     return res.status(401).json({ error: "Brak autoryzacji: " + (authError?.message || "brak usera") });
   }
+  console.log(`[EMAIL] ✅ Użytkownik: ${user.email}`);
 
   const { data: session, error: sessionError } = await supabase
     .from("sessions")
@@ -271,16 +316,21 @@ app.post("/api/send-log-email", async (req, res) => {
     .single();
 
   if (sessionError || !session) {
+    console.error(`[EMAIL] ❌ Sesja nie znaleziona: ${sessionError?.message}`);
     return res.status(404).json({ error: "Sesja nie znaleziona" });
   }
+  console.log(`[EMAIL] ✅ Sesja pobrana. Wiadomości: ${session.session_messages?.length || 0}, Szkoła: ${session.schools?.name}`);
 
+  // Zbuduj surowy log
   const rawLog = (session.session_messages || [])
     .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
     .map(m => `[${m.role === "user" ? "DZIECKO" : "DYSPOZYTOR"}] ${m.content}`)
     .join("\n");
 
+  // Anonimizuj — jeśli już mamy zanonimizowany, użyj go
   let anonLog = session.anonymized_log || rawLog;
   if (!session.anonymized_log) {
+    console.log(`[EMAIL] Anonimizuję przez Claude...`);
     try {
       const anonRes = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
@@ -293,8 +343,9 @@ app.post("/api/send-log-email", async (req, res) => {
       });
       const anonData = await anonRes.json();
       if (anonData.content?.[0]?.text) anonLog = anonData.content[0].text;
+      console.log(`[EMAIL] ✅ Anonimizacja OK`);
     } catch (e) {
-      console.error(`[EMAIL] Anonimizacja failed: ${e.message}`);
+      console.error(`[EMAIL] ⚠️ Anonimizacja failed: ${e.message} — używam surowego logu`);
     }
   }
 
@@ -303,40 +354,186 @@ app.post("/api/send-log-email", async (req, res) => {
     log_sent_at: new Date().toISOString()
   }).eq("id", session_id);
 
+  // ── Przygotuj dane do maila ────────────────────────────────
   const directorEmail = session.schools?.director_email || user.email;
-  const schoolName = session.schools?.name || "Szkoła";
-  const date = new Date(session.started_at).toLocaleString("pl-PL");
-  const dur = session.duration_seconds ? Math.round(session.duration_seconds / 60) + " min" : "—";
+  const schoolName    = session.schools?.name || "Szkoła";
+  const date          = new Date(session.started_at).toLocaleString("pl-PL");
+  const dateEnded     = session.ended_at ? new Date(session.ended_at).toLocaleString("pl-PL") : "—";
+  const dur           = session.duration_seconds ? Math.round(session.duration_seconds / 60) + " min" : "—";
+  const msgCount      = session.session_messages?.length || session.message_count || 0;
+  const endedBy       = session.ended_by || "—";
+  const clientIp      = req.headers["x-forwarded-for"]?.split(",")[0] || req.ip || "—";
+  const serverVersion = "1.6";
 
-  if (!RESEND_API_KEY) return res.status(500).json({ error: "Brak RESEND_API_KEY" });
+  // Dane techniczne od frontendu
+  const ua            = client_info.userAgent      || "—";
+  const platform      = client_info.platform       || "—";
+  const browserLang   = client_info.language       || "—";
+  const screenSize    = (client_info.screenW && client_info.screenH)
+                        ? `${client_info.screenW}×${client_info.screenH}` : "—";
+  const connType      = client_info.connectionType || "—";
+  const sessionErrors = client_info.sessionErrors  || "—";
+
+  console.log(`[EMAIL] TO: ${directorEmail}, CC: ${SUPPORT_EMAIL}`);
+  console.log(`[EMAIL] SMTP: ${SMTP_HOST}:${SMTP_PORT}, user: ${SMTP_USER ? "✅" : "❌ BRAK"}`);
+
+  if (!SMTP_USER || !SMTP_PASSWORD) {
+    console.error(`[EMAIL] ❌ Brak konfiguracji SMTP!`);
+    return res.status(500).json({ error: "Brak konfiguracji SMTP na serwerze" });
+  }
 
   const subject = `[112] Log sesji — ${schoolName} · ${date}`;
-  const htmlBody = `
-    <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
-      <h2 style="color:#c00;border-bottom:2px solid #c00;padding-bottom:8px">🚨 Log sesji — Zadzwoń pod 112</h2>
-      <p><b>Szkoła:</b> ${schoolName}<br/><b>Data:</b> ${date}<br/><b>Czas:</b> ${dur}<br/><b>Gwiazdki:</b> ${"★".repeat(session.stars||0)}${"☆".repeat(3-(session.stars||0))}</p>
-      <h3>Log rozmowy (zanonimizowany)</h3>
-      <pre style="background:#111;color:#a0ffa0;padding:16px;border-radius:8px;font-size:12px;white-space:pre-wrap">${anonLog}</pre>
-    </div>`;
 
+  // ── Wiadomość od dyrektora (opcjonalna) ───────────────────
+  const userMessageSection = user_message.trim()
+    ? `\n💬 WIADOMOŚĆ OD DYREKTORA:\n${user_message.trim()}\n`
+    : "";
+
+  const userMessageHtml = user_message.trim()
+    ? `<div style="background:#fff8e1;border-left:4px solid #ffc107;border-radius:0 8px 8px 0;padding:14px 16px;margin-bottom:16px">
+        <h3 style="margin:0 0 8px;color:#333;font-size:14px">💬 Wiadomość od dyrektora</h3>
+        <p style="margin:0;font-size:14px;color:#333;white-space:pre-wrap">${user_message.trim()}</p>
+       </div>`
+    : "";
+
+  // ── Treść plain text ───────────────────────────────────────
+  const textBody = [
+    `=== LOG SESJI EDUKACYJNEJ — ZADZWOŃ POD 112 · v${serverVersion} ===`,
+    ``,
+    `DANE SZKOŁY:`,
+    `Szkoła:              ${schoolName}`,
+    `Dyrektor / email:    ${directorEmail}`,
+    `Wysłano przez:       ${user.email}`,
+    userMessageSection,
+    `DANE SESJI:`,
+    `Data rozpoczęcia:    ${date}`,
+    `Data zakończenia:    ${dateEnded}`,
+    `Czas rozmowy:        ${dur}`,
+    `Liczba wiadomości:   ${msgCount}`,
+    `Gwiazdki:            ${session.stars || 0}/3`,
+    `Język:               ${session.lang}`,
+    `Zakończono przez:    ${endedBy}`,
+    ``,
+    `=== LOG TECHNICZNY (debug) ===`,
+    `Session ID:          ${session_id}`,
+    `Backend wersja:      v${serverVersion}`,
+    `IP klienta:          ${clientIp}`,
+    `User-Agent:          ${ua}`,
+    `Platforma:           ${platform}`,
+    `Język przeglądarki:  ${browserLang}`,
+    `Rozdzielczość:       ${screenSize}`,
+    `Typ połączenia:      ${connType}`,
+    `Błędy w sesji:       ${sessionErrors}`,
+    `SMTP host:           ${SMTP_HOST}:${SMTP_PORT}`,
+    `Supabase project:    ${SUPABASE_URL ? SUPABASE_URL.split(".")[0].replace("https://", "") : "—"}`,
+    ``,
+    `=== LOG ROZMOWY (zanonimizowany) ===`,
+    ``,
+    anonLog,
+    ``,
+    `===`,
+    `Zadzwoń pod 112 · Symulator edukacyjny · herokids.eu`,
+    `Wysłano automatycznie na żądanie: ${user.email}`,
+  ].join("\n");
+
+  // ── Treść HTML ─────────────────────────────────────────────
+  const htmlBody = `
+    <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:640px;margin:0 auto;color:#1a1a1a">
+
+      <div style="background:#c00;padding:20px 24px;border-radius:12px 12px 0 0">
+        <h2 style="margin:0;color:#fff;font-size:20px">🚨 Log sesji — Zadzwoń pod 112</h2>
+        <p style="margin:4px 0 0;color:rgba(255,255,255,0.8);font-size:13px">Wersja backendu v${serverVersion} · ${new Date().toLocaleString("pl-PL")}</p>
+      </div>
+
+      <div style="background:#fff;border:1px solid #e5e5e5;border-top:none;padding:20px 24px;border-radius:0 0 12px 12px">
+
+        <!-- Dane szkoły -->
+        <div style="background:#f0f7ff;border-radius:8px;padding:14px 16px;margin-bottom:16px">
+          <h3 style="margin:0 0 10px;color:#333;font-size:14px;text-transform:uppercase;letter-spacing:0.5px">Dane szkoły</h3>
+          <table style="font-size:14px;border-collapse:collapse;width:100%">
+            <tr><td style="padding:3px 16px 3px 0;color:#666;width:160px">Szkoła:</td><td><b>${schoolName}</b></td></tr>
+            <tr><td style="padding:3px 16px 3px 0;color:#666">Dyrektor / email:</td><td><b>${directorEmail}</b></td></tr>
+            <tr><td style="padding:3px 16px 3px 0;color:#666">Wysłano przez:</td><td>${user.email}</td></tr>
+          </table>
+        </div>
+
+        <!-- Wiadomość od dyrektora (opcjonalna) -->
+        ${userMessageHtml}
+
+        <!-- Dane sesji -->
+        <div style="background:#f5f5f5;border-radius:8px;padding:14px 16px;margin-bottom:16px">
+          <h3 style="margin:0 0 10px;color:#333;font-size:14px;text-transform:uppercase;letter-spacing:0.5px">Dane sesji</h3>
+          <table style="font-size:14px;border-collapse:collapse;width:100%">
+            <tr><td style="padding:3px 16px 3px 0;color:#666;width:160px">Rozpoczęto:</td><td>${date}</td></tr>
+            <tr><td style="padding:3px 16px 3px 0;color:#666">Zakończono:</td><td>${dateEnded}</td></tr>
+            <tr><td style="padding:3px 16px 3px 0;color:#666">Czas rozmowy:</td><td>${dur}</td></tr>
+            <tr><td style="padding:3px 16px 3px 0;color:#666">Wiadomości:</td><td>${msgCount}</td></tr>
+            <tr><td style="padding:3px 16px 3px 0;color:#666">Gwiazdki:</td><td>${"★".repeat(session.stars || 0)}${"☆".repeat(3 - (session.stars || 0))} (${session.stars || 0}/3)</td></tr>
+            <tr><td style="padding:3px 16px 3px 0;color:#666">Język:</td><td>${session.lang}</td></tr>
+            <tr><td style="padding:3px 16px 3px 0;color:#666">Zakończono przez:</td><td>${endedBy}</td></tr>
+          </table>
+        </div>
+
+        <!-- Log rozmowy -->
+        <h3 style="color:#333;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px">Log rozmowy (zanonimizowany)</h3>
+        <pre style="background:#111;color:#a0ffa0;padding:16px;border-radius:8px;font-size:12px;line-height:1.7;white-space:pre-wrap;overflow-x:auto;margin:0 0 16px">${anonLog}</pre>
+
+        <!-- Sekcja techniczna — zwijana -->
+        <details style="margin-bottom:16px">
+          <summary style="cursor:pointer;font-size:13px;color:#666;padding:10px 14px;background:#f9f9f9;border-radius:8px;border:1px solid #e5e5e5;list-style:none">
+            🔧 <b>Log techniczny</b> — kliknij aby rozwinąć
+          </summary>
+          <div style="border:1px solid #e5e5e5;border-top:none;border-radius:0 0 8px 8px;padding:14px 16px">
+            <table style="font-size:12px;border-collapse:collapse;width:100%;font-family:monospace">
+              <tr style="background:#f5f5f5"><td style="padding:4px 12px 4px 0;color:#666;width:180px">Session ID:</td><td style="word-break:break-all">${session_id}</td></tr>
+              <tr><td style="padding:4px 12px 4px 0;color:#666">Backend wersja:</td><td>v${serverVersion}</td></tr>
+              <tr style="background:#f5f5f5"><td style="padding:4px 12px 4px 0;color:#666">IP klienta:</td><td>${clientIp}</td></tr>
+              <tr><td style="padding:4px 12px 4px 0;color:#666">User-Agent:</td><td style="word-break:break-all">${ua}</td></tr>
+              <tr style="background:#f5f5f5"><td style="padding:4px 12px 4px 0;color:#666">Platforma:</td><td>${platform}</td></tr>
+              <tr><td style="padding:4px 12px 4px 0;color:#666">Język przeglądarki:</td><td>${browserLang}</td></tr>
+              <tr style="background:#f5f5f5"><td style="padding:4px 12px 4px 0;color:#666">Rozdzielczość:</td><td>${screenSize}</td></tr>
+              <tr><td style="padding:4px 12px 4px 0;color:#666">Typ połączenia:</td><td>${connType}</td></tr>
+              <tr style="background:#f5f5f5"><td style="padding:4px 12px 4px 0;color:#666">Błędy w sesji:</td><td style="word-break:break-all">${sessionErrors}</td></tr>
+              <tr><td style="padding:4px 12px 4px 0;color:#666">SMTP host:</td><td>${SMTP_HOST}:${SMTP_PORT}</td></tr>
+              <tr style="background:#f5f5f5"><td style="padding:4px 12px 4px 0;color:#666">Supabase project:</td><td>${SUPABASE_URL ? SUPABASE_URL.split(".")[0].replace("https://", "") : "—"}</td></tr>
+            </table>
+          </div>
+        </details>
+
+        <p style="font-size:11px;color:#999;margin:0;border-top:1px solid #eee;padding-top:12px">
+          Wysłano automatycznie · <a href="https://herokids.eu" style="color:#0a84ff">herokids.eu</a> · na żądanie: ${user.email}
+        </p>
+
+      </div>
+    </div>
+  `;
+
+  console.log(`[EMAIL] Wysyłam przez SMTP (${SMTP_HOST}:${SMTP_PORT})...`);
   try {
-    const resendRes = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { "Authorization": `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from: "Zadzwoń pod 112 <onboarding@resend.dev>", to: [APP_EMAIL], subject, html: htmlBody })
+    const info = await smtpTransporter.sendMail({
+      from: `"HeroKids 112" <${SMTP_USER}>`,
+      to: directorEmail,
+      cc: SUPPORT_EMAIL,
+      subject,
+      text: textBody,
+      html: htmlBody
     });
-    const resendData = await resendRes.json();
-    if (!resendRes.ok) return res.status(500).json({ error: "Błąd Resend: " + resendData.message });
-    return res.json({ ok: true, messageId: resendData.id });
+
+    console.log(`[EMAIL] ✅ Wysłano! MessageId: ${info.messageId}`);
+    return res.json({
+      ok: true,
+      sent_to: [directorEmail],
+      cc: [SUPPORT_EMAIL],
+      messageId: info.messageId
+    });
   } catch (e) {
-    return res.status(500).json({ error: "Błąd wysyłki: " + e.message });
+    console.error(`[EMAIL] ❌ SMTP error: ${e.message}`);
+    return res.status(500).json({ error: "Błąd wysyłki SMTP: " + e.message });
   }
 });
 
 // ============================================================
-// POST /api/create-order  [v1.5b — PayU]
-// Tworzy zamówienie PayU i zwraca URL do strony płatności
-// Body: { package: "starter"|"standard"|"roczny", school_id, token_id, buyer_email, buyer_name, return_url }
+// POST /api/create-order  [PayU]
 // ============================================================
 app.post("/api/create-order", async (req, res) => {
   const { package: packageKey, school_id, token_id, buyer_email, buyer_name, return_url } = req.body;
@@ -345,10 +542,8 @@ app.post("/api/create-order", async (req, res) => {
   if (!pkg) return res.status(400).json({ error: "Nieznany pakiet" });
   if (!buyer_email) return res.status(400).json({ error: "Brak email kupującego" });
 
-  // Unikalny identyfikator zamówienia po naszej stronie
   const extOrderId = `112-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
 
-  // Zapisz zamówienie w Supabase ze statusem pending
   const { data: order, error: orderError } = await supabase
     .from("orders")
     .insert({
@@ -367,7 +562,6 @@ app.post("/api/create-order", async (req, res) => {
     return res.status(500).json({ error: "Błąd zapisu zamówienia" });
   }
 
-  // Pobierz token OAuth PayU
   let accessToken;
   try {
     accessToken = await getPayuToken();
@@ -376,15 +570,13 @@ app.post("/api/create-order", async (req, res) => {
     return res.status(502).json({ error: "Błąd autoryzacji PayU" });
   }
 
-  // Adres notify — webhook PayU
   const notifyUrl = PAYU_SANDBOX === "true"
     ? "https://telefon112-dev.up.railway.app/api/payu-notify"
     : "https://telefon112-production.up.railway.app/api/payu-notify";
 
-  const continueUrl = (return_url || "https://herokids.eu/sklep.html") 
-  .replace("{extOrderId}", extOrderId);
+  const continueUrl = (return_url || "https://herokids.eu/sklep.html")
+    .replace("{extOrderId}", extOrderId);
 
-  // Payload zamówienia PayU
   const orderPayload = {
     extOrderId,
     notifyUrl,
@@ -410,27 +602,22 @@ app.post("/api/create-order", async (req, res) => {
   try {
     const payuRes = await fetch(`${PAYU_BASE}/api/v2_1/orders`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${accessToken}`
-      },
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${accessToken}` },
       body: JSON.stringify(orderPayload),
-      redirect: "manual" // PayU zwraca 302 redirect — przechwytujemy zamiast podążać
+      redirect: "manual"
     });
 
-    // PayU zwraca 302 z Location = URL płatności
     const payuData = await payuRes.json().catch(() => ({}));
     console.log(`[PAYU] Odpowiedź: ${payuRes.status}`, payuData);
 
-    const payuOrderId = payuData.orderId;
-    const redirectUri = payuData.redirectUri;
+    const payuOrderId  = payuData.orderId;
+    const redirectUri  = payuData.redirectUri;
 
     if (!redirectUri) {
       console.error("[PAYU] Brak redirectUri:", payuData);
       return res.status(502).json({ error: "Błąd PayU: brak URL płatności", details: payuData });
     }
 
-    // Zaktualizuj zamówienie o payu_order_id
     await supabase.from("orders").update({ payu_order_id: payuOrderId }).eq("id", order.id);
 
     console.log(`[PAYU] ✅ Zamówienie created: ${extOrderId} → ${redirectUri}`);
@@ -443,25 +630,17 @@ app.post("/api/create-order", async (req, res) => {
 });
 
 // ============================================================
-// POST /api/payu-notify  [v1.5b — PayU webhook]
-// PayU wysyła potwierdzenie płatności — aktywujemy kredyty
+// POST /api/payu-notify  [PayU webhook]
 // ============================================================
 app.post("/api/payu-notify", async (req, res) => {
   console.log("[PAYU-NOTIFY] ▶ Otrzymano webhook");
 
-  // Weryfikacja podpisu PayU
   const signature = req.headers["openpayu-signature"];
   if (signature && PAYU_NOTIFY_KEY) {
     const bodyStr = JSON.stringify(req.body);
-    const expectedSig = crypto
-      .createHash("md5")
-      .update(bodyStr + PAYU_NOTIFY_KEY)
-      .digest("hex");
-
-    // Wyciągnij signature z nagłówka (format: "sender=checkout;signature=HASH;algorithm=MD5")
+    const expectedSig = crypto.createHash("md5").update(bodyStr + PAYU_NOTIFY_KEY).digest("hex");
     const sigMatch = signature.match(/signature=([a-f0-9]+)/i);
     const receivedSig = sigMatch?.[1];
-
     if (receivedSig && receivedSig !== expectedSig) {
       console.error("[PAYU-NOTIFY] ❌ Nieprawidłowy podpis!");
       return res.status(401).send("Invalid signature");
@@ -477,12 +656,10 @@ app.post("/api/payu-notify", async (req, res) => {
   const { extOrderId, orderId, status } = order;
   console.log(`[PAYU-NOTIFY] extOrderId: ${extOrderId}, status: ${status}`);
 
-  // Zapisz aktualny status w bazie
   await supabase.from("orders")
     .update({ payu_order_id: orderId, status: status.toLowerCase() })
     .eq("payu_ext_order_id", extOrderId);
 
-  // Jeśli płatność zakończona — doliczy kredyty
   if (status === "COMPLETED") {
     console.log(`[PAYU-NOTIFY] ✅ Płatność COMPLETED — doliczam kredyty`);
 
@@ -493,53 +670,38 @@ app.post("/api/payu-notify", async (req, res) => {
       .single();
 
     if (orderData?.token_id) {
-      // Dolicz kredyty do istniejącego tokenu
       const { data: tokenData } = await supabase
-        .from("tokens")
-        .select("credits")
-        .eq("id", orderData.token_id)
-        .single();
-
+        .from("tokens").select("credits").eq("id", orderData.token_id).single();
       const newCredits = (tokenData?.credits || 0) + orderData.sessions_count;
       await supabase.from("tokens")
-        .update({ credits: newCredits, active: true })
-        .eq("id", orderData.token_id);
-
+        .update({ credits: newCredits, active: true }).eq("id", orderData.token_id);
       console.log(`[PAYU-NOTIFY] ✅ Token ${orderData.token_id} → +${orderData.sessions_count} kredytów (razem: ${newCredits})`);
 
     } else if (orderData) {
-      // Brak token_id — stwórz nowy token dla szkoły
       console.log(`[PAYU-NOTIFY] Tworzę nowy token dla zamówienia ${extOrderId}`);
       const newTokenCode = "PSZ-" + Math.random().toString(36).slice(2,6).toUpperCase() + "-" + Math.random().toString(36).slice(2,6).toUpperCase();
-
       const { data: newToken } = await supabase.from("tokens").insert({
         token_code: newTokenCode,
         school_id: orderData.school_id || null,
         credits: orderData.sessions_count,
         active: true
       }).select("id").single();
-
-      // Przypisz token do zamówienia
       await supabase.from("orders")
         .update({ token_id: newToken?.id, status: "completed", completed_at: new Date().toISOString() })
         .eq("payu_ext_order_id", extOrderId);
-
       console.log(`[PAYU-NOTIFY] ✅ Nowy token: ${newTokenCode} (${orderData.sessions_count} sesji)`);
     }
 
-    // Oznacz zamówienie jako completed
     await supabase.from("orders")
       .update({ status: "completed", completed_at: new Date().toISOString() })
       .eq("payu_ext_order_id", extOrderId);
   }
 
-  // PayU wymaga odpowiedzi 200 z tym body
   return res.status(200).json({ status: "OK" });
 });
 
 // ============================================================
-// GET /api/order-status/:extOrderId  [v1.5b — PayU]
-// Sprawdzenie statusu zamówienia po powrocie ze strony płatności
+// GET /api/order-status/:extOrderId  [PayU]
 // ============================================================
 app.get("/api/order-status/:extOrderId", async (req, res) => {
   const { extOrderId } = req.params;
@@ -567,19 +729,31 @@ app.get("/api/order-status/:extOrderId", async (req, res) => {
 // GET /api/health
 // ============================================================
 app.get("/api/health", async (req, res) => {
+  // Sprawdź SMTP — verify() łączy i autoryzuje, nie wysyła maila
+  let smtpOk = false;
+  try {
+    await smtpTransporter.verify();
+    smtpOk = true;
+  } catch (e) {
+    console.warn(`[HEALTH] SMTP verify failed: ${e.message}`);
+  }
+
   res.json({
     status: "ok",
-    version: "1.5b",
+    version: "1.6",
     services: {
-      anthropic: !!ANTHROPIC_API_KEY,
-      elevenlabs: !!ELEVENLABS_API_KEY,
-      supabase: !!SUPABASE_URL && !!SUPABASE_SERVICE_KEY,
-      resend: !!RESEND_API_KEY,
-      payu: !!PAYU_POS_ID && !!PAYU_CLIENT_SECRET,
+      anthropic:    !!ANTHROPIC_API_KEY,
+      elevenlabs:   !!ELEVENLABS_API_KEY,
+      supabase:     !!SUPABASE_URL && !!SUPABASE_SERVICE_KEY,
+      smtp:         smtpOk,
+      payu:         !!PAYU_POS_ID && !!PAYU_CLIENT_SECRET,
       payu_sandbox: PAYU_SANDBOX === "true"
     },
-    app_email: APP_EMAIL,
-    timestamp: new Date().toISOString()
+    smtp_host:     `${SMTP_HOST}:${SMTP_PORT}`,
+    support_email: SUPPORT_EMAIL,
+    rate_limits:   { chat: "120/h", other: "30/h" },
+    cors_origins:  ["kmusialski.github.io", "herokids.eu"],
+    timestamp:     new Date().toISOString()
   });
 });
 
@@ -587,11 +761,12 @@ app.get("/api/health", async (req, res) => {
 // START
 // ============================================================
 app.listen(PORT, () => {
-  console.log(`✅ Zadzwoń pod 112 backend v1.5b — port ${PORT}`);
-  console.log(`   Anthropic:  ${ANTHROPIC_API_KEY ? "✅" : "❌"}`);
-  console.log(`   ElevenLabs: ${ELEVENLABS_API_KEY ? "✅" : "❌"}`);
-  console.log(`   Supabase:   ${SUPABASE_URL ? "✅" : "❌"}`);
-  console.log(`   Resend:     ${RESEND_API_KEY ? "✅" : "❌"}`);
+  console.log(`✅ HeroKids 112 backend v1.6 — port ${PORT}`);
+  console.log(`   Anthropic:  ${ANTHROPIC_API_KEY  ? "✅" : "❌"}`);
+  console.log(`   ElevenLabs: ${ELEVENLABS_API_KEY  ? "✅" : "❌"}`);
+  console.log(`   Supabase:   ${SUPABASE_URL        ? "✅" : "❌"}`);
+  console.log(`   SMTP:       ${SMTP_USER ? `✅ ${SMTP_HOST}:${SMTP_PORT}` : "❌ brak SMTP_USER"}`);
+  console.log(`   Support CC: ${SUPPORT_EMAIL}`);
   console.log(`   PayU:       ${PAYU_POS_ID ? "✅" : "❌"} ${PAYU_SANDBOX === "true" ? "(SANDBOX)" : "(PRODUKCJA)"}`);
   console.log(`   PayU URL:   ${PAYU_BASE}`);
 });
