@@ -159,7 +159,7 @@ pre{background:#111;border-radius:10px;padding:14px;font-size:12px;line-height:1
     <div id="reg-view-3" class="card hidden">
       <div class="card-title">Krok 3 — Weryfikacja email</div>
       <p class="otp-hint">Wysłaliśmy 6-cyfrowy kod weryfikacyjny na adres:<br/><b id="reg-otp-email" style="color:#fff"></b><br/>Sprawdź skrzynkę (również folder Spam).</p>
-      <input id="reg-otp-code" type="text" placeholder="_ _ _ _ _ _" maxlength="6" style="text-align:center;letter-spacing:8px;font-size:24px;font-family:monospace"/>
+      <input id="reg-otp-code" type="text" placeholder="_ _ _ _ _ _ _ _" maxlength="8" style="text-align:center;letter-spacing:8px;font-size:24px;font-family:monospace"/>
       <div id="reg-otp-msg" style="font-size:13px;min-height:18px;margin-bottom:8px"></div>
       <button class="btn-primary" onclick="regStep3()" id="reg-btn-3">Zweryfikuj i aktywuj konto</button>
       <div style="margin-top:12px;text-align:center">
@@ -456,7 +456,7 @@ async function regStep2() {
 // ============================================================
 async function regStep3() {
   const otp = document.getElementById("reg-otp-code").value.trim();
-  if (otp.length !== 6) { regMsg("reg-otp-msg", "Kod musi mieć 6 cyfr", "err"); return; }
+  if (otp.length < 6) { regMsg("reg-otp-msg", "Kod musi mieć 6 cyfr", "err"); return; }
 
   const btn = document.getElementById("reg-btn-3");
   btn.disabled = true; btn.textContent = "Weryfikuję...";
