@@ -13,14 +13,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .card-title{font-size:13px;color:#8e8e93;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
 h1{font-size:24px;font-weight:700;margin-bottom:4px}
 .subtitle{font-size:14px;color:#636366}
-input{background:#2c2c2e;border:0.5px solid #3a3a3c;border-radius:10px;color:#fff;font-size:15px;padding:12px 14px;width:100%;outline:none;font-family:-apple-system,sans-serif;margin-bottom:10px}
-input::placeholder{color:#636366}
+input,textarea{background:#2c2c2e;border:0.5px solid #3a3a3c;border-radius:10px;color:#fff;font-size:15px;padding:12px 14px;width:100%;outline:none;font-family:-apple-system,sans-serif;margin-bottom:10px}
+input::placeholder,textarea::placeholder{color:#636366}
+textarea{resize:vertical;min-height:72px}
 button{border:none;border-radius:12px;padding:12px 20px;font-size:15px;cursor:pointer;font-family:-apple-system,sans-serif;transition:opacity 0.15s}
 button:disabled{opacity:0.4;cursor:not-allowed}
 .btn-primary{background:#0a84ff;color:#fff;width:100%}
 .btn-danger{background:#ff3b30;color:#fff;font-size:13px;padding:8px 16px}
 .btn-secondary{background:#2c2c2e;color:#fff;font-size:13px;padding:8px 16px}
 .btn-green{background:#34c759;color:#fff;font-size:13px;padding:8px 16px}
+.btn-outline{background:transparent;color:#0a84ff;border:1px solid #0a84ff;font-size:14px;padding:10px 20px;width:100%}
 .badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:8px;font-size:12px;font-weight:600}
 .badge-green{background:#0d2818;color:#34c759;border:0.5px solid #34c759}
 .badge-orange{background:#2a1800;color:#ff9f0a;border:0.5px solid #ff9f0a}
@@ -44,46 +46,142 @@ button:disabled{opacity:0.4;cursor:not-allowed}
 .tab.active{background:#0a84ff;color:#fff}
 .tab-content{display:none}
 .tab-content.active{display:block}
+/* Auth tabs (logowanie / rejestracja) */
+.auth-tabs{display:flex;background:#2c2c2e;border-radius:12px;padding:4px;margin-bottom:20px;gap:4px}
+.auth-tab{flex:1;padding:9px;border-radius:9px;font-size:14px;cursor:pointer;border:none;background:transparent;color:#8e8e93;font-family:-apple-system,sans-serif;transition:all 0.2s}
+.auth-tab.active{background:#1c1c1e;color:#fff;font-weight:600}
+/* Kroki rejestracji */
+.step-indicator{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:20px}
+.step{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;border:2px solid #3a3a3c;color:#636366}
+.step.active{border-color:#0a84ff;color:#0a84ff}
+.step.done{background:#34c759;border-color:#34c759;color:#fff}
+.step-line{flex:1;height:2px;background:#3a3a3c;max-width:40px}
+.step-line.done{background:#34c759}
+/* Separator */
+.divider{display:flex;align-items:center;gap:12px;margin:16px 0}
+.divider-line{flex:1;height:0.5px;background:#3a3a3c}
+.divider-text{font-size:12px;color:#636366}
+/* OTP input */
+.otp-hint{font-size:12px;color:#636366;margin-bottom:12px;line-height:1.5}
+/* Modal */
 #log-modal{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:100;display:none;align-items:center;justify-content:center;padding:16px}
 #log-modal.open{display:flex}
 .modal-inner{background:#1c1c1e;border-radius:16px;padding:24px;max-width:600px;width:100%;max-height:85vh;overflow-y:auto}
 pre{background:#111;border-radius:10px;padding:14px;font-size:12px;line-height:1.7;color:#a0a0a0;white-space:pre-wrap;word-break:break-word;margin-top:8px}
-/* DEBUG LOG */
 #debug-log{background:#0a0a0a;border:0.5px solid #2c2c2e;border-radius:10px;padding:10px;font-size:11px;font-family:monospace;line-height:1.8;max-height:200px;overflow-y:auto;margin-top:8px}
-.dlog-ok{color:#34c759}
-.dlog-err{color:#ff3b30}
-.dlog-info{color:#0a84ff}
-.dlog-warn{color:#ff9f0a}
+.dlog-ok{color:#34c759}.dlog-err{color:#ff3b30}.dlog-info{color:#0a84ff}.dlog-warn{color:#ff9f0a}
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
-<div id="view-login" class="container" style="max-width:400px;padding-top:80px">
-  <div style="text-align:center;margin-bottom:32px">
+<!-- ============================================================ -->
+<!-- LOGIN / REJESTRACJA                                          -->
+<!-- ============================================================ -->
+<div id="view-login" class="container" style="max-width:440px;padding-top:60px">
+  <div style="text-align:center;margin-bottom:28px">
     <div style="font-size:48px;margin-bottom:12px">🏫</div>
     <h1>Panel szkoły</h1>
-    <div class="subtitle">Zadzwoń pod 112 · v1.5a</div>
+    <div class="subtitle">Zadzwoń pod 112 · v1.6.1</div>
   </div>
-  <div class="card">
-    <div class="card-title">Logowanie</div>
-    <input id="login-email" type="email" placeholder="Email dyrektora / administratora"/>
-    <input id="login-password" type="password" placeholder="Hasło"/>
-    <div id="login-msg" style="font-size:13px;min-height:20px;margin-bottom:8px"></div>
-    <button class="btn-primary" onclick="doLogin()" id="login-btn">Zaloguj się</button>
-    <div style="margin-top:16px;text-align:center">
-      <button onclick="showReset()" style="background:transparent;color:#0a84ff;border:none;font-size:14px;cursor:pointer">Zapomniałem hasła</button>
+
+  <!-- Auth tabs -->
+  <div class="auth-tabs">
+    <button class="auth-tab active" onclick="switchAuthTab('login')">Zaloguj się</button>
+    <button class="auth-tab" onclick="switchAuthTab('register')">Załóż konto</button>
+  </div>
+
+  <!-- ── LOGOWANIE ── -->
+  <div id="auth-login">
+    <div class="card">
+      <input id="login-email" type="email" placeholder="Email dyrektora / administratora"/>
+      <input id="login-password" type="password" placeholder="Hasło"/>
+      <div id="login-msg" style="font-size:13px;min-height:20px;margin-bottom:8px"></div>
+      <button class="btn-primary" onclick="doLogin()" id="login-btn">Zaloguj się</button>
+      <div style="margin-top:14px;text-align:center">
+        <button onclick="showReset()" style="background:transparent;color:#0a84ff;border:none;font-size:14px;cursor:pointer">Zapomniałem hasła</button>
+      </div>
+    </div>
+    <div id="view-reset" class="card hidden">
+      <div class="card-title">Reset hasła</div>
+      <input id="reset-email" type="email" placeholder="Twój email"/>
+      <button class="btn-primary" onclick="doReset()" style="margin-top:4px">Wyślij link resetujący</button>
+      <div id="reset-msg" style="font-size:13px;margin-top:8px"></div>
     </div>
   </div>
-  <div id="view-reset" class="card hidden" style="margin-top:12px">
-    <div class="card-title">Reset hasła</div>
-    <input id="reset-email" type="email" placeholder="Twój email"/>
-    <button class="btn-primary" onclick="doReset()" style="margin-top:4px">Wyślij link resetujący</button>
-    <div id="reset-msg" style="font-size:13px;margin-top:8px"></div>
-  </div>
-</div>
 
-<!-- PANEL GŁÓWNY -->
+  <!-- ── REJESTRACJA ── -->
+  <div id="auth-register" class="hidden">
+
+    <!-- Wskaźnik kroków -->
+    <div class="step-indicator">
+      <div class="step active" id="reg-step-1">1</div>
+      <div class="step-line" id="reg-line-1"></div>
+      <div class="step" id="reg-step-2">2</div>
+      <div class="step-line" id="reg-line-2"></div>
+      <div class="step" id="reg-step-3">3</div>
+    </div>
+
+    <!-- KROK 1: Kod zaproszenia -->
+    <div id="reg-view-1" class="card">
+      <div class="card-title">Krok 1 — Kod zaproszenia</div>
+      <p style="font-size:13px;color:#8e8e93;margin-bottom:14px">Wprowadź kod zaproszenia otrzymany od administratora systemu.</p>
+      <input id="reg-invite-code" type="text" placeholder="np. HKA3F9Q" style="text-transform:uppercase;letter-spacing:3px;font-family:monospace;font-size:18px;text-align:center"/>
+      <div id="reg-invite-msg" style="font-size:13px;min-height:18px;margin-bottom:8px"></div>
+      <button class="btn-primary" onclick="regStep1()" id="reg-btn-1">Dalej →</button>
+    </div>
+
+    <!-- KROK 2: Dane placówki -->
+    <div id="reg-view-2" class="card hidden">
+      <div class="card-title">Krok 2 — Dane placówki i konta</div>
+      <input id="reg-school-name" type="text" placeholder="Nazwa placówki (np. Przedszkole Słoneczko)"/>
+      <input id="reg-email" type="email" placeholder="Email dyrektora (będzie loginem)"/>
+      <input id="reg-password" type="password" placeholder="Hasło (min. 8 znaków)"/>
+      <input id="reg-password2" type="password" placeholder="Powtórz hasło"/>
+
+      <div class="divider">
+        <div class="divider-line"></div>
+        <div class="divider-text">Dane do faktury (opcjonalnie)</div>
+        <div class="divider-line"></div>
+      </div>
+
+      <input id="reg-invoice-name" type="text" placeholder="Nazwa firmy / placówki do faktury"/>
+      <input id="reg-invoice-nip" type="text" placeholder="NIP"/>
+      <input id="reg-invoice-address" type="text" placeholder="Adres do faktury"/>
+
+      <div id="reg-data-msg" style="font-size:13px;min-height:18px;margin-bottom:8px"></div>
+      <div style="display:flex;gap:8px">
+        <button onclick="regBack(1)" class="btn-secondary" style="width:auto;padding:12px 20px">← Wstecz</button>
+        <button class="btn-primary" onclick="regStep2()" id="reg-btn-2" style="flex:1">Utwórz konto →</button>
+      </div>
+    </div>
+
+    <!-- KROK 3: Weryfikacja OTP -->
+    <div id="reg-view-3" class="card hidden">
+      <div class="card-title">Krok 3 — Weryfikacja email</div>
+      <p class="otp-hint">Wysłaliśmy 6-cyfrowy kod weryfikacyjny na adres:<br/><b id="reg-otp-email" style="color:#fff"></b><br/>Sprawdź skrzynkę (również folder Spam).</p>
+      <input id="reg-otp-code" type="text" placeholder="_ _ _ _ _ _" maxlength="6" style="text-align:center;letter-spacing:8px;font-size:24px;font-family:monospace"/>
+      <div id="reg-otp-msg" style="font-size:13px;min-height:18px;margin-bottom:8px"></div>
+      <button class="btn-primary" onclick="regStep3()" id="reg-btn-3">Zweryfikuj i aktywuj konto</button>
+      <div style="margin-top:12px;text-align:center">
+        <button onclick="regResendOtp()" style="background:transparent;color:#0a84ff;border:none;font-size:13px;cursor:pointer">Wyślij kod ponownie</button>
+      </div>
+    </div>
+
+    <!-- SUKCES -->
+    <div id="reg-view-success" class="card hidden" style="text-align:center">
+      <div style="font-size:48px;margin-bottom:16px">🎉</div>
+      <h2 style="margin-bottom:8px">Konto aktywowane!</h2>
+      <p style="font-size:14px;color:#8e8e93;margin-bottom:8px">Możesz się teraz zalogować.</p>
+      <p style="font-size:13px;color:#34c759;margin-bottom:20px">🎁 Na start otrzymujesz <b>5 bezpłatnych sesji</b>.</p>
+      <button class="btn-primary" onclick="switchAuthTab('login')">Przejdź do logowania</button>
+    </div>
+
+  </div><!-- /auth-register -->
+</div><!-- /view-login -->
+
+<!-- ============================================================ -->
+<!-- PANEL GŁÓWNY                                                 -->
+<!-- ============================================================ -->
 <div id="view-panel" class="container hidden">
   <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px">
     <div>
@@ -94,7 +192,6 @@ pre{background:#111;border-radius:10px;padding:14px;font-size:12px;line-height:1
     <button onclick="doLogout()" style="background:#2c2c2e;color:#8e8e93;border:none;border-radius:10px;padding:8px 16px;font-size:13px;cursor:pointer;font-family:-apple-system,sans-serif">Wyloguj</button>
   </div>
 
-  <!-- Statystyki -->
   <div class="card">
     <div class="card-title">Statystyki konta</div>
     <div class="stat-row"><span class="stat-label">Aktywny token</span><span id="stat-token" class="stat-value" style="font-family:monospace;font-size:14px;color:#34c759"></span></div>
@@ -104,13 +201,11 @@ pre{background:#111;border-radius:10px;padding:14px;font-size:12px;line-height:1
     <div class="stat-row"><span class="stat-label">Ostatnia sesja</span><span id="stat-last" class="stat-value" style="font-size:13px"></span></div>
   </div>
 
-  <!-- Tabs -->
   <div class="tabs">
     <button class="tab active" onclick="switchTab('sessions')">Sesje</button>
     <button class="tab" onclick="switchTab('info')">Informacje</button>
   </div>
 
-  <!-- Tab: Sesje -->
   <div id="tab-sessions" class="tab-content active">
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
@@ -121,44 +216,42 @@ pre{background:#111;border-radius:10px;padding:14px;font-size:12px;line-height:1
     </div>
   </div>
 
-  <!-- Tab: Info -->
   <div id="tab-info" class="tab-content">
     <div class="card">
       <div class="card-title">Pakiety sesji</div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
-  <a href="sklep.html" style="text-decoration:none">
-    <div style="background:#111;border-radius:14px;padding:18px;text-align:center;cursor:pointer;border:1.5px solid #2c2c2e;transition:border-color 0.15s" onmouseover="this.style.borderColor='#0a84ff'" onmouseout="this.style.borderColor='#2c2c2e'">
-      <div style="font-size:28px;font-weight:800">30</div>
-      <div style="font-size:11px;color:#636366;margin-top:3px">sesji</div>
-      <div style="font-size:18px;color:#ffd60a;font-weight:700;margin-top:10px">29 zł</div>
-      <div style="font-size:10px;color:#636366;margin-top:2px;margin-bottom:12px">Basic</div>
-      <div style="background:#0a84ff;color:#fff;border-radius:8px;padding:7px 0;font-size:14px;font-weight:600">Kup</div>
-    </div>
-  </a>
-  <a href="sklep.html" style="text-decoration:none">
-    <div style="background:#001a2e;border-radius:14px;padding:18px;text-align:center;cursor:pointer;border:1.5px solid #0a84ff">
-      <div style="font-size:28px;font-weight:800">60</div>
-      <div style="font-size:11px;color:#636366;margin-top:3px">sesji</div>
-      <div style="font-size:18px;color:#ffd60a;font-weight:700;margin-top:10px">49 zł</div>
-      <div style="font-size:10px;color:#0a84ff;margin-top:2px;margin-bottom:12px">Standard ★</div>
-      <div style="background:#0a84ff;color:#fff;border-radius:8px;padding:7px 0;font-size:14px;font-weight:600">Kup</div>
-    </div>
-  </a>
-  <a href="sklep.html" style="text-decoration:none">
-    <div style="background:#111;border-radius:14px;padding:18px;text-align:center;cursor:pointer;border:1.5px solid #2c2c2e;transition:border-color 0.15s" onmouseover="this.style.borderColor='#0a84ff'" onmouseout="this.style.borderColor='#2c2c2e'">
-      <div style="font-size:28px;font-weight:800">100</div>
-      <div style="font-size:11px;color:#636366;margin-top:3px">sesji</div>
-      <div style="font-size:18px;color:#ffd60a;font-weight:700;margin-top:10px">79 zł</div>
-      <div style="font-size:10px;color:#636366;margin-top:2px;margin-bottom:12px">Pro</div>
-      <div style="background:#0a84ff;color:#fff;border-radius:8px;padding:7px 0;font-size:14px;font-weight:600">Kup</div>
-    </div>
-  </a>
-</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
+        <a href="sklep.html" style="text-decoration:none">
+          <div style="background:#111;border-radius:14px;padding:18px;text-align:center;cursor:pointer;border:1.5px solid #2c2c2e;transition:border-color 0.15s" onmouseover="this.style.borderColor='#0a84ff'" onmouseout="this.style.borderColor='#2c2c2e'">
+            <div style="font-size:28px;font-weight:800">30</div>
+            <div style="font-size:11px;color:#636366;margin-top:3px">sesji</div>
+            <div style="font-size:18px;color:#ffd60a;font-weight:700;margin-top:10px">29 zł</div>
+            <div style="font-size:10px;color:#636366;margin-top:2px;margin-bottom:12px">Basic</div>
+            <div style="background:#0a84ff;color:#fff;border-radius:8px;padding:7px 0;font-size:14px;font-weight:600">Kup</div>
+          </div>
+        </a>
+        <a href="sklep.html" style="text-decoration:none">
+          <div style="background:#001a2e;border-radius:14px;padding:18px;text-align:center;cursor:pointer;border:1.5px solid #0a84ff">
+            <div style="font-size:28px;font-weight:800">60</div>
+            <div style="font-size:11px;color:#636366;margin-top:3px">sesji</div>
+            <div style="font-size:18px;color:#ffd60a;font-weight:700;margin-top:10px">49 zł</div>
+            <div style="font-size:10px;color:#0a84ff;margin-top:2px;margin-bottom:12px">Standard ★</div>
+            <div style="background:#0a84ff;color:#fff;border-radius:8px;padding:7px 0;font-size:14px;font-weight:600">Kup</div>
+          </div>
+        </a>
+        <a href="sklep.html" style="text-decoration:none">
+          <div style="background:#111;border-radius:14px;padding:18px;text-align:center;cursor:pointer;border:1.5px solid #2c2c2e;transition:border-color 0.15s" onmouseover="this.style.borderColor='#0a84ff'" onmouseout="this.style.borderColor='#2c2c2e'">
+            <div style="font-size:28px;font-weight:800">100</div>
+            <div style="font-size:11px;color:#636366;margin-top:3px">sesji</div>
+            <div style="font-size:18px;color:#ffd60a;font-weight:700;margin-top:10px">79 zł</div>
+            <div style="font-size:10px;color:#636366;margin-top:2px;margin-bottom:12px">Pro</div>
+            <div style="background:#0a84ff;color:#fff;border-radius:8px;padding:7px 0;font-size:14px;font-weight:600">Kup</div>
+          </div>
+        </a>
+      </div>
     </div>
     <div class="card">
       <div class="card-title">Kontakt</div>
-      <div style="font-size:14px;color:#8e8e93;line-height:1.8">📧 <a href="mailto:musialski.k@gmail.com" style="color:#0a84ff">musialski.k@gmail.com</a></div>
+      <div style="font-size:14px;color:#8e8e93;line-height:1.8">📧 <a href="mailto:contact@herokids.eu" style="color:#0a84ff">contact@herokids.eu</a></div>
     </div>
   </div>
 </div>
@@ -172,22 +265,17 @@ pre{background:#111;border-radius:10px;padding:14px;font-size:12px;line-height:1
     </div>
     <div id="modal-meta" style="font-size:13px;color:#8e8e93;margin-bottom:12px"></div>
     <pre id="modal-log"></pre>
-
     <div style="margin-top:16px">
       <label style="font-size:12px;color:#8e8e93;display:block;margin-bottom:6px">Wiadomość do supportu (opcjonalnie)</label>
-      <textarea id="user-message-input" placeholder="Np. dziecko miało problem z mikrofonem..." style="background:#2c2c2e;border:0.5px solid #3a3a3c;border-radius:10px;color:#fff;font-size:13px;padding:10px 12px;width:100%;outline:none;font-family:-apple-system,sans-serif;resize:vertical;min-height:72px;margin-bottom:10px"></textarea>
+      <textarea id="user-message-input" placeholder="Np. dziecko miało problem z mikrofonem, rozmowa urwała się w połowie..."></textarea>
     </div>
     <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap">
       <button id="modal-send-btn" onclick="sendCurrentLog()" class="btn-green">📧 Wyślij na email</button>
       <button onclick="copyModalLog()" class="btn-secondary">Kopiuj</button>
     </div>
-
-    <!-- STATUS WYSYŁKI -->
     <div id="send-status-box" style="margin-top:12px;display:none">
       <div id="send-status-msg" style="font-size:13px;padding:10px 14px;border-radius:10px;margin-bottom:8px"></div>
     </div>
-
-    <!-- DEBUG LOG -->
     <div style="margin-top:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
         <span style="font-size:11px;color:#636366;font-family:monospace">DEBUG LOG</span>
@@ -213,37 +301,210 @@ let currentSchool = null;
 let currentToken = null;
 let currentSessionId = null;
 
+// Stan rejestracji
+let regState = {
+  invitationId: null,
+  email: null
+};
+
 // ============================================================
-// DEBUG LOG
+// AUTH TABS
 // ============================================================
-function dlog(msg, type = "info") {
-  const el = document.getElementById("debug-log");
-  if (!el) return;
-  const t = new Date().toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-  const line = document.createElement("div");
-  line.className = "dlog-" + type;
-  line.textContent = `[${t}] ${msg}`;
-  el.appendChild(line);
-  el.scrollTop = el.scrollHeight;
-  console.log(`[DEBUG][${type.toUpperCase()}] ${msg}`);
-}
-function clearDebugLog() {
-  const el = document.getElementById("debug-log");
-  if (el) el.innerHTML = '<span style="color:#636366">Wyczyszczono.</span>';
-}
-function showSendStatus(msg, type) {
-  const box = document.getElementById("send-status-box");
-  const msgEl = document.getElementById("send-status-msg");
-  box.style.display = "block";
-  msgEl.textContent = msg;
-  msgEl.className = "";
-  msgEl.style.background = type === "ok" ? "#0d2818" : type === "err" ? "#1a0000" : "#001a2e";
-  msgEl.style.color = type === "ok" ? "#34c759" : type === "err" ? "#ff3b30" : "#0a84ff";
-  msgEl.style.border = `0.5px solid ${type === "ok" ? "#34c759" : type === "err" ? "#ff3b30" : "#0a84ff"}`;
+function switchAuthTab(tab) {
+  document.querySelectorAll(".auth-tab").forEach((t, i) => {
+    t.classList.toggle("active", ["login","register"][i] === tab);
+  });
+  document.getElementById("auth-login").classList.toggle("hidden", tab !== "login");
+  document.getElementById("auth-register").classList.toggle("hidden", tab !== "register");
+  if (tab === "register") regReset();
 }
 
 // ============================================================
-// AUTH
+// REJESTRACJA — helpers
+// ============================================================
+function regReset() {
+  regState = { invitationId: null, email: null };
+  regShowView(1);
+  ["reg-invite-code","reg-school-name","reg-email","reg-password","reg-password2",
+   "reg-invoice-name","reg-invoice-nip","reg-invoice-address","reg-otp-code"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+  });
+  ["reg-invite-msg","reg-data-msg","reg-otp-msg"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = "";
+  });
+}
+
+function regShowView(step) {
+  [1,2,3].forEach(i => {
+    document.getElementById(`reg-view-${i}`).classList.toggle("hidden", i !== step);
+  });
+  document.getElementById("reg-view-success").classList.add("hidden");
+  // Aktualizuj wskaźnik kroków
+  [1,2,3].forEach(i => {
+    const el = document.getElementById(`reg-step-${i}`);
+    el.className = "step" + (i < step ? " done" : i === step ? " active" : "");
+    if (i < step) el.innerHTML = "✓";
+    else el.innerHTML = i;
+  });
+  [1,2].forEach(i => {
+    document.getElementById(`reg-line-${i}`).className = "step-line" + (i < step ? " done" : "");
+  });
+}
+
+function regMsg(id, msg, type) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = type === "err" ? "#ff3b30" : type === "ok" ? "#34c759" : "#0a84ff";
+}
+
+function regBack(toStep) { regShowView(toStep); }
+
+// ============================================================
+// REJESTRACJA — Krok 1: walidacja kodu zaproszenia
+// ============================================================
+async function regStep1() {
+  const code = document.getElementById("reg-invite-code").value.trim().toUpperCase();
+  if (!code) { regMsg("reg-invite-msg", "Wpisz kod zaproszenia", "err"); return; }
+
+  const btn = document.getElementById("reg-btn-1");
+  btn.disabled = true; btn.textContent = "Sprawdzam...";
+  regMsg("reg-invite-msg", "", "info");
+
+  try {
+    const res = await fetch(BACKEND_URL + "/api/validate-invitation", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code })
+    });
+    const data = await res.json();
+
+    if (!res.ok || !data.valid) {
+      regMsg("reg-invite-msg", data.message || "Nieprawidłowy kod zaproszenia", "err");
+      btn.disabled = false; btn.textContent = "Dalej →";
+      return;
+    }
+
+    regState.invitationId = data.invitation_id;
+    regMsg("reg-invite-msg", "✅ Kod prawidłowy!", "ok");
+    setTimeout(() => regShowView(2), 600);
+  } catch (e) {
+    regMsg("reg-invite-msg", "Błąd połączenia: " + e.message, "err");
+  }
+
+  btn.disabled = false; btn.textContent = "Dalej →";
+}
+
+// ============================================================
+// REJESTRACJA — Krok 2: dane placówki
+// ============================================================
+async function regStep2() {
+  const schoolName     = document.getElementById("reg-school-name").value.trim();
+  const email          = document.getElementById("reg-email").value.trim();
+  const password       = document.getElementById("reg-password").value;
+  const password2      = document.getElementById("reg-password2").value;
+  const invoiceName    = document.getElementById("reg-invoice-name").value.trim();
+  const invoiceNip     = document.getElementById("reg-invoice-nip").value.trim();
+  const invoiceAddress = document.getElementById("reg-invoice-address").value.trim();
+
+  if (!schoolName) { regMsg("reg-data-msg", "Podaj nazwę placówki", "err"); return; }
+  if (!email || !email.includes("@")) { regMsg("reg-data-msg", "Podaj prawidłowy adres email", "err"); return; }
+  if (password.length < 8) { regMsg("reg-data-msg", "Hasło musi mieć min. 8 znaków", "err"); return; }
+  if (password !== password2) { regMsg("reg-data-msg", "Hasła nie są identyczne", "err"); return; }
+
+  const btn = document.getElementById("reg-btn-2");
+  btn.disabled = true; btn.textContent = "Tworzę konto...";
+  regMsg("reg-data-msg", "", "info");
+
+  try {
+    const res = await fetch(BACKEND_URL + "/api/register-school", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        invitation_id: regState.invitationId,
+        email, password,
+        school_name: schoolName,
+        invoice_name:    invoiceName    || null,
+        invoice_nip:     invoiceNip     || null,
+        invoice_address: invoiceAddress || null
+      })
+    });
+    const data = await res.json();
+
+    if (!res.ok || !data.ok) {
+      regMsg("reg-data-msg", data.error || "Błąd rejestracji", "err");
+      btn.disabled = false; btn.textContent = "Utwórz konto →";
+      return;
+    }
+
+    // Konto utworzone — przejdź do weryfikacji OTP
+    regState.email = email;
+    document.getElementById("reg-otp-email").textContent = email;
+    regShowView(3);
+
+  } catch (e) {
+    regMsg("reg-data-msg", "Błąd połączenia: " + e.message, "err");
+  }
+
+  btn.disabled = false; btn.textContent = "Utwórz konto →";
+}
+
+// ============================================================
+// REJESTRACJA — Krok 3: weryfikacja OTP
+// ============================================================
+async function regStep3() {
+  const otp = document.getElementById("reg-otp-code").value.trim();
+  if (otp.length !== 6) { regMsg("reg-otp-msg", "Kod musi mieć 6 cyfr", "err"); return; }
+
+  const btn = document.getElementById("reg-btn-3");
+  btn.disabled = true; btn.textContent = "Weryfikuję...";
+  regMsg("reg-otp-msg", "", "info");
+
+  try {
+    const { error } = await supabaseClient.auth.verifyOtp({
+      email: regState.email,
+      token: otp,
+      type: "signup"
+    });
+
+    if (error) {
+      regMsg("reg-otp-msg", "Nieprawidłowy lub wygasły kod: " + error.message, "err");
+      btn.disabled = false; btn.textContent = "Zweryfikuj i aktywuj konto";
+      return;
+    }
+
+    // Sukces — pokaż ekran końcowy
+    [1,2,3].forEach(i => document.getElementById(`reg-view-${i}`).classList.add("hidden"));
+    document.getElementById("reg-view-success").classList.remove("hidden");
+    // Oznacz wszystkie kroki jako done
+    [1,2,3].forEach(i => {
+      const el = document.getElementById(`reg-step-${i}`);
+      el.className = "step done";
+      el.innerHTML = "✓";
+    });
+    [1,2].forEach(i => document.getElementById(`reg-line-${i}`).className = "step-line done");
+
+  } catch (e) {
+    regMsg("reg-otp-msg", "Błąd: " + e.message, "err");
+  }
+
+  btn.disabled = false; btn.textContent = "Zweryfikuj i aktywuj konto";
+}
+
+async function regResendOtp() {
+  if (!regState.email) return;
+  const { error } = await supabaseClient.auth.resend({ type: "signup", email: regState.email });
+  if (error) {
+    regMsg("reg-otp-msg", "Błąd wysyłania: " + error.message, "err");
+  } else {
+    regMsg("reg-otp-msg", "✅ Kod wysłany ponownie na " + regState.email, "ok");
+  }
+}
+
+// ============================================================
+// AUTH — logowanie / wylogowanie
 // ============================================================
 async function checkSession() {
   const { data: { session } } = await supabaseClient.auth.getSession();
@@ -334,7 +595,12 @@ async function loadSessions() {
   const list = document.getElementById("sessions-list");
   list.innerHTML = '<div style="text-align:center;padding:16px;color:#636366"><div class="spinner"></div></div>';
 
-  const { data: sessions, error } = await supabaseClient.from("sessions").select("id, started_at, ended_at, stars, message_count, duration_seconds, lang, status, log_sent_at").eq("school_id", currentSchool.id).order("started_at", { ascending: false }).limit(50);
+  const { data: sessions, error } = await supabaseClient
+    .from("sessions")
+    .select("id, started_at, ended_at, stars, message_count, duration_seconds, lang, status, log_sent_at")
+    .eq("school_id", currentSchool.id)
+    .order("started_at", { ascending: false })
+    .limit(50);
 
   if (error || !sessions?.length) {
     list.innerHTML = '<div style="text-align:center;padding:24px;color:#636366">Brak sesji</div>';
@@ -360,43 +626,35 @@ async function openSessionLog(sessionId) {
   document.getElementById("modal-log").textContent = "Ładowanie...";
   document.getElementById("modal-meta").textContent = "";
   document.getElementById("send-status-box").style.display = "none";
+  document.getElementById("user-message-input").value = "";
   clearDebugLog();
   dlog("Otwieranie logu sesji: " + sessionId, "info");
 
   const { data: session, error } = await supabaseClient.from("sessions").select("*, session_messages(*)").eq("id", sessionId).single();
-
-  if (error || !session) {
-    dlog("Błąd pobierania sesji: " + (error?.message || "brak danych"), "err");
-    document.getElementById("modal-log").textContent = "Błąd pobierania logu.";
-    return;
-  }
+  if (error || !session) { dlog("Błąd pobierania sesji: " + (error?.message || "brak danych"), "err"); document.getElementById("modal-log").textContent = "Błąd pobierania logu."; return; }
 
   dlog("Sesja pobrana. Wiadomości: " + (session.session_messages?.length || 0), "ok");
-  dlog("Status: " + session.status + " · Gwiazdki: " + (session.stars || 0), "info");
-
   const date = new Date(session.started_at).toLocaleString("pl-PL");
   const dur = session.duration_seconds ? Math.round(session.duration_seconds / 60) + " min" : "—";
   document.getElementById("modal-meta").textContent = `${date} · ${dur} · ★ ${session.stars || 0}/3`;
 
   if (session.anonymized_log) {
-    dlog("Zanonimizowany log dostępny — wyświetlam.", "ok");
     document.getElementById("modal-log").textContent = session.anonymized_log;
+    dlog("Zanonimizowany log dostępny.", "ok");
   } else if (session.session_messages?.length) {
     const raw = session.session_messages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).map(m => `[${m.role === "user" ? "DZIECKO" : "DYSPOZYTOR"}] ${m.content}`).join("\n");
     document.getElementById("modal-log").textContent = raw + "\n\n(log niezanonimizowany)";
-    dlog("Wyświetlam surowy log (" + session.session_messages.length + " wiadomości).", "warn");
+    dlog("Wyświetlam surowy log.", "warn");
   } else {
     document.getElementById("modal-log").textContent = "Brak wiadomości w tej sesji.";
-    dlog("Brak wiadomości w sesji.", "warn");
   }
 
-  // Sprawdź stan JWT
   const { data: { session: authSession } } = await supabaseClient.auth.getSession();
   if (authSession?.access_token) {
-    dlog("JWT: dostępny ✅ (wygasa: " + new Date(authSession.expires_at * 1000).toLocaleTimeString() + ")", "ok");
+    dlog("JWT: dostępny ✅", "ok");
     document.getElementById("modal-send-btn").disabled = false;
   } else {
-    dlog("JWT: BRAK ❌ — wyloguj się i zaloguj ponownie!", "err");
+    dlog("JWT: BRAK ❌", "err");
     document.getElementById("modal-send-btn").disabled = true;
   }
 }
@@ -407,50 +665,29 @@ function closeModal() {
 }
 
 function copyModalLog() {
-  const text = document.getElementById("modal-log").textContent;
-  navigator.clipboard.writeText(text).then(() => {
-    showSendStatus("✅ Skopiowano do schowka!", "ok");
-  });
+  navigator.clipboard.writeText(document.getElementById("modal-log").textContent)
+    .then(() => showSendStatus("✅ Skopiowano do schowka!", "ok"));
 }
 
 // ============================================================
-// WYSYŁKA MAILA — z pełnym debugowaniem
+// WYSYŁKA MAILA
 // ============================================================
 async function sendCurrentLog() {
   if (!currentSessionId) { dlog("Brak session_id!", "err"); return; }
-
   const btn = document.getElementById("modal-send-btn");
   btn.disabled = true; btn.textContent = "Wysyłam...";
   document.getElementById("send-status-box").style.display = "none";
-
   dlog("▶ Rozpoczynam wysyłkę...", "info");
-  dlog("Session ID: " + currentSessionId, "info");
-  dlog("Backend URL: " + BACKEND_URL, "info");
 
-  // Pobierz JWT
   const { data: { session: authSession }, error: sessionError } = await supabaseClient.auth.getSession();
-
-  if (sessionError) {
-    dlog("Błąd pobierania sesji auth: " + sessionError.message, "err");
-    showSendStatus("❌ Błąd autoryzacji: " + sessionError.message, "err");
-    btn.disabled = false; btn.textContent = "📧 Wyślij na email";
-    return;
-  }
-
-  if (!authSession) {
-    dlog("Brak sesji Supabase — użytkownik niezalogowany!", "err");
+  if (sessionError || !authSession) {
+    dlog("Brak sesji Supabase!", "err");
     showSendStatus("❌ Brak sesji — wyloguj się i zaloguj ponownie.", "err");
     btn.disabled = false; btn.textContent = "📧 Wyślij na email";
     return;
   }
 
-  const accessJwt = authSession.access_token;
-  dlog("JWT pobrany ✅ (długość: " + accessJwt.length + " znaków)", "ok");
-  dlog("User email: " + authSession.user?.email, "info");
-  dlog("Token wygasa: " + new Date(authSession.expires_at * 1000).toLocaleString(), "info");
-
-  // Wysyłka do backendu
-  dlog("▶ Wysyłam POST do: " + BACKEND_URL + "/api/send-log-email", "info");
+  dlog("JWT pobrany ✅ (" + authSession.access_token.length + " znaków)", "ok");
 
   try {
     const res = await fetch(BACKEND_URL + "/api/send-log-email", {
@@ -458,7 +695,7 @@ async function sendCurrentLog() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         session_id: currentSessionId,
-        access_jwt: accessJwt,
+        access_jwt: authSession.access_token,
         user_message: document.getElementById("user-message-input")?.value?.trim() || "",
         client_info: {
           userAgent: navigator.userAgent,
@@ -472,19 +709,16 @@ async function sendCurrentLog() {
       })
     });
 
-    dlog("HTTP status: " + res.status + " " + res.statusText, res.ok ? "ok" : "err");
-
+    dlog("HTTP status: " + res.status, res.ok ? "ok" : "err");
     const contentType = res.headers.get("content-type") || "";
-    dlog("Content-Type odpowiedzi: " + contentType, "info");
-
     let data;
     if (contentType.includes("application/json")) {
       data = await res.json();
-      dlog("Odpowiedź JSON: " + JSON.stringify(data), res.ok ? "ok" : "err");
+      dlog("Odpowiedź: " + JSON.stringify(data), res.ok ? "ok" : "err");
     } else {
       const text = await res.text();
       dlog("Odpowiedź (nie-JSON): " + text.substring(0, 200), "err");
-      showSendStatus("❌ Backend zwrócił nie-JSON. Sprawdź debug log.", "err");
+      showSendStatus("❌ Nieoczekiwana odpowiedź serwera.", "err");
       btn.disabled = false; btn.textContent = "📧 Wyślij na email";
       return;
     }
@@ -494,12 +728,11 @@ async function sendCurrentLog() {
       showSendStatus("✅ Wysłano na: " + (data.sent_to || []).join(", "), "ok");
       await loadSessions();
     } else {
-      dlog("❌ Błąd serwera: " + (data.error || "nieznany"), "err");
+      dlog("❌ Błąd: " + (data.error || "nieznany"), "err");
       showSendStatus("❌ " + (data.error || "Błąd serwera"), "err");
     }
   } catch (e) {
-    dlog("❌ Wyjątek fetch: " + e.message, "err");
-    dlog("Stack: " + (e.stack || "brak"), "err");
+    dlog("❌ Wyjątek: " + e.message, "err");
     showSendStatus("❌ Błąd połączenia: " + e.message, "err");
   }
 
@@ -509,6 +742,32 @@ async function sendCurrentLog() {
 // ============================================================
 // HELPERS
 // ============================================================
+function dlog(msg, type = "info") {
+  const el = document.getElementById("debug-log");
+  if (!el) return;
+  const t = new Date().toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  const line = document.createElement("div");
+  line.className = "dlog-" + type;
+  line.textContent = `[${t}] ${msg}`;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+}
+
+function clearDebugLog() {
+  const el = document.getElementById("debug-log");
+  if (el) el.innerHTML = '<span style="color:#636366">Wyczyszczono.</span>';
+}
+
+function showSendStatus(msg, type) {
+  const box = document.getElementById("send-status-box");
+  const msgEl = document.getElementById("send-status-msg");
+  box.style.display = "block";
+  msgEl.textContent = msg;
+  msgEl.style.background = type === "ok" ? "#0d2818" : type === "err" ? "#1a0000" : "#001a2e";
+  msgEl.style.color = type === "ok" ? "#34c759" : type === "err" ? "#ff3b30" : "#0a84ff";
+  msgEl.style.border = `0.5px solid ${type === "ok" ? "#34c759" : type === "err" ? "#ff3b30" : "#0a84ff"}`;
+}
+
 function show(which) {
   document.getElementById("view-login").classList.toggle("hidden", which !== "login");
   document.getElementById("view-panel").classList.toggle("hidden", which !== "panel");
@@ -521,6 +780,12 @@ function switchTab(name) {
 }
 
 document.getElementById("log-modal").addEventListener("click", (e) => { if (e.target === e.currentTarget) closeModal(); });
+
+// Auto-uppercase kod zaproszenia
+document.addEventListener("DOMContentLoaded", () => {
+  const inv = document.getElementById("reg-invite-code");
+  if (inv) inv.addEventListener("input", () => { inv.value = inv.value.toUpperCase(); });
+});
 
 checkSession();
 </script>
