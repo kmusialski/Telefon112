@@ -564,7 +564,7 @@ app.post("/api/register-school", async (req, res) => {
   console.log(`[REGISTER] ✅ Szkoła utworzona: ${school.id}`);
 
   // 4. Wygeneruj token dostępu z 5 darmowymi sesjami
-  const tokenCode = "HK" + Math.random().toString(36).slice(2, 7).toUpperCase();
+  const tokenCode = "PSZ-" + Math.random().toString(36).slice(2, 6).toUpperCase() + "-" + Math.random().toString(36).slice(2, 6).toUpperCase();
   const { error: tokenError } = await supabase
     .from("tokens")
     .insert({
