@@ -523,11 +523,24 @@ app.post("/api/register-school", async (req, res) => {
 
   // 2. Utwórz konto Supabase Auth (service role — omija potwierdzenie email)
   //    Supabase wyśle OTP automatycznie jeśli skonfigurowane w Auth → Email
-  const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
     email,
     password,
-    email_confirm: false  // false = Supabase wyśle email weryfikacyjny z OTP
+    email_confirm: false
   });
+
+  // Wymuś wysyłkę OTP przez generateLink (admin.createUser nie wysyła go automatycznie)
+  if (!authError && authData?.user) {
+    try {
+      await supabase.auth.admin.generateLink({
+        type: "signup",
+        email,
+        password
+      });
+    } catch (e) {
+      console.warn(`[REGISTER] ⚠️ generateLink failed: ${e.message} — OTP może nie dotrzeć`);
+    }
+  }
 
   if (authError) {
     console.error(`[REGISTER] ❌ Auth error: ${authError.message}`);
