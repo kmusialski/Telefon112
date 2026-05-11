@@ -81,7 +81,7 @@ pre{background:#111;border-radius:10px;padding:14px;font-size:12px;line-height:1
   <div style="text-align:center;margin-bottom:28px">
     <div style="font-size:48px;margin-bottom:12px">🏫</div>
     <h1>Panel szkoły</h1>
-    <div class="subtitle">Zadzwoń pod 112 · v1.6.1</div>
+    <div class="subtitle">Zadzwoń pod 112 · v1.6.2</div>
   </div>
 
   <!-- Auth tabs -->
@@ -158,12 +158,20 @@ pre{background:#111;border-radius:10px;padding:14px;font-size:12px;line-height:1
     <!-- KROK 3: Weryfikacja OTP -->
     <div id="reg-view-3" class="card hidden">
       <div class="card-title">Krok 3 — Weryfikacja email</div>
-      <p class="otp-hint">Wysłaliśmy 6-cyfrowy kod weryfikacyjny na adres:<br/><b id="reg-otp-email" style="color:#fff"></b><br/>Sprawdź skrzynkę (również folder Spam).</p>
-      <input id="reg-otp-code" type="text" placeholder="_ _ _ _ _ _ _ _" maxlength="8" style="text-align:center;letter-spacing:8px;font-size:24px;font-family:monospace"/>
-      <div id="reg-otp-msg" style="font-size:13px;min-height:18px;margin-bottom:8px"></div>
-      <button class="btn-primary" onclick="regStep3()" id="reg-btn-3">Zweryfikuj i aktywuj konto</button>
-      <div style="margin-top:12px;text-align:center">
-        <button onclick="regResendOtp()" style="background:transparent;color:#0a84ff;border:none;font-size:13px;cursor:pointer">Wyślij kod ponownie</button>
+      <!-- v1.6.2: przycisk wysyłki OTP jako ręczny trigger (admin.createUser nie wysyła automatycznie) -->
+      <div id="otp-send-section" style="margin-bottom:16px">
+        <p class="otp-hint" style="margin-bottom:10px">Konto zostało utworzone. Teraz wyślij kod weryfikacyjny na adres:<br/><b id="reg-otp-email" style="color:#fff"></b></p>
+        <button onclick="regSendOtp()" id="otp-send-btn" class="btn-primary">📧 Wyślij kod aktywacyjny</button>
+      </div>
+      <div id="otp-verify-section" class="hidden">
+        <p class="otp-hint">Sprawdź skrzynkę (również folder Spam) i wpisz 6-cyfrowy kod:</p>
+        <input id="reg-otp-code" type="text" placeholder="_ _ _ _ _ _" maxlength="8" style="text-align:center;letter-spacing:8px;font-size:24px;font-family:monospace"/>
+        <div id="reg-otp-msg" style="font-size:13px;min-height:18px;margin-bottom:8px"></div>
+        <button class="btn-primary" onclick="regStep3()" id="reg-btn-3">Zweryfikuj i aktywuj konto</button>
+        <div style="margin-top:12px;text-align:center">
+          <button onclick="regResendOtp()" id="otp-resend-btn" style="background:transparent;color:#0a84ff;border:none;font-size:13px;cursor:pointer">Wyślij ponownie</button>
+          <span id="otp-countdown" style="font-size:12px;color:#636366;display:none"></span>
+        </div>
       </div>
     </div>
 
@@ -217,41 +225,20 @@ pre{background:#111;border-radius:10px;padding:14px;font-size:12px;line-height:1
   </div>
 
   <div id="tab-info" class="tab-content">
-    <div class="card">
-      <div class="card-title">Pakiety sesji</div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
-        <a href="sklep.html" style="text-decoration:none">
-          <div style="background:#111;border-radius:14px;padding:18px;text-align:center;cursor:pointer;border:1.5px solid #2c2c2e;transition:border-color 0.15s" onmouseover="this.style.borderColor='#0a84ff'" onmouseout="this.style.borderColor='#2c2c2e'">
-            <div style="font-size:28px;font-weight:800">30</div>
-            <div style="font-size:11px;color:#636366;margin-top:3px">sesji</div>
-            <div style="font-size:18px;color:#ffd60a;font-weight:700;margin-top:10px">29 zł</div>
-            <div style="font-size:10px;color:#636366;margin-top:2px;margin-bottom:12px">Basic</div>
-            <div style="background:#0a84ff;color:#fff;border-radius:8px;padding:7px 0;font-size:14px;font-weight:600">Kup</div>
-          </div>
-        </a>
-        <a href="sklep.html" style="text-decoration:none">
-          <div style="background:#001a2e;border-radius:14px;padding:18px;text-align:center;cursor:pointer;border:1.5px solid #0a84ff">
-            <div style="font-size:28px;font-weight:800">60</div>
-            <div style="font-size:11px;color:#636366;margin-top:3px">sesji</div>
-            <div style="font-size:18px;color:#ffd60a;font-weight:700;margin-top:10px">49 zł</div>
-            <div style="font-size:10px;color:#0a84ff;margin-top:2px;margin-bottom:12px">Standard ★</div>
-            <div style="background:#0a84ff;color:#fff;border-radius:8px;padding:7px 0;font-size:14px;font-weight:600">Kup</div>
-          </div>
-        </a>
-        <a href="sklep.html" style="text-decoration:none">
-          <div style="background:#111;border-radius:14px;padding:18px;text-align:center;cursor:pointer;border:1.5px solid #2c2c2e;transition:border-color 0.15s" onmouseover="this.style.borderColor='#0a84ff'" onmouseout="this.style.borderColor='#2c2c2e'">
-            <div style="font-size:28px;font-weight:800">100</div>
-            <div style="font-size:11px;color:#636366;margin-top:3px">sesji</div>
-            <div style="font-size:18px;color:#ffd60a;font-weight:700;margin-top:10px">79 zł</div>
-            <div style="font-size:10px;color:#636366;margin-top:2px;margin-bottom:12px">Pro</div>
-            <div style="background:#0a84ff;color:#fff;border-radius:8px;padding:7px 0;font-size:14px;font-weight:600">Kup</div>
-          </div>
-        </a>
+    <!-- v1.6.2: baner "Przejdź do sklepu" zamiast kafelków pakietów -->
+    <a href="sklep.html" style="text-decoration:none;display:block;margin-bottom:16px">
+      <div style="background:linear-gradient(135deg,#001a2e 0%,#002d4a 100%);border-radius:16px;padding:20px;border:1.5px solid #0a84ff;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:16px">
+        <div>
+          <div style="font-size:13px;color:#0a84ff;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Kup sesje</div>
+          <div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:4px">Przejdź do sklepu →</div>
+          <div style="font-size:13px;color:#8e8e93">Pakiety Basic · Standard · Pro</div>
+        </div>
+        <div style="flex-shrink:0;background:#0a84ff;border-radius:12px;padding:14px 20px;font-size:15px;font-weight:600;color:#fff;white-space:nowrap">od 29 zł</div>
       </div>
-    </div>
+    </a>
     <div class="card">
       <div class="card-title">Kontakt</div>
-      <div style="font-size:14px;color:#8e8e93;line-height:1.8">📧 <a href="mailto:support@herokids.eu" style="color:#0a84ff">support@herokids.eu</a></div>
+      <div style="font-size:14px;color:#8e8e93;line-height:1.8">📧 <a href="mailto:contact@herokids.eu" style="color:#0a84ff">contact@herokids.eu</a></div>
     </div>
   </div>
 </div>
@@ -324,6 +311,16 @@ function switchAuthTab(tab) {
 // ============================================================
 function regReset() {
   regState = { invitationId: null, email: null };
+  // v1.6.2: reset stanu sekcji OTP
+  const sendSection   = document.getElementById("otp-send-section");
+  const verifySection = document.getElementById("otp-verify-section");
+  if (sendSection)   sendSection.classList.remove("hidden");
+  if (verifySection) verifySection.classList.add("hidden");
+  const sendBtn = document.getElementById("otp-send-btn");
+  if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = "📧 Wyślij kod aktywacyjny"; }
+  if (otpCooldownTimer) { clearInterval(otpCooldownTimer); otpCooldownTimer = null; }
+  const countdown = document.getElementById("otp-countdown");
+  if (countdown) countdown.style.display = "none";
   regShowView(1);
   ["reg-invite-code","reg-school-name","reg-email","reg-password","reg-password2",
    "reg-invoice-name","reg-invoice-nip","reg-invoice-address","reg-otp-code"].forEach(id => {
@@ -439,9 +436,12 @@ async function regStep2() {
       return;
     }
 
-    // Konto utworzone — przejdź do weryfikacji OTP
+    // Konto utworzone — przejdź do weryfikacji OTP (v1.6.2: najpierw pokaż przycisk wysyłki)
     regState.email = email;
     document.getElementById("reg-otp-email").textContent = email;
+    // v1.6.2: reset sekcji OTP — pokaż "Wyślij kod aktywacyjny", ukryj pole weryfikacji
+    document.getElementById("otp-send-section").classList.remove("hidden");
+    document.getElementById("otp-verify-section").classList.add("hidden");
     regShowView(3);
 
   } catch (e) {
@@ -449,6 +449,57 @@ async function regStep2() {
   }
 
   btn.disabled = false; btn.textContent = "Utwórz konto →";
+}
+
+// ============================================================
+// REJESTRACJA — Krok 3a: wyślij OTP (ręczny trigger — v1.6.2)
+// admin.createUser nie wysyła OTP automatycznie
+// ============================================================
+let otpCooldownTimer = null;
+
+async function regSendOtp() {
+  if (!regState.email) return;
+  const btn = document.getElementById("otp-send-btn");
+  btn.disabled = true; btn.textContent = "Wysyłam...";
+
+  const { error } = await supabaseClient.auth.resend({ type: "signup", email: regState.email });
+
+  if (error) {
+    regMsg("reg-otp-msg", "Błąd wysyłania: " + error.message, "err");
+    btn.disabled = false; btn.textContent = "📧 Wyślij kod aktywacyjny";
+    // Pokaż sekcję weryfikacji i tak (żeby można było wpisać kod)
+    document.getElementById("otp-send-section").classList.add("hidden");
+    document.getElementById("otp-verify-section").classList.remove("hidden");
+    return;
+  }
+
+  // Sukces — pokaż sekcję weryfikacji
+  document.getElementById("otp-send-section").classList.add("hidden");
+  document.getElementById("otp-verify-section").classList.remove("hidden");
+  regMsg("reg-otp-msg", "✅ Kod wysłany na " + regState.email, "ok");
+  startOtpCountdown();
+}
+
+function startOtpCountdown(seconds = 45) {
+  const resendBtn   = document.getElementById("otp-resend-btn");
+  const countdownEl = document.getElementById("otp-countdown");
+  if (!resendBtn || !countdownEl) return;
+
+  resendBtn.disabled = true;
+  countdownEl.style.display = "inline";
+  let remaining = seconds;
+  countdownEl.textContent = ` (${remaining}s)`;
+
+  if (otpCooldownTimer) clearInterval(otpCooldownTimer);
+  otpCooldownTimer = setInterval(() => {
+    remaining--;
+    countdownEl.textContent = ` (${remaining}s)`;
+    if (remaining <= 0) {
+      clearInterval(otpCooldownTimer);
+      resendBtn.disabled = false;
+      countdownEl.style.display = "none";
+    }
+  }, 1000);
 }
 
 // ============================================================
@@ -478,7 +529,6 @@ async function regStep3() {
     // Sukces — pokaż ekran końcowy
     [1,2,3].forEach(i => document.getElementById(`reg-view-${i}`).classList.add("hidden"));
     document.getElementById("reg-view-success").classList.remove("hidden");
-    // Oznacz wszystkie kroki jako done
     [1,2,3].forEach(i => {
       const el = document.getElementById(`reg-step-${i}`);
       el.className = "step done";
@@ -495,11 +545,16 @@ async function regStep3() {
 
 async function regResendOtp() {
   if (!regState.email) return;
+  const resendBtn = document.getElementById("otp-resend-btn");
+  resendBtn.disabled = true;
+
   const { error } = await supabaseClient.auth.resend({ type: "signup", email: regState.email });
   if (error) {
     regMsg("reg-otp-msg", "Błąd wysyłania: " + error.message, "err");
+    resendBtn.disabled = false;
   } else {
     regMsg("reg-otp-msg", "✅ Kod wysłany ponownie na " + regState.email, "ok");
+    startOtpCountdown(45);
   }
 }
 
