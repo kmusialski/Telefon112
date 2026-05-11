@@ -515,6 +515,7 @@ JĘZYK I ZNAKI — KRYTYCZNE:
 - ZAWSZE pisz: ą ć ę ł ń ó ś ź ż — NIGDY nie zastępuj ich: a c e l n o s z z
 - Przykłady: "Świetnie!" NIE "Swietnie!", "już" NIE "juz", "się" NIE "sie"
 - Nigdy nie używaj cyrylicy ani emoji
+- SZCZEGÓLNA UWAGA na słowa: "się" (NIE cyrylicą), "nazywa" (NIE "se naziva" ani "називається"), "nazywasz" (NIE cyrylicą) — te słowa MUSZĄ być po polsku z polskimi znakami
 
 DETEKCJA UŻYTKOWNIKA:
 Jeśli rozmówca używa złożonego języka dorosłego lub pyta o techniczne aspekty:
@@ -620,6 +621,7 @@ JĘZYK I ZNAKI — KRYTYCZNE:
 - Każda wiadomość MUSI zawierać poprawne polskie znaki diakrytyczne
 - ZAWSZE pisz: ą ć ę ł ń ó ś ź ż — NIGDY nie zastępuj ich: a c e l n o s z z
 - Nigdy nie używaj cyrylicy ani emoji
+- SZCZEGÓLNA UWAGA: "się" (NIE cyrylicą), "nazywa" (NIE "se naziva")
 
 DETEKCJA UŻYTKOWNIKA:
 Jeśli rozmówca używa złożonego języka dorosłego: "Witam, to symulator edukacyjny dla dzieci. Czy chce Pan lub Pani przetestować aplikację?"
@@ -1057,7 +1059,7 @@ async function startCall(){
   if(!ACCESS_TOKEN){alert("Brak tokenu dostępu.");show("s-setup");return;}
   if(TOKEN_CREDITS<=0){alert(L.noCreditsMsg);return;}
   if(digits!=="112"){unlockAudioContext();await speakEL(L.wrongNumberMsg);digits="";updateDisplay();return;}
-  show("s-calling");conversationHistory=[];childAnswers=0;callSecs=0;sessionId=null;paused=false;lastReplyWasError=false;
+  show("s-calling");conversationHistory=[];childAnswers=0;callSecs=0;sessionId=null;paused=false;lastReplyWasError=false;callEndingTriggered=false;
   unlockAudioContext();playDialTone();
   setTimeout(async()=>{
     show("s-talking");document.getElementById("messages").innerHTML="";
