@@ -611,7 +611,7 @@ function updatePayBtn() {
   const cartBtn = document.getElementById("cart-pay-btn");
   if (!pkg) return;
   btn.disabled = !checked;
-  btn.textContent = checked ? `Zapłać ${pkg.price} przez PayU →` : `Zaakceptuj regulamin aby kontynuować`;
+  btn.textContent = checked ? `Zapłać ${pkg.price} przez PayU →` : `Zaakceptuj regulamin na dole tej strony, aby kontynuować`;
   if (cartBtn) cartBtn.disabled = !checked;
 }
 
