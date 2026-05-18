@@ -28,7 +28,8 @@ app.use(cors({
     "https://www.herokids.eu",
     "https://telefon112-production.up.railway.app",
     "https://telefon112-dev.up.railway.app",
-    "http://localhost:3000"
+    "http://localhost:3000",
+    "https://dev.herokids.eu"
   ]
 }));
 
