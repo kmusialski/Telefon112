@@ -89,7 +89,7 @@ input:checked+.toggle-slider:before{transform:translateX(18px)}
   </div>
   <button onclick="handleRodoAccept()" class="api-btn" style="margin-top:0">Rozpocznij</button>
   <button onclick="openAdminFromSetup('s-rodo')" style="background:transparent;border:0.5px solid #3a3a3c;border-radius:24px;padding:12px 24px;font-size:14px;color:#8e8e93;cursor:pointer;font-family:-apple-system,sans-serif;width:100%;margin-top:10px">Ustawienia</button>
-  <div style="font-size:11px;color:#636366;text-align:center;margin-top:12px">HeroKids 112 · v1.6.3</div>
+  <div style="font-size:11px;color:#636366;text-align:center;margin-top:12px">HeroKids 112 · v1.6.4</div>
 </div>
 
 <!-- SETUP -->
@@ -106,9 +106,6 @@ input:checked+.toggle-slider:before{transform:translateX(18px)}
   <div id="setup-error" style="font-size:13px;color:#ff3b30;margin-top:4px;text-align:center;min-height:16px"></div>
   <button id="start-btn" class="api-btn" onclick="validateTokenAndStart()" disabled>Rozpocznij</button>
   <div style="font-size:11px;color:#636366;text-align:center;margin-top:12px;line-height:1.6">Klucze API są przechowywane wyłącznie na serwerze.</div>
-  <div style="width:100%;margin-top:24px;padding-top:24px;border-top:0.5px solid #2c2c2e;text-align:center">
-    <button onclick="openAdminFromSetup()" style="background:transparent;border:0.5px solid #3a3a3c;border-radius:24px;padding:12px 24px;font-size:14px;color:#8e8e93;cursor:pointer;font-family:-apple-system,sans-serif;width:100%">Panel administratora</button>
-  </div>
 </div>
 
 <!-- LOCK SCREEN -->
@@ -263,17 +260,6 @@ input:checked+.toggle-slider:before{transform:translateX(18px)}
   <div id="summary-disclaimer" style="font-size:12px;color:#636366"></div>
   <button onclick="resetApp()" id="summary-retry-btn" style="background:#0a84ff;color:#fff;border:none;border-radius:24px;padding:14px 44px;font-size:17px;cursor:pointer;margin-top:4px"></button>
   <button onclick="openAdminFromSetup('s-summary')" id="summary-admin-btn" style="background:transparent;border:0.5px solid #3a3a3c;border-radius:24px;padding:12px 24px;font-size:14px;color:#8e8e93;cursor:pointer;font-family:-apple-system,sans-serif;width:100%;margin-top:8px"></button>
-</div>
-
-<!-- ADMIN LOGIN -->
-<div id="s-admin-login" class="screen hidden" style="padding:40px 24px;gap:0;justify-content:center">
-  <div style="font-size:48px;text-align:center;margin-bottom:16px">🔐</div>
-  <div id="admin-login-title" style="font-size:20px;font-weight:600;text-align:center;margin-bottom:6px"></div>
-  <div id="admin-login-subtitle" style="font-size:14px;color:#8e8e93;text-align:center;margin-bottom:24px;line-height:1.6"></div>
-  <input id="admin-pass-input" class="api-input" type="password" placeholder="..."/>
-  <div id="admin-login-err" style="font-size:13px;color:#ff3b30;text-align:center;min-height:20px;margin-top:8px"></div>
-  <button onclick="checkAdminPass()" class="api-btn" id="admin-login-btn"></button>
-  <button onclick="show(window._adminReturnTo||'s-rodo')" style="background:transparent;border:none;color:#8e8e93;cursor:pointer;font-size:14px;margin-top:16px;font-family:-apple-system,sans-serif" id="admin-login-cancel"></button>
 </div>
 
 <!-- ADMIN PANEL -->
@@ -706,7 +692,6 @@ function getActivePrompt(){
   if(extra.trim())return base+"\n\n"+getLoc().extraHeader+"\n"+extra;
   return base;
 }
-function getAdminPass(){return localStorage.getItem("admin_pass")||null;}
 function setLang(lang){currentLang=lang;localStorage.setItem("app_lang",lang);applyLocale();}
 function refreshAdminExtra(){document.getElementById("admin-extra").value=localStorage.getItem("admin_extra_"+currentLang)||"";}
 
@@ -741,9 +726,6 @@ function applyLocale(){
   setHTML("summary-tips-box",`<div style="font-weight:600;margin-bottom:6px;color:#fff;font-size:15px">${L.summaryTipsTitle}</div>`+L.summaryTips.map(t=>`<div>${t}</div>`).join(""));
   setText("admin-login-title",L.adminLoginTitle);
   setText("admin-login-subtitle",L.adminLoginSubtitle);
-  setPH("admin-pass-input",L.adminLoginPassPh);
-  setText("admin-login-btn",L.adminLoginBtn);
-  setText("admin-login-cancel",L.adminLoginCancel);
   setText("admin-panel-title",L.adminPanelTitle);
   setText("admin-panel-close",L.adminPanelClose);
   setText("admin-lang-section-title",L.adminLangSectionTitle);
@@ -831,7 +813,7 @@ async function validateTokenAndStart(){
   try{
     const res=await fetch(BACKEND_URL+"/api/validate-token",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token})});
     const data=await res.json();
-    if(!res.ok||!data.valid){errEl.textContent=data.message||L.invalidTokenMsg;btn.textContent=L.setupStartBtn;btn.disabled=false;statusEl.textContent="";return;}
+    if(!res.ok||!data.valid){log("ERR","validate-token: "+(res.status)+" — "+(data.message||data.error||JSON.stringify(data)));errEl.textContent=data.message||L.invalidTokenMsg;btn.textContent=L.setupStartBtn;btn.disabled=false;statusEl.textContent="";return;}
     if(data.credits<=0){errEl.textContent=L.noCreditsMsg;btn.textContent=L.setupStartBtn;btn.disabled=false;statusEl.textContent="";return;}
     ACCESS_TOKEN=token;TOKEN_CREDITS=data.credits;TOKEN_SCHOOL=data.school_name||"";
     sessionStorage.setItem("access_token",ACCESS_TOKEN);
@@ -888,11 +870,21 @@ function togglePause(){
 let tapCount=0,tapTimer=null;
 document.getElementById("logo-tap").addEventListener("click",()=>{
   tapCount++;clearTimeout(tapTimer);tapTimer=setTimeout(()=>{tapCount=0;},800);
-  if(tapCount>=3){tapCount=0;window._adminReturnTo="s-calling";document.getElementById("admin-pass-input").value="";document.getElementById("admin-login-err").textContent="";show("s-admin-login");}
+  if(tapCount>=3){tapCount=0;openAdmin("s-calling");}
 });
-function openAdminFromSetup(ret){
-  document.getElementById("admin-pass-input").value="";document.getElementById("admin-login-err").textContent="";
-  window._adminReturnTo=ret||"s-setup";show("s-admin-login");
+function openAdminFromSetup(ret){openAdmin(ret||"s-setup");}
+function openAdmin(ret){
+  window._adminReturnTo=ret;
+  document.getElementById("admin-extra").value=localStorage.getItem("admin_extra_"+currentLang)||"";
+  document.getElementById("admin-new-pass").value="";
+  document.getElementById("admin-msg").textContent="";
+  document.getElementById("auto-end-toggle").checked=getToggle("auto_end_call");
+  document.getElementById("short-call-toggle").checked=getToggle("short_call");
+  document.getElementById("street-error-toggle").checked=getToggle("street_error");
+  const rowStreet=document.getElementById("toggle-row-street");
+  if(rowStreet)rowStreet.style.opacity=getToggle("short_call")?"0.4":"1";
+  updateTokenUI();
+  show("s-admin");
 }
 // v1.6.2: krótka rozmowa i błąd w ulicy wzajemnie się wykluczają
 function onShortCallToggle(checked){
@@ -910,47 +902,11 @@ function onShortCallToggle(checked){
   }
 }
 
-function checkAdminPass(){
-  const savedPass=getAdminPass();
-  if(!savedPass){
-    // Pierwsze uruchomienie — brak hasła, wejdź bezpośrednio i wymuś ustawienie
-    document.getElementById("admin-extra").value=localStorage.getItem("admin_extra_"+currentLang)||"";
-    document.getElementById("admin-new-pass").value="";
-    const msg=document.getElementById("admin-msg");
-    msg.style.color="#ff9f0a";msg.textContent="Ustaw hasło administratora poniżej.";
-    document.getElementById("auto-end-toggle").checked=getToggle("auto_end_call");
-    document.getElementById("short-call-toggle").checked=getToggle("short_call");
-    document.getElementById("street-error-toggle").checked=getToggle("street_error");
-    const rowStreet=document.getElementById("toggle-row-street");
-    if(rowStreet)rowStreet.style.opacity=getToggle("short_call")?"0.4":"1";
-    updateTokenUI();
-    show("s-admin");
-    return;
-  }
-  const v=document.getElementById("admin-pass-input").value;
-  if(v===savedPass){
-    document.getElementById("admin-extra").value=localStorage.getItem("admin_extra_"+currentLang)||"";
-    document.getElementById("admin-new-pass").value="";
-    document.getElementById("admin-msg").textContent="";
-    document.getElementById("auto-end-toggle").checked=getToggle("auto_end_call");
-    document.getElementById("short-call-toggle").checked=getToggle("short_call");
-    document.getElementById("street-error-toggle").checked=getToggle("street_error");
-    const rowStreet=document.getElementById("toggle-row-street");
-    if(rowStreet)rowStreet.style.opacity=getToggle("short_call")?"0.4":"1";
-    updateTokenUI();
-    show("s-admin");
-  }else{document.getElementById("admin-login-err").textContent=getLoc().adminLoginErr;}
-}
 function saveAdminSettings(){
   const L=getLoc();
   const extra=document.getElementById("admin-extra").value.trim();
   const newPass=document.getElementById("admin-new-pass").value.trim();
   const msg=document.getElementById("admin-msg");
-  if(!getAdminPass()&&newPass.length<4){
-    msg.style.color="#ff9f0a";msg.textContent="Ustaw hasło — minimum 4 znaki.";
-    setTimeout(()=>{msg.textContent="Ustaw hasło administratora poniżej.";},3000);
-    return;
-  }
   localStorage.setItem("admin_extra_"+currentLang,extra);
   if(newPass.length>=4)localStorage.setItem("admin_pass",newPass);
   msg.style.color="#34c759";msg.textContent=L.adminSavedMsg;setTimeout(()=>{msg.textContent="";},2000);
@@ -978,7 +934,7 @@ function log(type,msg){
 // ============================================================
 // NAWIGACJA
 // ============================================================
-const ALL_SCREENS=["s-rodo","s-setup","s-lock","s-dialer","s-calling","s-talking","s-summary","s-admin-login","s-admin"];
+const ALL_SCREENS=["s-rodo","s-setup","s-lock","s-dialer","s-calling","s-talking","s-summary","s-admin"];
 function show(id){ALL_SCREENS.forEach(s=>{document.getElementById(s).classList.toggle("hidden",s!==id);});document.body.style.overflow=(id==="s-lock")?"hidden":"";}
 
 // ============================================================
@@ -1011,8 +967,8 @@ async function speakEL(text,onEnd){
       const vs=isChild?{stability:0.35,similarity_boost:0.80,style:0.45,use_speaker_boost:true}:{stability:0.75,similarity_boost:0.75,style:0.0,use_speaker_boost:true};
       const res=await fetch(BACKEND_URL+"/api/tts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text,lang:L.code,voice_id:L.voiceId,voice_settings:vs,token:ACCESS_TOKEN}),signal:ctrl.signal});
       clearTimeout(tId);
-      log(res.ok?"OK":"ERR","EL response: "+res.status);
-      if(!res.ok)throw new Error("TTS "+res.status);
+      if(!res.ok){const eb=await res.json().catch(()=>({}));log("ERR","EL response: "+res.status+" — "+(eb.error||JSON.stringify(eb)));throw new Error("TTS "+res.status);}
+      log("OK","EL response: "+res.status);
       return res;
     }catch(e){clearTimeout(tId);throw e;}
   };
@@ -1068,9 +1024,8 @@ async function askClaude(userMessage){
   log("API","Claude ["+currentLang+"]: "+userMessage.substring(0,40));
   try{
     const res=await fetch(BACKEND_URL+"/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:userMessage,history:conversationHistory.slice(0,-1),system:getActivePrompt(),lang:currentLang,token:ACCESS_TOKEN,session_id:sessionId})});
-    log(res.ok?"OK":"ERR","Claude: "+res.status);
-    if(res.status===402){TOKEN_CREDITS=0;updateTokenUI();return getLoc().noCreditsMsg;}
-    if(!res.ok)throw new Error("Claude "+res.status);
+    if(!res.ok){const eb=await res.json().catch(()=>({}));log("ERR","Claude: "+res.status+" — "+(eb.error||JSON.stringify(eb)));if(res.status===402){TOKEN_CREDITS=0;updateTokenUI();return getLoc().noCreditsMsg;}throw new Error("Claude "+res.status);}
+    log("OK","Claude: "+res.status);
     const data=await res.json();
     const reply=data.reply;
     if(data.session_id)sessionId=data.session_id;
