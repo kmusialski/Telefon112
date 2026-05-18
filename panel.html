@@ -3,564 +3,763 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Panel Szkoły — Zadzwoń pod 112</title>
+<title>Panel Dyrektora — HeroKids 112</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0a0a0a;color:#e5e5ea;min-height:100vh}
-.container{max-width:900px;margin:0 auto;padding:24px 16px}
-.card{background:#1c1c1e;border-radius:16px;padding:20px;margin-bottom:16px}
-.card-title{font-size:13px;color:#8e8e93;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
-h1{font-size:24px;font-weight:700;margin-bottom:4px}
-.subtitle{font-size:14px;color:#636366}
-input,textarea{background:#2c2c2e;border:0.5px solid #3a3a3c;border-radius:10px;color:#fff;font-size:15px;padding:12px 14px;width:100%;outline:none;font-family:-apple-system,sans-serif;margin-bottom:10px}
-input::placeholder,textarea::placeholder{color:#636366}
-textarea{resize:vertical;min-height:72px}
-button{border:none;border-radius:12px;padding:12px 20px;font-size:15px;cursor:pointer;font-family:-apple-system,sans-serif;transition:opacity 0.15s}
-button:disabled{opacity:0.4;cursor:not-allowed}
-.btn-primary{background:#0a84ff;color:#fff;width:100%}
-.btn-danger{background:#ff3b30;color:#fff;font-size:13px;padding:8px 16px}
-.btn-secondary{background:#2c2c2e;color:#fff;font-size:13px;padding:8px 16px}
-.btn-green{background:#34c759;color:#fff;font-size:13px;padding:8px 16px}
-.btn-outline{background:transparent;color:#0a84ff;border:1px solid #0a84ff;font-size:14px;padding:10px 20px;width:100%}
-.badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:8px;font-size:12px;font-weight:600}
-.badge-green{background:#0d2818;color:#34c759;border:0.5px solid #34c759}
-.badge-orange{background:#2a1800;color:#ff9f0a;border:0.5px solid #ff9f0a}
-.stat-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:0.5px solid #2c2c2e}
-.stat-row:last-child{border-bottom:none}
-.stat-label{font-size:14px;color:#8e8e93}
-.stat-value{font-size:16px;font-weight:600}
-.session-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:0.5px solid #2c2c2e;gap:12px}
-.session-row:last-child{border-bottom:none}
-.session-meta{font-size:12px;color:#636366;margin-top:3px}
-.stars{color:#ffd60a;letter-spacing:2px}
-.msg{padding:10px 14px;border-radius:10px;font-size:13px;margin-top:8px}
-.msg-ok{background:#0d2818;color:#34c759;border:0.5px solid #34c759}
-.msg-err{background:#1a0000;color:#ff3b30;border:0.5px solid #ff3b30}
-.msg-info{background:#001a2e;color:#0a84ff;border:0.5px solid #0a84ff}
-.hidden{display:none!important}
-.spinner{display:inline-block;width:16px;height:16px;border:2px solid #8e8e93;border-top-color:#0a84ff;border-radius:50%;animation:spin 0.6s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.tabs{display:flex;gap:8px;margin-bottom:16px}
-.tab{padding:8px 16px;border-radius:10px;font-size:14px;cursor:pointer;border:none;background:#2c2c2e;color:#8e8e93;font-family:-apple-system,sans-serif}
-.tab.active{background:#0a84ff;color:#fff}
-.tab-content{display:none}
-.tab-content.active{display:block}
-/* Auth tabs (logowanie / rejestracja) */
-.auth-tabs{display:flex;background:#2c2c2e;border-radius:12px;padding:4px;margin-bottom:20px;gap:4px}
-.auth-tab{flex:1;padding:9px;border-radius:9px;font-size:14px;cursor:pointer;border:none;background:transparent;color:#8e8e93;font-family:-apple-system,sans-serif;transition:all 0.2s}
-.auth-tab.active{background:#1c1c1e;color:#fff;font-weight:600}
-/* Kroki rejestracji */
-.step-indicator{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:20px}
-.step{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;border:2px solid #3a3a3c;color:#636366}
-.step.active{border-color:#0a84ff;color:#0a84ff}
-.step.done{background:#34c759;border-color:#34c759;color:#fff}
-.step-line{flex:1;height:2px;background:#3a3a3c;max-width:40px}
-.step-line.done{background:#34c759}
-/* Separator */
-.divider{display:flex;align-items:center;gap:12px;margin:16px 0}
-.divider-line{flex:1;height:0.5px;background:#3a3a3c}
-.divider-text{font-size:12px;color:#636366}
-/* OTP input */
-.otp-hint{font-size:12px;color:#636366;margin-bottom:12px;line-height:1.5}
-/* Modal */
-#log-modal{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:100;display:none;align-items:center;justify-content:center;padding:16px}
-#log-modal.open{display:flex}
-.modal-inner{background:#1c1c1e;border-radius:16px;padding:24px;max-width:600px;width:100%;max-height:85vh;overflow-y:auto}
-pre{background:#111;border-radius:10px;padding:14px;font-size:12px;line-height:1.7;color:#a0a0a0;white-space:pre-wrap;word-break:break-word;margin-top:8px}
-#debug-log{background:#0a0a0a;border:0.5px solid #2c2c2e;border-radius:10px;padding:10px;font-size:11px;font-family:monospace;line-height:1.8;max-height:200px;overflow-y:auto;margin-top:8px}
-.dlog-ok{color:#34c759}.dlog-err{color:#ff3b30}.dlog-info{color:#0a84ff}.dlog-warn{color:#ff9f0a}
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --red: #C8001E;
+    --red-dark: #9a0016;
+    --red-pale: #fff0f3;
+    --ink: #18181b;
+    --ink-mid: #52525b;
+    --ink-light: #a1a1aa;
+    --cream: #faf9f7;
+    --border: #e4e4e7;
+    --white: #ffffff;
+    --green: #16a34a;
+    --green-pale: #f0fdf4;
+    --amber: #d97706;
+    --amber-pale: #fffbeb;
+    --serif: 'Playfair Display', Georgia, serif;
+    --sans: 'DM Sans', system-ui, sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--sans); font-weight: 300; color: var(--ink); background: var(--cream); line-height: 1.65; font-size: 16px; -webkit-font-smoothing: antialiased; min-height: 100vh; }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 200;
+    background: rgba(255,255,255,0.96); backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 clamp(20px,4vw,48px); height: 62px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-logo { font-family: var(--serif); font-weight: 700; font-size: 17px; color: var(--ink); text-decoration: none; display: flex; align-items: center; gap: 8px; }
+  .nav-badge { background: var(--red); color: #fff; font-family: var(--sans); font-size: 10px; font-weight: 500; letter-spacing: 1px; padding: 3px 7px; border-radius: 2px; }
+  .nav-right { display: flex; align-items: center; gap: 12px; }
+  .nav-school { font-size: 13px; color: var(--ink-mid); font-weight: 400; }
+  .btn-logout {
+    background: transparent; border: 1.5px solid var(--border); color: var(--ink-mid);
+    font-family: var(--sans); font-size: 13px; font-weight: 400; padding: 7px 16px;
+    border-radius: 2px; cursor: pointer; transition: all .2s;
+  }
+  .btn-logout:hover { border-color: var(--red); color: var(--red); }
+
+  /* ── LAYOUT ── */
+  .page-wrap { max-width: 900px; margin: 0 auto; padding: 40px clamp(16px,4vw,48px) 80px; }
+
+  /* ── SCHOOL HEADER ── */
+  .school-header {
+    border-top: 4px solid var(--red);
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-top: 4px solid var(--red);
+    padding: 28px 32px;
+    margin-bottom: 24px;
+    display: flex; justify-content: space-between; align-items: flex-start; gap: 24px;
+  }
+  .school-header-left {}
+  .school-eyebrow { font-size: 11px; font-weight: 500; letter-spacing: 2.5px; text-transform: uppercase; color: var(--red); margin-bottom: 8px; }
+  .school-name { font-family: var(--serif); font-size: clamp(20px, 3vw, 28px); font-weight: 700; letter-spacing: -0.5px; color: var(--ink); margin-bottom: 4px; }
+  .school-email { font-size: 14px; color: var(--ink-mid); font-weight: 300; }
+  .school-stats { display: flex; gap: 28px; flex-shrink: 0; align-items: flex-start; }
+  .stat-block { text-align: right; }
+  .stat-label { font-size: 11px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ink-light); margin-bottom: 4px; }
+  .stat-value { font-family: var(--serif); font-size: 22px; font-weight: 700; color: var(--ink); line-height: 1; }
+  .stat-value.mono { font-family: 'Courier New', monospace; font-size: 15px; color: var(--red); font-weight: 700; }
+  .stat-divider { width: 1px; background: var(--border); align-self: stretch; margin: 0 4px; }
+  .stat-pair { display: flex; flex-direction: column; gap: 12px; text-align: right; }
+  .stat-pair .stat-value { font-size: 18px; }
+  .stat-pair .stat-value.muted { color: var(--ink-light); }
+  @media (max-width: 640px) {
+    .school-header { flex-direction: column; }
+    .school-stats { flex-direction: row; align-self: stretch; justify-content: flex-start; }
+    .stat-block { text-align: left; }
+    .stat-pair { text-align: left; }
+  }
+
+  /* ── TABS ── */
+  .tabs-bar {
+    display: flex; gap: 0; border-bottom: 1px solid var(--border);
+    margin-bottom: 28px; overflow-x: auto; -webkit-overflow-scrolling: touch;
+  }
+  .tab {
+    padding: 12px 20px; font-size: 13px; font-weight: 400; cursor: pointer;
+    border: none; background: transparent; color: var(--ink-mid);
+    font-family: var(--sans); white-space: nowrap; position: relative;
+    transition: color .2s; border-bottom: 2px solid transparent; margin-bottom: -1px;
+  }
+  .tab:hover { color: var(--ink); }
+  .tab.active { color: var(--red); font-weight: 500; border-bottom-color: var(--red); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--white); border: 1px solid var(--border);
+    padding: 24px 28px; margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 11px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--ink-light); margin-bottom: 16px;
+  }
+
+  /* ── SESSIONS ── */
+  .session-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 0; border-bottom: 1px solid var(--border); gap: 16px;
+  }
+  .session-row:last-child { border-bottom: none; }
+  .session-date { font-size: 14px; font-weight: 400; color: var(--ink); }
+  .session-meta { font-size: 12px; color: var(--ink-light); margin-top: 2px; }
+  .session-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .stars { color: var(--red); letter-spacing: 2px; font-size: 13px; }
+
+  .badge {
+    display: inline-flex; align-items: center; padding: 3px 9px;
+    font-size: 11px; font-weight: 500; letter-spacing: 0.5px; border-radius: 2px;
+  }
+  .badge-green { background: var(--green-pale); color: var(--green); border: 1px solid #bbf7d0; }
+  .badge-amber { background: var(--amber-pale); color: var(--amber); border: 1px solid #fde68a; }
+
+  .btn-sm {
+    font-family: var(--sans); font-size: 12px; font-weight: 500; padding: 6px 14px;
+    border-radius: 2px; cursor: pointer; transition: all .2s; border: 1.5px solid var(--border);
+    background: transparent; color: var(--ink-mid); white-space: nowrap;
+  }
+  .btn-sm:hover { border-color: var(--red); color: var(--red); }
+  .btn-sm.green { background: var(--green); color: #fff; border-color: var(--green); }
+  .btn-sm.green:hover { opacity: .9; }
+
+  /* ── SKLEP — intro ── */
+  .shop-intro {
+    background: var(--white); border: 1px solid var(--border);
+    border-top: 4px solid var(--red);
+    padding: 28px 32px; margin-bottom: 24px;
+  }
+  .shop-intro-eyebrow { font-size: 11px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; color: var(--red); margin-bottom: 10px; }
+  .shop-intro-title { font-family: var(--serif); font-size: 20px; font-weight: 700; color: var(--ink); margin-bottom: 8px; letter-spacing: -0.3px; }
+  .shop-intro-desc { font-size: 14px; color: var(--ink-mid); font-weight: 300; line-height: 1.7; margin-bottom: 20px; }
+  .shop-meta-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); }
+  .shop-meta-block { background: var(--cream); padding: 14px 16px; text-align: center; }
+  .shop-meta-label { font-size: 10px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ink-light); margin-bottom: 5px; }
+  .shop-meta-value { font-family: var(--serif); font-size: 17px; font-weight: 700; color: var(--ink); line-height: 1.2; }
+  @media (max-width: 520px) { .shop-meta-grid { grid-template-columns: repeat(2,1fr); } }
+
+  .packages-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 24px; }
+  @media (max-width: 600px) { .packages-grid { grid-template-columns: 1fr; } }
+
+  .pkg { background: var(--white); padding: 28px 24px; display: flex; flex-direction: column; transition: background .15s; }
+  .pkg:hover { background: var(--cream); }
+  .pkg.featured { background: var(--ink); }
+  .pkg.featured:hover { background: #1c1c1f; }
+
+  .pkg-badge { font-size: 10px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; padding: 3px 8px; display: inline-block; margin-bottom: 18px; align-self: flex-start; border-radius: 2px; }
+  .pkg .pkg-badge { color: var(--red); background: var(--red-pale); }
+  .pkg.featured .pkg-badge { color: #fca5a5; background: rgba(200,0,30,.2); }
+
+  .pkg-name { font-family: var(--serif); font-size: 20px; font-weight: 700; letter-spacing: -0.3px; margin-bottom: 16px; }
+  .pkg .pkg-name { color: var(--ink); }
+  .pkg.featured .pkg-name { color: #fff; }
+
+  .pkg-sessions { font-family: var(--serif); font-size: 44px; font-weight: 900; line-height: 1; letter-spacing: -2px; margin-bottom: 4px; }
+  .pkg .pkg-sessions { color: var(--ink); }
+  .pkg.featured .pkg-sessions { color: #fff; }
+
+  .pkg-sessions-label { font-size: 12px; color: var(--ink-light); margin-bottom: 6px; }
+  .pkg.featured .pkg-sessions-label { color: #52525b; }
+
+  .pkg-price { font-size: 22px; font-weight: 500; margin-bottom: 24px; }
+  .pkg .pkg-price { color: var(--ink); }
+  .pkg.featured .pkg-price { color: #d1d5db; }
+
+  .pkg-features { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+  .pkg-features li { font-size: 13px; display: flex; gap: 10px; align-items: flex-start; line-height: 1.5; }
+  .pkg .pkg-features li { color: var(--ink-mid); }
+  .pkg.featured .pkg-features li { color: #9ca3af; }
+  .pkg-features li::before { content: '–'; color: var(--red); font-weight: 500; flex-shrink: 0; }
+
+  .pkg-btn {
+    display: block; text-align: center; text-decoration: none; font-family: var(--sans);
+    font-size: 13px; font-weight: 500; padding: 11px 20px; border-radius: 2px;
+    cursor: pointer; transition: all .2s; border: 1.5px solid; margin-top: auto; letter-spacing: .2px;
+  }
+  .pkg .pkg-btn { color: var(--ink); border-color: var(--border); background: transparent; }
+  .pkg .pkg-btn:hover { border-color: var(--red); color: var(--red); }
+  .pkg.featured .pkg-btn { background: var(--red); color: #fff; border-color: var(--red); }
+  .pkg.featured .pkg-btn:hover { background: var(--red-dark); border-color: var(--red-dark); }
+
+  /* ── O PRODUKCIE ── */
+  .features-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; margin-bottom: 20px; }
+  @media (max-width: 540px) { .features-grid { grid-template-columns: 1fr; } }
+  .feature-card {
+    background: var(--cream); border: 1px solid var(--border); padding: 18px 20px;
+  }
+  .feature-icon { font-size: 22px; margin-bottom: 8px; }
+  .feature-title { font-size: 14px; font-weight: 500; color: var(--ink); margin-bottom: 4px; }
+  .feature-desc { font-size: 13px; color: var(--ink-mid); line-height: 1.6; font-weight: 300; }
+
+  /* ── FAQ (accordion) ── */
+  .faq-list { border-top: 1px solid var(--border); }
+  details { border-bottom: 1px solid var(--border); }
+  summary {
+    padding: 18px 0; font-size: 14px; font-weight: 500; cursor: pointer;
+    list-style: none; display: flex; justify-content: space-between; align-items: center;
+    color: var(--ink); user-select: none;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: '+'; font-size: 20px; font-weight: 300; color: var(--red); flex-shrink: 0; margin-left: 16px; transition: transform .25s; line-height: 1; }
+  details[open] summary::after { transform: rotate(45deg); }
+  .faq-body { padding: 0 0 18px; font-size: 13px; color: var(--ink-mid); line-height: 1.7; font-weight: 300; max-width: 680px; }
+  .faq-body a { color: var(--red); text-decoration: none; }
+  .faq-body a:hover { text-decoration: underline; }
+
+  /* ── REGULAMIN ── */
+  .regulamin-section { margin-bottom: 16px; }
+  .regulamin-para { font-size: 13px; color: var(--ink-mid); line-height: 1.9; font-weight: 300; }
+  .regulamin-para + .regulamin-para { margin-top: 12px; }
+  .regulamin-heading { font-size: 13px; font-weight: 500; color: var(--ink); margin-bottom: 6px; margin-top: 18px; }
+  .regulamin-heading:first-child { margin-top: 0; }
+  .regulamin-para a { color: var(--red); text-decoration: none; }
+  .regulamin-para a:hover { text-decoration: underline; }
+  .regulamin-para b { font-weight: 500; color: var(--ink); }
+
+  /* ── UTILS ── */
+  .msg { padding: 12px 16px; font-size: 13px; margin-top: 10px; line-height: 1.5; border-radius: 2px; }
+  .msg-ok  { background: var(--green-pale);  color: var(--green);  border: 1px solid #bbf7d0; }
+  .msg-err { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+  .msg-info{ background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+  .hidden { display: none !important; }
+
+  .spinner {
+    display: inline-block; width: 16px; height: 16px;
+    border: 2px solid var(--border); border-top-color: var(--red);
+    border-radius: 50%; animation: spin .7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── MODAL ZAKUPU ── */
+  #buy-modal { position: fixed; inset: 0; background: rgba(24,24,27,.55); z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
+  #buy-modal.open { display: flex; }
+  .buy-modal-inner { background: var(--white); border-top: 4px solid var(--red); padding: 28px 32px; max-width: 420px; width: 100%; }
+  .buy-modal-eyebrow { font-size: 11px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; color: var(--red); margin-bottom: 8px; }
+  .buy-modal-title { font-family: var(--serif); font-size: 22px; font-weight: 700; color: var(--ink); letter-spacing: -0.3px; margin-bottom: 20px; }
+  .buy-summary { background: var(--cream); border: 1px solid var(--border); padding: 14px 18px; margin-bottom: 20px; }
+  .buy-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .buy-row:last-child { border-bottom: none; }
+  .buy-row-lbl { color: var(--ink-mid); }
+  .buy-row-val { font-weight: 500; color: var(--ink); }
+  .buy-row-val.price { font-family: var(--serif); font-size: 20px; color: var(--red); }
+  .buy-consent { background: #fff8f8; border: 1px solid #fecaca; padding: 12px 14px; margin-bottom: 20px; display: flex; gap: 10px; align-items: flex-start; }
+  .buy-consent input { margin-top: 3px; accent-color: var(--red); flex-shrink: 0; width: 14px; height: 14px; }
+  .buy-consent label { font-size: 12px; color: var(--ink-mid); line-height: 1.6; cursor: pointer; }
+  .buy-consent label a { color: var(--red); text-decoration: none; }
+  .btn-pay { width: 100%; background: var(--red); color: #fff; border: none; font-family: var(--sans); font-size: 14px; font-weight: 500; padding: 14px; cursor: pointer; transition: background .2s; border-radius: 2px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+  .btn-pay:hover { background: var(--red-dark); }
+  .btn-pay:disabled { opacity: .5; cursor: not-allowed; }
+  .payu-badge { background: #fff; border-radius: 2px; padding: 2px 7px; font-size: 10px; font-weight: 700; color: #00a0e3; letter-spacing: .5px; }
+  .btn-cancel-modal { width: 100%; background: transparent; border: 1.5px solid var(--border); color: var(--ink-mid); font-family: var(--sans); font-size: 13px; padding: 10px; cursor: pointer; border-radius: 2px; transition: border-color .2s; }
+  .btn-cancel-modal:hover { border-color: var(--ink-mid); }
+  .buy-note { font-size: 11px; color: var(--ink-light); text-align: center; margin-top: 12px; line-height: 1.6; }
+  #log-modal {
+    position: fixed; inset: 0; background: rgba(24,24,27,.6);
+    z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px;
+    backdrop-filter: blur(4px);
+  }
+  #log-modal.open { display: flex; }
+  .modal-inner {
+    background: var(--white); border: 1px solid var(--border);
+    border-top: 4px solid var(--red);
+    padding: 28px; max-width: 640px; width: 100%; max-height: 88vh; overflow-y: auto;
+  }
+  .modal-title { font-family: var(--serif); font-size: 18px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+  .modal-meta { font-size: 13px; color: var(--ink-mid); margin-bottom: 16px; }
+  pre {
+    background: var(--cream); border: 1px solid var(--border);
+    padding: 16px; font-size: 12px; line-height: 1.8; color: var(--ink-mid);
+    white-space: pre-wrap; word-break: break-word; margin-top: 8px; font-family: 'Courier New', monospace;
+  }
+  .modal-actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; align-items: center; }
+
+  #debug-log {
+    background: var(--cream); border: 1px solid var(--border);
+    padding: 12px 14px; font-size: 11px; font-family: 'Courier New', monospace;
+    line-height: 1.8; max-height: 180px; overflow-y: auto; margin-top: 8px;
+  }
+  .dlog-ok   { color: var(--green); }
+  .dlog-err  { color: #b91c1c; }
+  .dlog-info { color: #1d4ed8; }
+  .dlog-warn { color: var(--amber); }
+
+  /* ── LOGIN ── */
+  .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; background: var(--cream); }
+  .login-box { width: 100%; max-width: 380px; }
+  .login-logo { text-align: center; margin-bottom: 32px; }
+  .login-logo-text { font-family: var(--serif); font-size: 26px; font-weight: 900; color: var(--ink); }
+  .login-logo-text strong { color: var(--red); }
+  .login-sub { font-size: 13px; color: var(--ink-light); margin-top: 6px; }
+  .login-card { background: var(--white); border: 1px solid var(--border); border-top: 4px solid var(--red); padding: 32px; }
+  .login-label { font-size: 11px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ink-light); margin-bottom: 6px; display: block; }
+  .login-input {
+    width: 100%; background: var(--white); border: 1.5px solid var(--border);
+    color: var(--ink); font-size: 15px; padding: 11px 14px; outline: none;
+    font-family: var(--sans); margin-bottom: 14px; border-radius: 2px; transition: border-color .2s;
+  }
+  .login-input:focus { border-color: var(--red); }
+  .login-input::placeholder { color: var(--ink-light); }
+  .btn-primary {
+    width: 100%; background: var(--red); color: #fff; border: none;
+    font-family: var(--sans); font-size: 14px; font-weight: 500; padding: 13px;
+    cursor: pointer; letter-spacing: .2px; transition: background .2s; border-radius: 2px;
+  }
+  .btn-primary:hover { background: var(--red-dark); }
+  .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+  .btn-link { background: transparent; border: none; color: var(--red); font-family: var(--sans); font-size: 13px; cursor: pointer; padding: 0; }
+  .btn-link:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
 
-<!-- ============================================================ -->
-<!-- LOGIN / REJESTRACJA                                          -->
-<!-- ============================================================ -->
-<div id="view-login" class="container" style="max-width:440px;padding-top:60px">
-  <div style="text-align:center;margin-bottom:28px">
-    <div style="font-size:48px;margin-bottom:12px">🏫</div>
-    <h1>Panel szkoły</h1>
-    <div class="subtitle">Zadzwoń pod 112 · v1.6.2</div>
-  </div>
-
-  <!-- Auth tabs -->
-  <div class="auth-tabs">
-    <button class="auth-tab active" onclick="switchAuthTab('login')">Zaloguj się</button>
-    <button class="auth-tab" onclick="switchAuthTab('register')">Załóż konto</button>
-  </div>
-
-  <!-- ── LOGOWANIE ── -->
-  <div id="auth-login">
-    <div class="card">
-      <input id="login-email" type="email" placeholder="Email dyrektora / administratora"/>
-      <input id="login-password" type="password" placeholder="Hasło"/>
-      <div id="login-msg" style="font-size:13px;min-height:20px;margin-bottom:8px"></div>
+<!-- ═══════════════════════════════════════════════════════
+     LOGIN
+══════════════════════════════════════════════════════════ -->
+<div id="view-login" class="login-wrap">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-text"><strong>Hero</strong>Kids</div>
+      <div class="login-sub">Panel Dyrektora · herokids.eu</div>
+    </div>
+    <div class="login-card">
+      <div style="font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:var(--ink-light);margin-bottom:20px">Logowanie</div>
+      <label class="login-label">Adres email</label>
+      <input class="login-input" id="login-email" type="email" placeholder="dyrektor@placowka.pl"/>
+      <label class="login-label">Hasło</label>
+      <input class="login-input" id="login-password" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/>
+      <div id="login-msg" class="hidden msg msg-err" style="margin-bottom:14px"></div>
       <button class="btn-primary" onclick="doLogin()" id="login-btn">Zaloguj się</button>
-      <div style="margin-top:14px;text-align:center">
-        <button onclick="showReset()" style="background:transparent;color:#0a84ff;border:none;font-size:14px;cursor:pointer">Zapomniałem hasła</button>
+      <div style="margin-top:16px;text-align:center">
+        <button class="btn-link" onclick="showReset()">Nie pamiętam hasła</button>
       </div>
     </div>
-    <div id="view-reset" class="card hidden">
-      <div class="card-title">Reset hasła</div>
-      <input id="reset-email" type="email" placeholder="Twój email"/>
+    <div id="view-reset" class="login-card hidden" style="margin-top:12px">
+      <div style="font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:var(--ink-light);margin-bottom:16px">Reset hasła</div>
+      <label class="login-label">Twój email</label>
+      <input class="login-input" id="reset-email" type="email" placeholder="email@placowka.pl"/>
       <button class="btn-primary" onclick="doReset()" style="margin-top:4px">Wyślij link resetujący</button>
-      <div id="reset-msg" style="font-size:13px;margin-top:8px"></div>
-    </div>
-  </div>
-
-  <!-- ── REJESTRACJA ── -->
-  <div id="auth-register" class="hidden">
-
-    <!-- Wskaźnik kroków -->
-    <div class="step-indicator">
-      <div class="step active" id="reg-step-1">1</div>
-      <div class="step-line" id="reg-line-1"></div>
-      <div class="step" id="reg-step-2">2</div>
-      <div class="step-line" id="reg-line-2"></div>
-      <div class="step" id="reg-step-3">3</div>
-    </div>
-
-    <!-- KROK 1: Kod zaproszenia -->
-    <div id="reg-view-1" class="card">
-      <div class="card-title">Krok 1 — Kod zaproszenia</div>
-      <p style="font-size:13px;color:#8e8e93;margin-bottom:14px">Wprowadź kod zaproszenia otrzymany od administratora systemu.</p>
-      <input id="reg-invite-code" type="text" placeholder="np. HKA3F9Q" style="text-transform:uppercase;letter-spacing:3px;font-family:monospace;font-size:18px;text-align:center"/>
-      <div id="reg-invite-msg" style="font-size:13px;min-height:18px;margin-bottom:8px"></div>
-      <button class="btn-primary" onclick="regStep1()" id="reg-btn-1">Dalej →</button>
-    </div>
-
-    <!-- KROK 2: Dane placówki -->
-    <div id="reg-view-2" class="card hidden">
-      <div class="card-title">Krok 2 — Dane placówki i konta</div>
-      <input id="reg-school-name" type="text" placeholder="Nazwa placówki (np. Przedszkole Słoneczko)"/>
-      <input id="reg-email" type="email" placeholder="Email dyrektora (będzie loginem)"/>
-      <input id="reg-password" type="password" placeholder="Hasło (min. 8 znaków)"/>
-      <input id="reg-password2" type="password" placeholder="Powtórz hasło"/>
-
-      <div class="divider">
-        <div class="divider-line"></div>
-        <div class="divider-text">Dane do faktury (opcjonalnie)</div>
-        <div class="divider-line"></div>
-      </div>
-
-      <input id="reg-invoice-name" type="text" placeholder="Nazwa firmy / placówki do faktury"/>
-      <input id="reg-invoice-nip" type="text" placeholder="NIP"/>
-      <input id="reg-invoice-address" type="text" placeholder="Adres do faktury"/>
-
-      <div id="reg-data-msg" style="font-size:13px;min-height:18px;margin-bottom:8px"></div>
-      <div style="display:flex;gap:8px">
-        <button onclick="regBack(1)" class="btn-secondary" style="width:auto;padding:12px 20px">← Wstecz</button>
-        <button class="btn-primary" onclick="regStep2()" id="reg-btn-2" style="flex:1">Utwórz konto →</button>
-      </div>
-    </div>
-
-    <!-- KROK 3: Weryfikacja OTP -->
-    <div id="reg-view-3" class="card hidden">
-      <div class="card-title">Krok 3 — Weryfikacja email</div>
-      <!-- v1.6.2: przycisk wysyłki OTP jako ręczny trigger (admin.createUser nie wysyła automatycznie) -->
-      <div id="otp-send-section" style="margin-bottom:16px">
-        <p class="otp-hint" style="margin-bottom:10px">Konto zostało utworzone. Teraz wyślij kod weryfikacyjny na adres:<br/><b id="reg-otp-email" style="color:#fff"></b></p>
-        <button onclick="regSendOtp()" id="otp-send-btn" class="btn-primary">📧 Wyślij kod aktywacyjny</button>
-      </div>
-      <div id="otp-verify-section" class="hidden">
-        <p class="otp-hint">Sprawdź skrzynkę (również folder Spam) i wpisz 6-cyfrowy kod:</p>
-        <input id="reg-otp-code" type="text" placeholder="_ _ _ _ _ _" maxlength="8" style="text-align:center;letter-spacing:8px;font-size:24px;font-family:monospace"/>
-        <div id="reg-otp-msg" style="font-size:13px;min-height:18px;margin-bottom:8px"></div>
-        <button class="btn-primary" onclick="regStep3()" id="reg-btn-3">Zweryfikuj i aktywuj konto</button>
-        <div style="margin-top:12px;text-align:center">
-          <button onclick="regResendOtp()" id="otp-resend-btn" style="background:transparent;color:#0a84ff;border:none;font-size:13px;cursor:pointer">Wyślij ponownie</button>
-          <span id="otp-countdown" style="font-size:12px;color:#636366;display:none"></span>
-        </div>
-      </div>
-    </div>
-
-    <!-- SUKCES -->
-    <div id="reg-view-success" class="card hidden" style="text-align:center">
-      <div style="font-size:48px;margin-bottom:16px">🎉</div>
-      <h2 style="margin-bottom:8px">Konto aktywowane!</h2>
-      <p style="font-size:14px;color:#8e8e93;margin-bottom:8px">Możesz się teraz zalogować.</p>
-      <p style="font-size:13px;color:#34c759;margin-bottom:20px">🎁 Na start otrzymujesz <b>5 bezpłatnych sesji</b>.</p>
-      <button class="btn-primary" onclick="switchAuthTab('login')">Przejdź do logowania</button>
-    </div>
-
-  </div><!-- /auth-register -->
-</div><!-- /view-login -->
-
-<!-- ============================================================ -->
-<!-- PANEL GŁÓWNY                                                 -->
-<!-- ============================================================ -->
-<div id="view-panel" class="container hidden">
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px">
-    <div>
-      <div style="font-size:20px;margin-bottom:4px">🏫</div>
-      <h1 id="panel-school-name">Ładowanie...</h1>
-      <div class="subtitle" id="panel-email"></div>
-    </div>
-    <button onclick="doLogout()" style="background:#2c2c2e;color:#8e8e93;border:none;border-radius:10px;padding:8px 16px;font-size:13px;cursor:pointer;font-family:-apple-system,sans-serif">Wyloguj</button>
-  </div>
-
-  <div class="card">
-    <div class="card-title">Statystyki konta</div>
-    <div class="stat-row"><span class="stat-label">Aktywny token</span><span id="stat-token" class="stat-value" style="font-family:monospace;font-size:14px;color:#34c759"></span></div>
-    <div class="stat-row"><span class="stat-label">Pozostałe sesje</span><span id="stat-credits" class="stat-value"></span></div>
-    <div class="stat-row"><span class="stat-label">Łącznie sesji</span><span id="stat-total" class="stat-value"></span></div>
-    <div class="stat-row"><span class="stat-label">Średnia ocena</span><span id="stat-avg-stars" class="stat-value"></span></div>
-    <div class="stat-row"><span class="stat-label">Ostatnia sesja</span><span id="stat-last" class="stat-value" style="font-size:13px"></span></div>
-  </div>
-
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('sessions')">Sesje</button>
-    <button class="tab" onclick="switchTab('info')">Informacje</button>
-  </div>
-
-  <div id="tab-sessions" class="tab-content active">
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <div class="card-title" style="margin-bottom:0">Historia sesji</div>
-        <button onclick="loadSessions()" class="btn-secondary">Odśwież</button>
-      </div>
-      <div id="sessions-list"><div style="text-align:center;padding:24px;color:#636366">Ładowanie...</div></div>
-    </div>
-  </div>
-
-  <div id="tab-info" class="tab-content">
-    <!-- v1.6.2: baner "Przejdź do sklepu" zamiast kafelków pakietów -->
-    <a href="sklep.html" style="text-decoration:none;display:block;margin-bottom:16px">
-      <div style="background:linear-gradient(135deg,#001a2e 0%,#002d4a 100%);border-radius:16px;padding:20px;border:1.5px solid #0a84ff;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:16px">
-        <div>
-          <div style="font-size:13px;color:#0a84ff;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Kup sesje</div>
-          <div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:4px">Przejdź do sklepu →</div>
-          <div style="font-size:13px;color:#8e8e93">Pakiety Basic · Standard · Pro</div>
-        </div>
-        <div style="flex-shrink:0;background:#0a84ff;border-radius:12px;padding:14px 20px;font-size:15px;font-weight:600;color:#fff;white-space:nowrap">od 29 zł</div>
-      </div>
-    </a>
-    <div class="card">
-      <div class="card-title">Kontakt</div>
-      <div style="font-size:14px;color:#8e8e93;line-height:1.8">📧 <a href="mailto:support@herokids.eu" style="color:#0a84ff">support@herokids.eu</a></div>
+      <div id="reset-msg" style="font-size:13px;margin-top:10px"></div>
     </div>
   </div>
 </div>
 
-<!-- Modal: podgląd logu -->
+<!-- ═══════════════════════════════════════════════════════
+     PANEL GŁÓWNY
+══════════════════════════════════════════════════════════ -->
+<div id="view-panel" class="hidden">
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="https://herokids.eu">
+      <strong>Hero</strong>Kids
+      <span class="nav-badge">PL</span>
+    </a>
+    <div class="nav-right">
+      <span class="nav-school" id="nav-school-name"></span>
+      <button class="btn-logout" onclick="doLogout()">Wyloguj</button>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+
+    <!-- NAGŁÓWEK PLACÓWKI -->
+    <div class="school-header">
+      <div class="school-header-left">
+        <div class="school-eyebrow">Panel Dyrektora</div>
+        <div class="school-name" id="panel-school-name">Ładowanie…</div>
+        <div class="school-email" id="panel-email"></div>
+      </div>
+      <div class="school-stats">
+        <div class="stat-block">
+          <div class="stat-label">Kod placówki</div>
+          <div class="stat-value mono" id="stat-token">—</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-pair">
+          <div class="stat-block">
+            <div class="stat-label">Pozostałe sesje</div>
+            <div class="stat-value" id="stat-credits">—</div>
+          </div>
+          <div class="stat-block">
+            <div class="stat-label">Wykonane sesje</div>
+            <div class="stat-value muted" id="stat-total">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs-bar">
+      <button class="tab active" onclick="switchTab('sessions')">Sesje</button>
+      <button class="tab" onclick="switchTab('shop')">Sklep</button>
+      <button class="tab" onclick="switchTab('product')">O produkcie</button>
+      <button class="tab" onclick="switchTab('terms')">Regulamin i zwroty</button>
+    </div>
+
+    <!-- ── TAB: SESJE ── -->
+    <div id="tab-sessions" class="tab-content active">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div class="card-title" style="margin-bottom:0">Historia połączeń</div>
+          <button onclick="loadSessions()" class="btn-sm">Odśwież</button>
+        </div>
+        <div id="sessions-list">
+          <div style="text-align:center;padding:32px;color:var(--ink-light)"><div class="spinner"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB: SKLEP ── -->
+    <div id="tab-shop" class="tab-content">
+
+      <!-- Intro -->
+      <div class="shop-intro">
+        <div class="shop-intro-eyebrow">HeroKids 112</div>
+        <div class="shop-intro-title">Interaktywny symulator rozmowy z dyspozytorem 112 dla przedszkoli i szkół podstawowych</div>
+        <p class="shop-intro-desc">Uczy dzieci jak prawidłowo wzywać pomoc w sytuacji zagrożenia.</p>
+        <div class="shop-meta-grid">
+          <div class="shop-meta-block">
+            <div class="shop-meta-label">Numer alarmowy</div>
+            <div class="shop-meta-value">112</div>
+          </div>
+          <div class="shop-meta-block">
+            <div class="shop-meta-label">Dyspozytor</div>
+            <div class="shop-meta-value">AI</div>
+          </div>
+          <div class="shop-meta-block">
+            <div class="shop-meta-label">Wiek dzieci</div>
+            <div class="shop-meta-value">3–9 lat</div>
+          </div>
+          <div class="shop-meta-block">
+            <div class="shop-meta-label">Język</div>
+            <div class="shop-meta-value">Polski</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pakiety -->
+      <div style="font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:var(--ink-light);margin-bottom:16px">Wybierz pakiet sesji</div>
+      <div class="packages-grid">
+
+        <!-- Pakiet Mały -->
+        <div class="pkg">
+          <span class="pkg-badge">Starter</span>
+          <div class="pkg-name">Pakiet Mały</div>
+          <div class="pkg-sessions">20</div>
+          <div class="pkg-sessions-label">sesji</div>
+          <div class="pkg-price">29 zł</div>
+          <ul class="pkg-features">
+            <li>20 rozmów z dyspozytorem AI</li>
+            <li>Panel dyrektora</li>
+            <li>Historia sesji</li>
+            <li>Informacja zwrotna po rozmowie</li>
+            <li>Wsparcie techniczne</li>
+          </ul>
+          <button onclick="openBuyModal('Pakiet Mały','20','29')" class="pkg-btn">Kup pakiet →</button>
+        </div>
+
+        <!-- Pakiet Średni (wyróżniony) -->
+        <div class="pkg featured">
+          <span class="pkg-badge">Popularny</span>
+          <div class="pkg-name">Pakiet Średni</div>
+          <div class="pkg-sessions">40</div>
+          <div class="pkg-sessions-label">sesji</div>
+          <div class="pkg-price">49 zł</div>
+          <ul class="pkg-features">
+            <li>40 rozmów z dyspozytorem AI</li>
+            <li>Panel dyrektora</li>
+            <li>Historia sesji</li>
+            <li>Informacja zwrotna po rozmowie</li>
+            <li>Wsparcie techniczne</li>
+          </ul>
+          <button onclick="openBuyModal('Pakiet Średni','40','49')" class="pkg-btn">Kup pakiet →</button>
+        </div>
+
+        <!-- Pakiet Duży -->
+        <div class="pkg">
+          <span class="pkg-badge">Pełny rok</span>
+          <div class="pkg-name">Pakiet Duży</div>
+          <div class="pkg-sessions">70</div>
+          <div class="pkg-sessions-label">sesji</div>
+          <div class="pkg-price">69 zł</div>
+          <ul class="pkg-features">
+            <li>70 rozmów z dyspozytorem AI</li>
+            <li>Panel dyrektora</li>
+            <li>Historia sesji</li>
+            <li>Informacja zwrotna po rozmowie</li>
+            <li>Wsparcie techniczne</li>
+          </ul>
+          <button onclick="openBuyModal('Pakiet Duży','70','69')" class="pkg-btn">Kup pakiet →</button>
+        </div>
+
+      </div>
+
+      <div class="card" style="border-left:4px solid var(--red);">
+        <div class="card-title">Kontakt i faktura</div>
+        <p style="font-size:14px;color:var(--ink-mid);line-height:1.7;font-weight:300">
+          Masz pytania o pakiety lub potrzebujesz faktury VAT?<br>
+          Napisz na <a href="mailto:support@herokids.eu" style="color:var(--red);text-decoration:none;font-weight:500">support@herokids.eu</a> — odpiszemy w ciągu 24h w dni robocze.
+        </p>
+      </div>
+
+    </div>
+
+    <!-- ── TAB: O PRODUKCIE ── -->
+    <div id="tab-product" class="tab-content">
+
+      <div class="card">
+        <div class="card-title">Co potrafi HeroKids 112?</div>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">🎙️</div>
+            <div class="feature-title">Rozmowa głosowa</div>
+            <div class="feature-desc">Realistyczna symulacja rozmowy z dyspozytorem numeru alarmowego 112. Dziecko mówi do mikrofonu telefonu, dyspozytor AI odpowiada głosem w języku polskim.</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🤖</div>
+            <div class="feature-title">Sztuczna inteligencja</div>
+            <div class="feature-desc">Dyspozytor AI oparty na modelu Claude AI prowadzi z dzieckiem w pełni logiczną rozmowę, przeprowadzając je przez scenariusz ratunkowy. Model reaguje na różnorodne odpowiedzi dziecka w sposób naturalny.</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📊</div>
+            <div class="feature-title">Historia i raporty</div>
+            <div class="feature-desc">Każda sesja jest zapisywana i anonimizowana. Dyrektor placówki może przejrzeć historię rozmów oraz ich szczegółowy przebieg.</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📱</div>
+            <div class="feature-title">Każde urządzenie</div>
+            <div class="feature-desc">Aplikacja webowa — działa na smartfonach, tabletach i komputerach bez instalacji. Wystarczy połączenie internetowe.</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🔒</div>
+            <div class="feature-title">Zgodność z RODO</div>
+            <div class="feature-desc">Dane dzieci są anonimizowane automatycznie. Żadne dane osobowe nie są trwale przechowywane.</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🏫</div>
+            <div class="feature-title">Panel dyrektora</div>
+            <div class="feature-desc">Dedykowany dla dyrektorów placówek jako centrum zarządzania. Każda placówka otrzymuje jeden kod dostępu, który dyrektor przekazuje pracownikom prowadzącym warsztaty. Warsztaty mogą być prowadzone jednocześnie w kilku grupach.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Jak to działa — 3 kroki</div>
+        <div style="display:flex;flex-direction:column;gap:0;border-top:1px solid var(--border)">
+          <div style="display:grid;grid-template-columns:48px 1fr;gap:8px;padding:20px 0;border-bottom:1px solid var(--border)">
+            <div style="font-family:var(--serif);font-size:32px;font-weight:900;color:var(--red);opacity:.2;line-height:1;padding-top:2px">1</div>
+            <div><div style="font-size:14px;font-weight:500;color:var(--ink);margin-bottom:4px">Nauczyciel uruchamia aplikację na tablecie lub komputerze</div><div style="font-size:13px;color:var(--ink-mid);font-weight:300">Otwiera herokids.eu i wpisuje kod placówki (PSZ-XXXX-XXXX) z panelu dyrektora.</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:48px 1fr;gap:8px;padding:20px 0;border-bottom:1px solid var(--border)">
+            <div style="font-family:var(--serif);font-size:32px;font-weight:900;color:var(--red);opacity:.2;line-height:1;padding-top:2px">2</div>
+            <div><div style="font-size:14px;font-weight:500;color:var(--ink);margin-bottom:4px">Dziecko przeprowadza rozmowę z dyspozytorem AI</div><div style="font-size:13px;color:var(--ink-mid);font-weight:300">Wpisuje 1-1-2 na klawiaturze, nawiązuje połączenie i odpowiada na pytania dyspozytora.</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:48px 1fr;gap:8px;padding:20px 0">
+            <div style="font-family:var(--serif);font-size:32px;font-weight:900;color:var(--red);opacity:.2;line-height:1;padding-top:2px">3</div>
+            <div><div style="font-size:14px;font-weight:500;color:var(--ink);margin-bottom:4px">Dziecko otrzymuje informację zwrotną, dyrektor przegląda wyniki</div><div style="font-size:13px;color:var(--ink-mid);font-weight:300">Po sesji dziecko dostaje ocenę w postaci gwiazdek — czy podało wszystkie informacje niezbędne do wysłania pomocy ratunkowej. Logi rozmów można wysłać mailem do wychowawcy.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Często zadawane pytania</div>
+        <div class="faq-list">
+          <details>
+            <summary>Czym jest „sesja"?</summary>
+            <div class="faq-body">Jedna sesja to jedna kompletna rozmowa dziecka z dyspozytorem AI — od momentu „połączenia" do zakończenia symulacji. Sesja trwa zazwyczaj 3–7 minut.</div>
+          </details>
+          <details>
+            <summary>Czy sesje wygasają?</summary>
+            <div class="faq-body">Nie — sesje nie mają daty ważności. Możesz ich używać w swoim tempie przez cały rok szkolny i kolejne lata.</div>
+          </details>
+          <details>
+            <summary>Ile dzieci może korzystać z jednego pakietu?</summary>
+            <div class="faq-body">Dowolna liczba dzieci. Pakiet dotyczy liczby sesji, nie liczby użytkowników. Jedna klasa 25-osobowa może wykonać 25 sesji z pakietu Mały.</div>
+          </details>
+          <details>
+            <summary>Jak przekazać kod dostępu nauczycielowi?</summary>
+            <div class="faq-body">Kod placówki (PSZ-XXXX-XXXX) widoczny w górze tego panelu wystarczy podać nauczycielowi. Wprowadza go w aplikacji i może od razu rozpocząć sesje.</div>
+          </details>
+          <details>
+            <summary>Czy mogę otrzymać fakturę VAT?</summary>
+            <div class="faq-body">Tak — napisz na <a href="mailto:support@herokids.eu">support@herokids.eu</a> podając dane do faktury, a wystawimy ją w ciągu 7 dni roboczych.</div>
+          </details>
+          <details>
+            <summary>Jak wygląda polityka zwrotów?</summary>
+            <div class="faq-body">Niewykorzystane sesje podlegają zwrotowi w ciągu 14 dni od zakupu. Z chwilą pierwszego użycia sesji prawo do zwrotu za wykorzystane sesje wygasa. Szczegóły w zakładce Regulamin i zwroty.</div>
+          </details>
+        </div>
+      </div>
+
+      <div class="card" style="border-left:4px solid var(--red)">
+        <div class="card-title">Kontakt i wsparcie</div>
+        <p style="font-size:14px;color:var(--ink-mid);line-height:1.7;font-weight:300">
+          Masz pytania lub potrzebujesz pomocy technicznej?<br>
+          📧 <a href="mailto:support@herokids.eu" style="color:var(--red);text-decoration:none;font-weight:500">support@herokids.eu</a> · <a href="https://herokids.eu" target="_blank" style="color:var(--ink-mid);text-decoration:none">herokids.eu</a>
+        </p>
+      </div>
+
+    </div>
+
+    <!-- ── TAB: REGULAMIN ── -->
+    <div id="tab-terms" class="tab-content">
+
+      <div style="background:#fff8f8;border:1px solid #fecaca;border-left:4px solid var(--red);padding:16px 20px;margin-bottom:16px">
+        <div style="font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:6px">Ważna informacja</div>
+        <p style="font-size:13px;color:var(--ink-mid);line-height:1.7;font-weight:300">Pakiety sesji to treść cyfrowa — z chwilą <strong style="color:var(--ink);font-weight:500">pierwszego użycia sesji</strong> prawo do zwrotu za tę sesję wygasa. Niewykorzystane sesje podlegają zwrotowi w ciągu 14 dni od zakupu.</p>
+      </div>
+
+      <div class="card">
+        <div style="font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:var(--ink-light);margin-bottom:6px">Dokument prawny</div>
+        <div style="font-family:var(--serif);font-size:20px;font-weight:700;color:var(--ink);letter-spacing:-0.3px;margin-bottom:24px">Regulamin i polityka zwrotów</div>
+        <div class="regulamin-section">
+
+          <div class="regulamin-heading">§1 Przedmiot umowy</div>
+          <p class="regulamin-para">Sprzedawcą jest HeroKids (herokids.eu). Przedmiotem sprzedaży są pakiety sesji do symulatora edukacyjnego „Zadzwoń pod 112" — treść cyfrowa w rozumieniu ustawy z dnia 30 maja 2014 r. o prawach konsumenta (Dz.U. 2014 poz. 827 z późn. zm.).</p>
+
+          <div class="regulamin-heading">§2 Realizacja zamówienia</div>
+          <p class="regulamin-para">Po zaksięgowaniu płatności przez PayU sesje są doliczane do konta kupującego automatycznie, bez zbędnej zwłoki. Dostęp następuje poprzez panel dyrektora dostępny na herokids.eu.</p>
+
+          <div class="regulamin-heading">§3 Prawo do odstąpienia od umowy — treści cyfrowe</div>
+          <p class="regulamin-para">Zgodnie z art. 38 pkt 13 ustawy o prawach konsumenta, <b>prawo do odstąpienia od umowy nie przysługuje</b> w odniesieniu do treści cyfrowych niedostarczanych na nośniku materialnym, jeżeli spełnianie świadczenia rozpoczęło się za wyraźną zgodą konsumenta przed upływem terminu do odstąpienia i po poinformowaniu go o utracie tego prawa.</p>
+          <p class="regulamin-para">Oznacza to: z chwilą <b>pierwszego użycia sesji</b> (rozpoczęcia rozmowy z dyspozytorem AI) prawo do zwrotu za tę sesję wygasa. Klikając „Zapłać przez PayU" potwierdzasz, że zostałeś o tym poinformowany i wyrażasz zgodę na natychmiastowe rozpoczęcie świadczenia.</p>
+
+          <div class="regulamin-heading">§4 Zwrot niewykorzystanych sesji</div>
+          <p class="regulamin-para"><b>Niewykorzystane sesje</b> podlegają zwrotowi w ciągu 14 dni od daty zakupu. Aby złożyć wniosek o zwrot, napisz na <a href="mailto:support@herokids.eu">support@herokids.eu</a> podając adres email konta oraz numer zamówienia. Zwrot zostanie zrealizowany tą samą metodą płatności w ciągu 14 dni roboczych od zatwierdzenia wniosku.</p>
+
+          <div class="regulamin-heading">§5 Reklamacje</div>
+          <p class="regulamin-para">Reklamacje dotyczące działania usługi przyjmujemy na adres <a href="mailto:support@herokids.eu">support@herokids.eu</a>. Rozpatrzenie reklamacji następuje w ciągu 14 dni roboczych.</p>
+
+          <div class="regulamin-heading">§6 Dane osobowe</div>
+          <p class="regulamin-para">Dane przetwarzane są zgodnie z RODO wyłącznie w celu realizacji zamówienia i obsługi konta. Dane dzieci uczestniczących w sesjach są anonimizowane automatycznie i nie są trwale przechowywane w formie umożliwiającej identyfikację.</p>
+
+        </div>
+      </div>
+
+      <div class="card" style="border-left:4px solid var(--red);padding:16px 22px">
+        <div class="card-title" style="margin-bottom:8px">Pytania dotyczące zwrotów i reklamacji</div>
+        <p style="font-size:13px;color:var(--ink-mid);line-height:1.7;font-weight:300">
+          📧 <a href="mailto:support@herokids.eu" style="color:var(--red);text-decoration:none;font-weight:500">support@herokids.eu</a> — odpiszemy w ciągu 24h w dni robocze
+        </p>
+      </div>
+
+    </div>
+
+  </div><!-- /page-wrap -->
+</div><!-- /view-panel -->
+
+<!-- ═══════════════════════════════════════════════════════
+     MODAL — zakup pakietu
+══════════════════════════════════════════════════════════ -->
+<div id="buy-modal">
+  <div class="buy-modal-inner">
+    <div class="buy-modal-eyebrow">Potwierdzenie zakupu</div>
+    <div class="buy-modal-title" id="buy-modal-title">Pakiet</div>
+    <div class="buy-summary">
+      <div class="buy-row"><span class="buy-row-lbl">Pakiet</span><span class="buy-row-val" id="buy-pkg-name">—</span></div>
+      <div class="buy-row"><span class="buy-row-lbl">Liczba sesji</span><span class="buy-row-val" id="buy-pkg-sessions">—</span></div>
+      <div class="buy-row"><span class="buy-row-lbl">Placówka</span><span class="buy-row-val" id="buy-pkg-school">—</span></div>
+      <div class="buy-row"><span class="buy-row-lbl">Do zapłaty</span><span class="buy-row-val price" id="buy-pkg-price">—</span></div>
+    </div>
+    <div class="buy-consent">
+      <input type="checkbox" id="buy-consent-check" onchange="updatePayBtn()"/>
+      <label for="buy-consent-check">Wyrażam zgodę na natychmiastowe rozpoczęcie świadczenia usługi cyfrowej i przyjmuję do wiadomości, że z chwilą pierwszego użycia sesji utracę prawo do odstąpienia od umowy. Akceptuję <a href="#" onclick="switchTab('terms');closeBuyModal()">regulamin</a>.</label>
+    </div>
+    <button class="btn-pay" id="buy-pay-btn" onclick="doPayment()" disabled>
+      Zapłać <span id="buy-btn-price">—</span> przez <span class="payu-badge">PayU</span>
+    </button>
+    <button class="btn-cancel-modal" onclick="closeBuyModal()">Anuluj</button>
+    <div class="buy-note">Po zaksięgowaniu płatności sesje zostaną automatycznie<br>dodane do Twojego konta.</div>
+  </div>
+</div>
+
+
 <div id="log-modal">
   <div class="modal-inner">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-      <div style="font-size:16px;font-weight:600">Log sesji</div>
-      <button onclick="closeModal()" style="background:#2c2c2e;color:#8e8e93;border:none;border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer">Zamknij</button>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+      <div class="modal-title">Log sesji</div>
+      <button onclick="closeModal()" style="background:transparent;border:none;color:var(--ink-mid);font-size:22px;cursor:pointer;line-height:1;padding:0 4px">×</button>
     </div>
-    <div id="modal-meta" style="font-size:13px;color:#8e8e93;margin-bottom:12px"></div>
+    <div class="modal-meta" id="modal-meta"></div>
     <pre id="modal-log"></pre>
-    <div style="margin-top:16px">
-      <label style="font-size:12px;color:#8e8e93;display:block;margin-bottom:6px">Wiadomość do supportu (opcjonalnie)</label>
-      <textarea id="user-message-input" placeholder="Np. dziecko miało problem z mikrofonem, rozmowa urwała się w połowie..."></textarea>
+
+    <div class="modal-actions">
+      <button id="modal-send-btn" onclick="sendCurrentLog()" class="btn-sm green">📧 Wyślij na email</button>
+      <button onclick="copyModalLog()" class="btn-sm">Kopiuj</button>
     </div>
-    <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap">
-      <button id="modal-send-btn" onclick="sendCurrentLog()" class="btn-green">📧 Wyślij na email</button>
-      <button onclick="copyModalLog()" class="btn-secondary">Kopiuj</button>
-    </div>
+
     <div id="send-status-box" style="margin-top:12px;display:none">
-      <div id="send-status-msg" style="font-size:13px;padding:10px 14px;border-radius:10px;margin-bottom:8px"></div>
+      <div id="send-status-msg" class="msg"></div>
     </div>
-    <div style="margin-top:12px">
+
+    <div style="margin-top:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-        <span style="font-size:11px;color:#636366;font-family:monospace">DEBUG LOG</span>
-        <button onclick="clearDebugLog()" style="background:transparent;border:none;color:#636366;font-size:11px;cursor:pointer;font-family:monospace">Wyczyść</button>
+        <span style="font-size:11px;color:var(--ink-light);font-family:monospace;letter-spacing:1px">DEBUG LOG</span>
+        <button onclick="clearDebugLog()" style="background:transparent;border:none;color:var(--ink-light);font-size:11px;cursor:pointer;font-family:monospace">Wyczyść</button>
       </div>
-      <div id="debug-log"><span style="color:#636366">Oczekiwanie na akcję...</span></div>
+      <div id="debug-log"><span style="color:var(--ink-light)">Oczekiwanie na akcję…</span></div>
     </div>
   </div>
 </div>
 
 <script>
-// ============================================================
+// ════════════════════════════════════════════════════════
 // KONFIGURACJA
-// ============================================================
-const SUPABASE_URL = "https://vnennalmoexaqkohzjkm.supabase.co";
+// ════════════════════════════════════════════════════════
+const SUPABASE_URL    = "https://vnennalmoexaqkohzjkm.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_fcOplky2nD4ERYlDpaa1zw_04Us8URx";
-const BACKEND_URL = "https://telefon112-dev.up.railway.app";
+const BACKEND_URL     = "https://telefon112-dev.up.railway.app";
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-let currentUser = null;
-let currentSchool = null;
-let currentToken = null;
+let currentUser    = null;
+let currentSchool  = null;
+let currentToken   = null;
 let currentSessionId = null;
 
-// Stan rejestracji
-let regState = {
-  invitationId: null,
-  email: null
-};
-
-// ============================================================
-// AUTH TABS
-// ============================================================
-function switchAuthTab(tab) {
-  document.querySelectorAll(".auth-tab").forEach((t, i) => {
-    t.classList.toggle("active", ["login","register"][i] === tab);
-  });
-  document.getElementById("auth-login").classList.toggle("hidden", tab !== "login");
-  document.getElementById("auth-register").classList.toggle("hidden", tab !== "register");
-  if (tab === "register") regReset();
-}
-
-// ============================================================
-// REJESTRACJA — helpers
-// ============================================================
-function regReset() {
-  regState = { invitationId: null, email: null };
-  // v1.6.2: reset stanu sekcji OTP
-  const sendSection   = document.getElementById("otp-send-section");
-  const verifySection = document.getElementById("otp-verify-section");
-  if (sendSection)   sendSection.classList.remove("hidden");
-  if (verifySection) verifySection.classList.add("hidden");
-  const sendBtn = document.getElementById("otp-send-btn");
-  if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = "📧 Wyślij kod aktywacyjny"; }
-  if (otpCooldownTimer) { clearInterval(otpCooldownTimer); otpCooldownTimer = null; }
-  const countdown = document.getElementById("otp-countdown");
-  if (countdown) countdown.style.display = "none";
-  regShowView(1);
-  ["reg-invite-code","reg-school-name","reg-email","reg-password","reg-password2",
-   "reg-invoice-name","reg-invoice-nip","reg-invoice-address","reg-otp-code"].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = "";
-  });
-  ["reg-invite-msg","reg-data-msg","reg-otp-msg"].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = "";
-  });
-}
-
-function regShowView(step) {
-  [1,2,3].forEach(i => {
-    document.getElementById(`reg-view-${i}`).classList.toggle("hidden", i !== step);
-  });
-  document.getElementById("reg-view-success").classList.add("hidden");
-  // Aktualizuj wskaźnik kroków
-  [1,2,3].forEach(i => {
-    const el = document.getElementById(`reg-step-${i}`);
-    el.className = "step" + (i < step ? " done" : i === step ? " active" : "");
-    if (i < step) el.innerHTML = "✓";
-    else el.innerHTML = i;
-  });
-  [1,2].forEach(i => {
-    document.getElementById(`reg-line-${i}`).className = "step-line" + (i < step ? " done" : "");
-  });
-}
-
-function regMsg(id, msg, type) {
-  const el = document.getElementById(id);
+// ════════════════════════════════════════════════════════
+// DEBUG LOG
+// ════════════════════════════════════════════════════════
+function dlog(msg, type = "info") {
+  const el = document.getElementById("debug-log");
   if (!el) return;
-  el.textContent = msg;
-  el.style.color = type === "err" ? "#ff3b30" : type === "ok" ? "#34c759" : "#0a84ff";
+  const t = new Date().toLocaleTimeString("pl-PL", { hour:"2-digit", minute:"2-digit", second:"2-digit" });
+  const line = document.createElement("div");
+  line.className = "dlog-" + type;
+  line.textContent = `[${t}] ${msg}`;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+  console.log(`[DEBUG][${type.toUpperCase()}] ${msg}`);
+}
+function clearDebugLog() {
+  const el = document.getElementById("debug-log");
+  if (el) el.innerHTML = '<span style="color:var(--ink-light)">Wyczyszczono.</span>';
+}
+function showSendStatus(msg, type) {
+  const box   = document.getElementById("send-status-box");
+  const msgEl = document.getElementById("send-status-msg");
+  box.style.display = "block";
+  msgEl.textContent = msg;
+  msgEl.className = "msg " + (type === "ok" ? "msg-ok" : type === "err" ? "msg-err" : "msg-info");
 }
 
-function regBack(toStep) { regShowView(toStep); }
-
-// ============================================================
-// REJESTRACJA — Krok 1: walidacja kodu zaproszenia
-// ============================================================
-async function regStep1() {
-  const code = document.getElementById("reg-invite-code").value.trim().toUpperCase();
-  if (!code) { regMsg("reg-invite-msg", "Wpisz kod zaproszenia", "err"); return; }
-
-  const btn = document.getElementById("reg-btn-1");
-  btn.disabled = true; btn.textContent = "Sprawdzam...";
-  regMsg("reg-invite-msg", "", "info");
-
-  try {
-    const res = await fetch(BACKEND_URL + "/api/validate-invitation", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code })
-    });
-    const data = await res.json();
-
-    if (!res.ok || !data.valid) {
-      regMsg("reg-invite-msg", data.message || "Nieprawidłowy kod zaproszenia", "err");
-      btn.disabled = false; btn.textContent = "Dalej →";
-      return;
-    }
-
-    regState.invitationId = data.invitation_id;
-    regMsg("reg-invite-msg", "✅ Kod prawidłowy!", "ok");
-    setTimeout(() => regShowView(2), 600);
-  } catch (e) {
-    regMsg("reg-invite-msg", "Błąd połączenia: " + e.message, "err");
-  }
-
-  btn.disabled = false; btn.textContent = "Dalej →";
-}
-
-// ============================================================
-// REJESTRACJA — Krok 2: dane placówki
-// ============================================================
-async function regStep2() {
-  const schoolName     = document.getElementById("reg-school-name").value.trim();
-  const email          = document.getElementById("reg-email").value.trim();
-  const password       = document.getElementById("reg-password").value;
-  const password2      = document.getElementById("reg-password2").value;
-  const invoiceName    = document.getElementById("reg-invoice-name").value.trim();
-  const invoiceNip     = document.getElementById("reg-invoice-nip").value.trim();
-  const invoiceAddress = document.getElementById("reg-invoice-address").value.trim();
-
-  if (!schoolName) { regMsg("reg-data-msg", "Podaj nazwę placówki", "err"); return; }
-  if (!email || !email.includes("@")) { regMsg("reg-data-msg", "Podaj prawidłowy adres email", "err"); return; }
-  if (password.length < 8) { regMsg("reg-data-msg", "Hasło musi mieć min. 8 znaków", "err"); return; }
-  if (password !== password2) { regMsg("reg-data-msg", "Hasła nie są identyczne", "err"); return; }
-
-  const btn = document.getElementById("reg-btn-2");
-  btn.disabled = true; btn.textContent = "Tworzę konto...";
-  regMsg("reg-data-msg", "", "info");
-
-  try {
-    const res = await fetch(BACKEND_URL + "/api/register-school", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        invitation_id: regState.invitationId,
-        email, password,
-        school_name: schoolName,
-        invoice_name:    invoiceName    || null,
-        invoice_nip:     invoiceNip     || null,
-        invoice_address: invoiceAddress || null
-      })
-    });
-    const data = await res.json();
-
-    if (!res.ok || !data.ok) {
-      regMsg("reg-data-msg", data.error || "Błąd rejestracji", "err");
-      btn.disabled = false; btn.textContent = "Utwórz konto →";
-      return;
-    }
-
-    // Konto utworzone — przejdź do weryfikacji OTP (v1.6.2: najpierw pokaż przycisk wysyłki)
-    regState.email = email;
-    document.getElementById("reg-otp-email").textContent = email;
-    // v1.6.2: reset sekcji OTP — pokaż "Wyślij kod aktywacyjny", ukryj pole weryfikacji
-    document.getElementById("otp-send-section").classList.remove("hidden");
-    document.getElementById("otp-verify-section").classList.add("hidden");
-    regShowView(3);
-
-  } catch (e) {
-    regMsg("reg-data-msg", "Błąd połączenia: " + e.message, "err");
-  }
-
-  btn.disabled = false; btn.textContent = "Utwórz konto →";
-}
-
-// ============================================================
-// REJESTRACJA — Krok 3a: wyślij OTP (ręczny trigger — v1.6.2)
-// admin.createUser nie wysyła OTP automatycznie
-// ============================================================
-let otpCooldownTimer = null;
-
-async function regSendOtp() {
-  if (!regState.email) return;
-  const btn = document.getElementById("otp-send-btn");
-  btn.disabled = true; btn.textContent = "Wysyłam...";
-
-  const { error } = await supabaseClient.auth.resend({ type: "signup", email: regState.email });
-
-  if (error) {
-    regMsg("reg-otp-msg", "Błąd wysyłania: " + error.message, "err");
-    btn.disabled = false; btn.textContent = "📧 Wyślij kod aktywacyjny";
-    // Pokaż sekcję weryfikacji i tak (żeby można było wpisać kod)
-    document.getElementById("otp-send-section").classList.add("hidden");
-    document.getElementById("otp-verify-section").classList.remove("hidden");
-    return;
-  }
-
-  // Sukces — pokaż sekcję weryfikacji
-  document.getElementById("otp-send-section").classList.add("hidden");
-  document.getElementById("otp-verify-section").classList.remove("hidden");
-  regMsg("reg-otp-msg", "✅ Kod wysłany na " + regState.email, "ok");
-  startOtpCountdown();
-}
-
-function startOtpCountdown(seconds = 45) {
-  const resendBtn   = document.getElementById("otp-resend-btn");
-  const countdownEl = document.getElementById("otp-countdown");
-  if (!resendBtn || !countdownEl) return;
-
-  resendBtn.disabled = true;
-  countdownEl.style.display = "inline";
-  let remaining = seconds;
-  countdownEl.textContent = ` (${remaining}s)`;
-
-  if (otpCooldownTimer) clearInterval(otpCooldownTimer);
-  otpCooldownTimer = setInterval(() => {
-    remaining--;
-    countdownEl.textContent = ` (${remaining}s)`;
-    if (remaining <= 0) {
-      clearInterval(otpCooldownTimer);
-      resendBtn.disabled = false;
-      countdownEl.style.display = "none";
-    }
-  }, 1000);
-}
-
-// ============================================================
-// REJESTRACJA — Krok 3: weryfikacja OTP
-// ============================================================
-async function regStep3() {
-  const otp = document.getElementById("reg-otp-code").value.trim();
-  if (otp.length < 6) { regMsg("reg-otp-msg", "Kod musi mieć 6 cyfr", "err"); return; }
-
-  const btn = document.getElementById("reg-btn-3");
-  btn.disabled = true; btn.textContent = "Weryfikuję...";
-  regMsg("reg-otp-msg", "", "info");
-
-  try {
-    const { error } = await supabaseClient.auth.verifyOtp({
-      email: regState.email,
-      token: otp,
-      type: "signup"
-    });
-
-    if (error) {
-      regMsg("reg-otp-msg", "Nieprawidłowy lub wygasły kod: " + error.message, "err");
-      btn.disabled = false; btn.textContent = "Zweryfikuj i aktywuj konto";
-      return;
-    }
-
-    // Sukces — pokaż ekran końcowy
-    [1,2,3].forEach(i => document.getElementById(`reg-view-${i}`).classList.add("hidden"));
-    document.getElementById("reg-view-success").classList.remove("hidden");
-    [1,2,3].forEach(i => {
-      const el = document.getElementById(`reg-step-${i}`);
-      el.className = "step done";
-      el.innerHTML = "✓";
-    });
-    [1,2].forEach(i => document.getElementById(`reg-line-${i}`).className = "step-line done");
-
-  } catch (e) {
-    regMsg("reg-otp-msg", "Błąd: " + e.message, "err");
-  }
-
-  btn.disabled = false; btn.textContent = "Zweryfikuj i aktywuj konto";
-}
-
-async function regResendOtp() {
-  if (!regState.email) return;
-  const resendBtn = document.getElementById("otp-resend-btn");
-  resendBtn.disabled = true;
-
-  const { error } = await supabaseClient.auth.resend({ type: "signup", email: regState.email });
-  if (error) {
-    regMsg("reg-otp-msg", "Błąd wysyłania: " + error.message, "err");
-    resendBtn.disabled = false;
-  } else {
-    regMsg("reg-otp-msg", "✅ Kod wysłany ponownie na " + regState.email, "ok");
-    startOtpCountdown(45);
-  }
-}
-
-// ============================================================
-// AUTH — logowanie / wylogowanie
-// ============================================================
+// ════════════════════════════════════════════════════════
+// AUTH
+// ════════════════════════════════════════════════════════
 async function checkSession() {
   const { data: { session } } = await supabaseClient.auth.getSession();
   if (session?.user) {
@@ -573,16 +772,16 @@ async function checkSession() {
 }
 
 async function doLogin() {
-  const email = document.getElementById("login-email").value.trim();
+  const email    = document.getElementById("login-email").value.trim();
   const password = document.getElementById("login-password").value;
-  const btn = document.getElementById("login-btn");
-  const msg = document.getElementById("login-msg");
-  btn.disabled = true; btn.textContent = "Loguję..."; msg.textContent = "";
+  const btn      = document.getElementById("login-btn");
+  const msg      = document.getElementById("login-msg");
+  btn.disabled   = true; btn.textContent = "Loguję…"; msg.classList.add("hidden");
 
   const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
   if (error) {
-    msg.className = "msg msg-err"; msg.textContent = error.message;
-    msg.style.display = "block";
+    msg.textContent = error.message;
+    msg.classList.remove("hidden");
     btn.disabled = false; btn.textContent = "Zaloguj się";
     return;
   }
@@ -604,112 +803,137 @@ async function doReset() {
   const { error } = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + "/panel/reset" });
   const msg = document.getElementById("reset-msg");
   if (error) { msg.className = "msg msg-err"; msg.textContent = error.message; }
-  else { msg.className = "msg msg-ok"; msg.textContent = "Wysłano link na email!"; }
-  msg.style.display = "block";
+  else        { msg.className = "msg msg-ok";  msg.textContent = "Wysłano link na email!"; }
 }
 
-// ============================================================
+// ════════════════════════════════════════════════════════
 // DANE PANELU
-// ============================================================
+// ════════════════════════════════════════════════════════
 async function loadPanelData() {
   document.getElementById("panel-email").textContent = currentUser.email;
 
-  const { data: school } = await supabaseClient.from("schools").select("*").eq("director_email", currentUser.email).single();
+  const { data: school } = await supabaseClient.from("schools")
+    .select("*").eq("director_email", currentUser.email).single();
+
   if (school) {
     currentSchool = school;
     document.getElementById("panel-school-name").textContent = school.name;
+    document.getElementById("nav-school-name").textContent   = school.name;
   } else {
     document.getElementById("panel-school-name").textContent = currentUser.email;
+    document.getElementById("nav-school-name").textContent   = currentUser.email;
   }
 
   if (school) {
-    const { data: tokens } = await supabaseClient.from("tokens").select("*").eq("school_id", school.id).eq("active", true).order("created_at", { ascending: false }).limit(1);
+    const { data: tokens } = await supabaseClient.from("tokens")
+      .select("*").eq("school_id", school.id).eq("active", true)
+      .order("created_at", { ascending: false }).limit(1);
+
     if (tokens?.[0]) {
       currentToken = tokens[0];
-      document.getElementById("stat-token").textContent = tokens[0].token_code;
-      document.getElementById("stat-credits").textContent = tokens[0].credits + " sesji";
+      document.getElementById("stat-token").textContent   = tokens[0].token_code;
+      document.getElementById("stat-credits").textContent = tokens[0].credits;
     }
 
-    const { data: sessions } = await supabaseClient.from("sessions").select("id, stars, started_at, status").eq("school_id", school.id).order("started_at", { ascending: false });
+    const { data: sessions } = await supabaseClient.from("sessions")
+      .select("id, stars, started_at, status").eq("school_id", school.id)
+      .order("started_at", { ascending: false });
+
     if (sessions) {
-      const completed = sessions.filter(s => s.status === "completed");
-      const avgStars = completed.length ? (completed.reduce((a, s) => a + (s.stars || 0), 0) / completed.length).toFixed(1) : "—";
       document.getElementById("stat-total").textContent = sessions.length;
-      document.getElementById("stat-avg-stars").textContent = avgStars + " / 3";
-      document.getElementById("stat-last").textContent = sessions[0] ? new Date(sessions[0].started_at).toLocaleString("pl-PL") : "Brak";
     }
   }
   await loadSessions();
 }
 
-// ============================================================
+// ════════════════════════════════════════════════════════
 // SESJE
-// ============================================================
+// ════════════════════════════════════════════════════════
 async function loadSessions() {
   if (!currentSchool) return;
   const list = document.getElementById("sessions-list");
-  list.innerHTML = '<div style="text-align:center;padding:16px;color:#636366"><div class="spinner"></div></div>';
+  list.innerHTML = '<div style="text-align:center;padding:24px;color:var(--ink-light)"><div class="spinner"></div></div>';
 
-  const { data: sessions, error } = await supabaseClient
-    .from("sessions")
+  const { data: sessions, error } = await supabaseClient.from("sessions")
     .select("id, started_at, ended_at, stars, message_count, duration_seconds, lang, status, log_sent_at")
-    .eq("school_id", currentSchool.id)
-    .order("started_at", { ascending: false })
-    .limit(50);
+    .eq("school_id", currentSchool.id).order("started_at", { ascending: false }).limit(50);
 
   if (error || !sessions?.length) {
-    list.innerHTML = '<div style="text-align:center;padding:24px;color:#636366">Brak sesji</div>';
+    list.innerHTML = '<div style="text-align:center;padding:32px;color:var(--ink-light);font-size:14px">Brak sesji</div>';
     return;
   }
 
   list.innerHTML = sessions.map(s => {
-    const date = new Date(s.started_at).toLocaleString("pl-PL", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
-    const dur = s.duration_seconds ? Math.round(s.duration_seconds / 60) + " min" : "—";
+    const date  = new Date(s.started_at).toLocaleString("pl-PL", { day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit" });
+    const dur   = s.duration_seconds ? Math.round(s.duration_seconds / 60) + " min" : "—";
     const stars = "★".repeat(s.stars || 0) + "☆".repeat(3 - (s.stars || 0));
-    const badge = s.status === "completed" ? '<span class="badge badge-green">ukończona</span>' : '<span class="badge badge-orange">przerwana</span>';
-    const sentIcon = s.log_sent_at ? "📧 " : "";
-    return `<div class="session-row"><div style="flex:1;min-width:0"><div style="font-size:14px;color:#e5e5ea">${date} · ${dur}</div><div class="session-meta">${sentIcon}Wiadomości: ${s.message_count || 0} · ${s.lang || "pl"}</div></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><span class="stars" style="font-size:14px">${stars}</span>${badge}<button onclick="openSessionLog('${s.id}')" class="btn-secondary" style="font-size:12px;padding:6px 10px">📋 Log</button></div></div>`;
+    const badge = s.status === "completed"
+      ? '<span class="badge badge-green">ukończona</span>'
+      : '<span class="badge badge-amber">przerwana</span>';
+    const sent  = s.log_sent_at ? "📧 " : "";
+    return `<div class="session-row">
+      <div style="flex:1;min-width:0">
+        <div class="session-date">${date} · ${dur}</div>
+        <div class="session-meta">${sent}Wiadomości: ${s.message_count || 0} · ${s.lang || "pl"}</div>
+      </div>
+      <div class="session-actions">
+        <span class="stars">${stars}</span>
+        ${badge}
+        <button onclick="openSessionLog('${s.id}')" class="btn-sm">📋 Log</button>
+      </div>
+    </div>`;
   }).join("");
 }
 
-// ============================================================
+// ════════════════════════════════════════════════════════
 // MODAL — log sesji
-// ============================================================
+// ════════════════════════════════════════════════════════
 async function openSessionLog(sessionId) {
   currentSessionId = sessionId;
   document.getElementById("log-modal").classList.add("open");
-  document.getElementById("modal-log").textContent = "Ładowanie...";
-  document.getElementById("modal-meta").textContent = "";
+  document.getElementById("modal-log").textContent   = "Ładowanie…";
+  document.getElementById("modal-meta").textContent  = "";
   document.getElementById("send-status-box").style.display = "none";
-  document.getElementById("user-message-input").value = "";
   clearDebugLog();
   dlog("Otwieranie logu sesji: " + sessionId, "info");
 
-  const { data: session, error } = await supabaseClient.from("sessions").select("*, session_messages(*)").eq("id", sessionId).single();
-  if (error || !session) { dlog("Błąd pobierania sesji: " + (error?.message || "brak danych"), "err"); document.getElementById("modal-log").textContent = "Błąd pobierania logu."; return; }
+  const { data: session, error } = await supabaseClient.from("sessions")
+    .select("*, session_messages(*)").eq("id", sessionId).single();
+
+  if (error || !session) {
+    dlog("Błąd pobierania sesji: " + (error?.message || "brak danych"), "err");
+    document.getElementById("modal-log").textContent = "Błąd pobierania logu.";
+    return;
+  }
 
   dlog("Sesja pobrana. Wiadomości: " + (session.session_messages?.length || 0), "ok");
+  dlog("Status: " + session.status + " · Gwiazdki: " + (session.stars || 0), "info");
+
   const date = new Date(session.started_at).toLocaleString("pl-PL");
-  const dur = session.duration_seconds ? Math.round(session.duration_seconds / 60) + " min" : "—";
+  const dur  = session.duration_seconds ? Math.round(session.duration_seconds / 60) + " min" : "—";
   document.getElementById("modal-meta").textContent = `${date} · ${dur} · ★ ${session.stars || 0}/3`;
 
   if (session.anonymized_log) {
+    dlog("Zanonimizowany log dostępny — wyświetlam.", "ok");
     document.getElementById("modal-log").textContent = session.anonymized_log;
-    dlog("Zanonimizowany log dostępny.", "ok");
   } else if (session.session_messages?.length) {
-    const raw = session.session_messages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).map(m => `[${m.role === "user" ? "DZIECKO" : "DYSPOZYTOR"}] ${m.content}`).join("\n");
+    const raw = session.session_messages
+      .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+      .map(m => `[${m.role === "user" ? "DZIECKO" : "DYSPOZYTOR"}] ${m.content}`)
+      .join("\n");
     document.getElementById("modal-log").textContent = raw + "\n\n(log niezanonimizowany)";
-    dlog("Wyświetlam surowy log.", "warn");
+    dlog("Wyświetlam surowy log (" + session.session_messages.length + " wiadomości).", "warn");
   } else {
     document.getElementById("modal-log").textContent = "Brak wiadomości w tej sesji.";
+    dlog("Brak wiadomości w sesji.", "warn");
   }
 
   const { data: { session: authSession } } = await supabaseClient.auth.getSession();
   if (authSession?.access_token) {
-    dlog("JWT: dostępny ✅", "ok");
+    dlog("JWT: dostępny ✅ (wygasa: " + new Date(authSession.expires_at * 1000).toLocaleTimeString() + ")", "ok");
     document.getElementById("modal-send-btn").disabled = false;
   } else {
-    dlog("JWT: BRAK ❌", "err");
+    dlog("JWT: BRAK ❌ — wyloguj się i zaloguj ponownie!", "err");
     document.getElementById("modal-send-btn").disabled = true;
   }
 }
@@ -720,60 +944,66 @@ function closeModal() {
 }
 
 function copyModalLog() {
-  navigator.clipboard.writeText(document.getElementById("modal-log").textContent)
-    .then(() => showSendStatus("✅ Skopiowano do schowka!", "ok"));
+  const text = document.getElementById("modal-log").textContent;
+  navigator.clipboard.writeText(text).then(() => showSendStatus("✅ Skopiowano do schowka!", "ok"));
 }
 
-// ============================================================
+// ════════════════════════════════════════════════════════
 // WYSYŁKA MAILA
-// ============================================================
+// ════════════════════════════════════════════════════════
 async function sendCurrentLog() {
   if (!currentSessionId) { dlog("Brak session_id!", "err"); return; }
+
   const btn = document.getElementById("modal-send-btn");
-  btn.disabled = true; btn.textContent = "Wysyłam...";
+  btn.disabled = true; btn.textContent = "Wysyłam…";
   document.getElementById("send-status-box").style.display = "none";
-  dlog("▶ Rozpoczynam wysyłkę...", "info");
+
+  dlog("▶ Rozpoczynam wysyłkę…", "info");
+  dlog("Session ID: " + currentSessionId, "info");
+  dlog("Backend URL: " + BACKEND_URL, "info");
 
   const { data: { session: authSession }, error: sessionError } = await supabaseClient.auth.getSession();
-  if (sessionError || !authSession) {
-    dlog("Brak sesji Supabase!", "err");
+
+  if (sessionError) {
+    dlog("Błąd pobierania sesji auth: " + sessionError.message, "err");
+    showSendStatus("❌ Błąd autoryzacji: " + sessionError.message, "err");
+    btn.disabled = false; btn.textContent = "📧 Wyślij na email";
+    return;
+  }
+  if (!authSession) {
+    dlog("Brak sesji Supabase — użytkownik niezalogowany!", "err");
     showSendStatus("❌ Brak sesji — wyloguj się i zaloguj ponownie.", "err");
     btn.disabled = false; btn.textContent = "📧 Wyślij na email";
     return;
   }
 
-  dlog("JWT pobrany ✅ (" + authSession.access_token.length + " znaków)", "ok");
+  const accessJwt = authSession.access_token;
+  dlog("JWT pobrany ✅ (długość: " + accessJwt.length + " znaków)", "ok");
+  dlog("User email: " + authSession.user?.email, "info");
+  dlog("Token wygasa: " + new Date(authSession.expires_at * 1000).toLocaleString(), "info");
+
+  dlog("▶ Wysyłam POST do: " + BACKEND_URL + "/api/send-log-email", "info");
 
   try {
     const res = await fetch(BACKEND_URL + "/api/send-log-email", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        session_id: currentSessionId,
-        access_jwt: authSession.access_token,
-        user_message: document.getElementById("user-message-input")?.value?.trim() || "",
-        client_info: {
-          userAgent: navigator.userAgent,
-          platform: navigator.platform,
-          language: navigator.language,
-          screenW: screen.width,
-          screenH: screen.height,
-          connectionType: navigator.connection?.effectiveType || "—",
-          sessionErrors: window._sessionErrors || "—"
-        }
-      })
+      body: JSON.stringify({ session_id: currentSessionId, access_jwt: accessJwt })
     });
 
-    dlog("HTTP status: " + res.status, res.ok ? "ok" : "err");
+    dlog("HTTP status: " + res.status + " " + res.statusText, res.ok ? "ok" : "err");
+
     const contentType = res.headers.get("content-type") || "";
+    dlog("Content-Type odpowiedzi: " + contentType, "info");
+
     let data;
     if (contentType.includes("application/json")) {
       data = await res.json();
-      dlog("Odpowiedź: " + JSON.stringify(data), res.ok ? "ok" : "err");
+      dlog("Odpowiedź JSON: " + JSON.stringify(data), res.ok ? "ok" : "err");
     } else {
       const text = await res.text();
       dlog("Odpowiedź (nie-JSON): " + text.substring(0, 200), "err");
-      showSendStatus("❌ Nieoczekiwana odpowiedź serwera.", "err");
+      showSendStatus("❌ Backend zwrócił nie-JSON. Sprawdź debug log.", "err");
       btn.disabled = false; btn.textContent = "📧 Wyślij na email";
       return;
     }
@@ -783,65 +1013,101 @@ async function sendCurrentLog() {
       showSendStatus("✅ Wysłano na: " + (data.sent_to || []).join(", "), "ok");
       await loadSessions();
     } else {
-      dlog("❌ Błąd: " + (data.error || "nieznany"), "err");
+      dlog("❌ Błąd serwera: " + (data.error || "nieznany"), "err");
       showSendStatus("❌ " + (data.error || "Błąd serwera"), "err");
     }
   } catch (e) {
-    dlog("❌ Wyjątek: " + e.message, "err");
+    dlog("❌ Wyjątek fetch: " + e.message, "err");
+    dlog("Stack: " + (e.stack || "brak"), "err");
     showSendStatus("❌ Błąd połączenia: " + e.message, "err");
   }
 
   btn.disabled = false; btn.textContent = "📧 Wyślij na email";
 }
 
-// ============================================================
+// ════════════════════════════════════════════════════════
 // HELPERS
-// ============================================================
-function dlog(msg, type = "info") {
-  const el = document.getElementById("debug-log");
-  if (!el) return;
-  const t = new Date().toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-  const line = document.createElement("div");
-  line.className = "dlog-" + type;
-  line.textContent = `[${t}] ${msg}`;
-  el.appendChild(line);
-  el.scrollTop = el.scrollHeight;
-}
-
-function clearDebugLog() {
-  const el = document.getElementById("debug-log");
-  if (el) el.innerHTML = '<span style="color:#636366">Wyczyszczono.</span>';
-}
-
-function showSendStatus(msg, type) {
-  const box = document.getElementById("send-status-box");
-  const msgEl = document.getElementById("send-status-msg");
-  box.style.display = "block";
-  msgEl.textContent = msg;
-  msgEl.style.background = type === "ok" ? "#0d2818" : type === "err" ? "#1a0000" : "#001a2e";
-  msgEl.style.color = type === "ok" ? "#34c759" : type === "err" ? "#ff3b30" : "#0a84ff";
-  msgEl.style.border = `0.5px solid ${type === "ok" ? "#34c759" : type === "err" ? "#ff3b30" : "#0a84ff"}`;
-}
-
+// ════════════════════════════════════════════════════════
 function show(which) {
   document.getElementById("view-login").classList.toggle("hidden", which !== "login");
   document.getElementById("view-panel").classList.toggle("hidden", which !== "panel");
 }
 
+const TABS = ["sessions", "shop", "product", "terms"];
+
 function switchTab(name) {
-  document.querySelectorAll(".tab").forEach((t, i) => { t.classList.toggle("active", ["sessions","info"][i] === name); });
-  document.getElementById("tab-sessions").classList.toggle("active", name === "sessions");
-  document.getElementById("tab-info").classList.toggle("active", name === "info");
+  document.querySelectorAll(".tab").forEach((t, i) => {
+    t.classList.toggle("active", TABS[i] === name);
+  });
+  TABS.forEach(id => {
+    document.getElementById("tab-" + id).classList.toggle("active", id === name);
+  });
 }
 
-document.getElementById("log-modal").addEventListener("click", (e) => { if (e.target === e.currentTarget) closeModal(); });
+// ════════════════════════════════════════════════════════
+// MODAL ZAKUPU
+// ════════════════════════════════════════════════════════
+let currentPkg = null;
 
-// Auto-uppercase kod zaproszenia
-document.addEventListener("DOMContentLoaded", () => {
-  const inv = document.getElementById("reg-invite-code");
-  if (inv) inv.addEventListener("input", () => { inv.value = inv.value.toUpperCase(); });
-});
+function openBuyModal(name, sessions, price) {
+  currentPkg = { name, sessions, price };
+  document.getElementById("buy-modal-title").textContent = name;
+  document.getElementById("buy-pkg-name").textContent = name;
+  document.getElementById("buy-pkg-sessions").textContent = sessions + " sesji";
+  document.getElementById("buy-pkg-school").textContent = currentSchool?.name || "—";
+  document.getElementById("buy-pkg-price").textContent = price + " zł";
+  document.getElementById("buy-btn-price").textContent = price + " zł";
+  document.getElementById("buy-consent-check").checked = false;
+  document.getElementById("buy-pay-btn").disabled = true;
+  document.getElementById("buy-modal").classList.add("open");
+}
 
+function closeBuyModal() {
+  document.getElementById("buy-modal").classList.remove("open");
+  currentPkg = null;
+}
+
+function updatePayBtn() {
+  const checked = document.getElementById("buy-consent-check").checked;
+  document.getElementById("buy-pay-btn").disabled = !checked;
+}
+
+async function doPayment() {
+  if (!currentPkg || !currentSchool) return;
+  const btn = document.getElementById("buy-pay-btn");
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner" style="border-top-color:#fff;margin:0 auto"></div>';
+
+  try {
+    const { data: { session: authSession } } = await supabaseClient.auth.getSession();
+    const res = await fetch(BACKEND_URL + "/api/create-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        access_jwt: authSession?.access_token,
+        package_name: currentPkg.name,
+        sessions: parseInt(currentPkg.sessions),
+        amount_pln: parseInt(currentPkg.price)
+      })
+    });
+    const data = await res.json();
+    if (res.ok && data.redirect_url) {
+      window.location.href = data.redirect_url;
+    } else {
+      alert("Błąd: " + (data.error || "Nie udało się utworzyć zamówienia."));
+      btn.disabled = false;
+      btn.innerHTML = `Zapłać ${currentPkg.price} zł przez <span class="payu-badge">PayU</span>`;
+    }
+  } catch (e) {
+    alert("Błąd połączenia: " + e.message);
+    btn.disabled = false;
+    btn.innerHTML = `Zapłać ${currentPkg.price} zł przez <span class="payu-badge">PayU</span>`;
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════
 checkSession();
 </script>
 </body>
