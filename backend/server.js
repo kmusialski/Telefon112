@@ -1,6 +1,8 @@
 // ============================================================
-// server.js — Zadzwoń pod 112 · Backend v1.6.1
+// server.js — Zadzwoń pod 112 · Backend v1.6.3
 // ============================================================
+// Nowe w v1.6.3:
+//   - Fix OTP: generateLink zastąpiony email_otp (Zimbra SOAP)
 // Nowe w v1.6.1:
 //   - POST /api/validate-invitation — sprawdza kod zaproszenia
 //   - POST /api/register-school    — rejestracja placówki + 5 darmowych sesji
@@ -529,16 +531,29 @@ app.post("/api/register-school", async (req, res) => {
     email_confirm: false
   });
 
-  // Wymuś wysyłkę OTP przez generateLink (admin.createUser nie wysyła go automatycznie)
+  // Wymuś wysyłkę OTP — pobierz kod z generateLink i wyślij przez Zimbra
   if (!authError && authData?.user) {
     try {
-      await supabase.auth.admin.generateLink({
+      const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
         type: "signup",
         email,
         password
       });
+      if (linkError) throw new Error(linkError.message);
+      const otpCode = linkData?.properties?.email_otp;
+      if (!otpCode) throw new Error("Brak email_otp w odpowiedzi generateLink");
+      console.log(`[REGISTER] 📧 Wysyłam OTP na ${email}`);
+      const zimbraToken = await zimbraAuth();
+      await zimbraSendMail({
+        authToken: zimbraToken,
+        to: email,
+        subject: `HeroKids — kod aktywacyjny konta`,
+        textBody: `Twój kod aktywacyjny HeroKids: ${otpCode}\n\nWpisz go na stronie rejestracji, aby aktywować konto.\nKod jest jednorazowy i wygasa po 24 godzinach.`,
+        htmlBody: `<div style="font-family:-apple-system,sans-serif;max-width:480px;margin:0 auto;padding:24px"><div style="background:#c00;padding:16px 24px;border-radius:8px 8px 0 0"><h2 style="margin:0;color:#fff;font-size:18px">🚨 HeroKids — aktywacja konta</h2></div><div style="background:#fff;border:1px solid #e5e5e5;border-top:none;padding:24px;border-radius:0 0 8px 8px"><p style="color:#333;font-size:15px">Twój jednorazowy kod aktywacyjny:</p><div style="text-align:center;margin:20px 0;font-family:monospace;font-size:36px;font-weight:700;letter-spacing:8px;color:#c00;background:#fff0f3;padding:16px;border-radius:8px">${otpCode}</div><p style="color:#666;font-size:13px">Wpisz go na stronie rejestracji HeroKids, aby aktywować konto.</p><p style="color:#999;font-size:12px">Kod jest jednorazowy i wygasa po 24 godzinach.</p></div></div>`
+      });
+      console.log(`[REGISTER] ✅ OTP wysłany przez Zimbra na ${email}`);
     } catch (e) {
-      console.warn(`[REGISTER] ⚠️ generateLink failed: ${e.message} — OTP może nie dotrzeć`);
+      console.warn(`[REGISTER] ⚠️ OTP email failed: ${e.message}`);
     }
   }
 
@@ -756,7 +771,7 @@ app.get("/api/health", async (req, res) => {
 
   res.json({
     status: "ok",
-    version: "1.6.1",
+    version: "1.6.3",
     services: {
       anthropic:    !!ANTHROPIC_API_KEY,
       elevenlabs:   !!ELEVENLABS_API_KEY,
@@ -777,7 +792,7 @@ app.get("/api/health", async (req, res) => {
 // START
 // ============================================================
 app.listen(PORT, () => {
-  console.log(`✅ HeroKids 112 backend v1.6.1 — port ${PORT}`);
+  console.log(`✅ HeroKids 112 backend v1.6.3 — port ${PORT}`);
   console.log(`   Anthropic:  ${ANTHROPIC_API_KEY  ? "✅" : "❌"}`);
   console.log(`   ElevenLabs: ${ELEVENLABS_API_KEY  ? "✅" : "❌"}`);
   console.log(`   Supabase:   ${SUPABASE_URL        ? "✅" : "❌"}`);
