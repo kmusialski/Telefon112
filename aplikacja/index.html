@@ -60,7 +60,7 @@ input:checked+.toggle-slider:before{transform:translateX(18px)}
 <body>
 
 <!-- RODO -->
-<div id="s-rodo" class="screen" style="padding:40px 24px;justify-content:center;gap:0">
+<div id="s-rodo" class="screen hidden" style="padding:40px 24px;justify-content:center;gap:0">
   <div style="font-size:48px;text-align:center;margin-bottom:20px">🔒</div>
   <div style="font-size:20px;font-weight:600;text-align:center;margin-bottom:8px">Informacja RODO</div>
   <div style="font-size:13px;color:#8e8e93;line-height:1.8;text-align:center;margin-bottom:20px">
@@ -87,8 +87,9 @@ input:checked+.toggle-slider:before{transform:translateX(18px)}
     <div style="margin-bottom:6px">🤖 <a href="https://www.anthropic.com/privacy" target="_blank" style="color:#0a84ff;text-decoration:none">Anthropic (Claude) — Privacy Policy</a></div>
     <div>🔊 <a href="https://elevenlabs.io/privacy" target="_blank" style="color:#0a84ff;text-decoration:none">ElevenLabs — Privacy Policy</a></div>
   </div>
-  <button onclick="handleRodoAccept()" class="api-btn" style="margin-top:0">Rozumiem i akceptuję</button>
-  <div style="font-size:11px;color:#636366;text-align:center;margin-top:12px">HeroKids 112 · v1.5.1</div>
+  <button onclick="handleRodoAccept()" class="api-btn" style="margin-top:0">Rozpocznij</button>
+  <button onclick="openAdminFromSetup('s-rodo')" style="background:transparent;border:0.5px solid #3a3a3c;border-radius:24px;padding:12px 24px;font-size:14px;color:#8e8e93;cursor:pointer;font-family:-apple-system,sans-serif;width:100%;margin-top:10px">Ustawienia</button>
+  <div style="font-size:11px;color:#636366;text-align:center;margin-top:12px">HeroKids 112 · v1.6.3</div>
 </div>
 
 <!-- SETUP -->
@@ -389,7 +390,6 @@ input:checked+.toggle-slider:before{transform:translateX(18px)}
 const BACKEND_URL = "https://telefon112-dev.up.railway.app"; // dev
 const VOICE_ID_PL = "pqHfZKP75CvOlQylNhV4";
 const VOICE_ID_DE = "EXAVITQu4vr4xnSDxMaL";
-const ADMIN_DEFAULT_PASS = "admin112";
 
 // Stan tokenów — sessionStorage (nie persystuje po zamknięciu przeglądarki)
 let ACCESS_TOKEN = sessionStorage.getItem("access_token") || "";
@@ -706,7 +706,7 @@ function getActivePrompt(){
   if(extra.trim())return base+"\n\n"+getLoc().extraHeader+"\n"+extra;
   return base;
 }
-function getAdminPass(){return localStorage.getItem("admin_pass")||ADMIN_DEFAULT_PASS;}
+function getAdminPass(){return localStorage.getItem("admin_pass")||null;}
 function setLang(lang){currentLang=lang;localStorage.setItem("app_lang",lang);applyLocale();}
 function refreshAdminExtra(){document.getElementById("admin-extra").value=localStorage.getItem("admin_extra_"+currentLang)||"";}
 
@@ -779,12 +779,20 @@ function goToEmergency(){show("s-dialer");}
 function logoutAndRodo(){
   sessionStorage.clear();
   ACCESS_TOKEN="";TOKEN_CREDITS=0;TOKEN_SCHOOL="";
-  show("s-rodo");
+  const input=document.getElementById("token-input");
+  if(input){input.value="";}
+  const btn=document.getElementById("start-btn");
+  if(btn){btn.disabled=true;}
+  const status=document.getElementById("token-status");
+  if(status)status.textContent="";
+  const err=document.getElementById("setup-error");
+  if(err)err.textContent="";
+  show("s-setup");
 }
 
 // RODO accept — jeśli token w sessionStorage, idź do lock, inaczej setup
 function handleRodoAccept(){
-  if(ACCESS_TOKEN){show("s-lock");}else{show("s-setup");}
+  show("s-lock");
 }
 
 // ============================================================
@@ -831,7 +839,7 @@ async function validateTokenAndStart(){
     sessionStorage.setItem("token_school",TOKEN_SCHOOL);
     statusEl.textContent="✅ Kod aktywny · Sesje: "+TOKEN_CREDITS;statusEl.style.color="#34c759";
     updateTokenUI();unlockAudioContext();
-    setTimeout(()=>show("s-lock"),800);
+    setTimeout(()=>show("s-rodo"),800);
   }catch(e){errEl.textContent="Błąd połączenia: "+e.message;btn.textContent=L.setupStartBtn;btn.disabled=false;statusEl.textContent="";}
 }
 
@@ -903,16 +911,30 @@ function onShortCallToggle(checked){
 }
 
 function checkAdminPass(){
-  const v=document.getElementById("admin-pass-input").value;
-  if(v===getAdminPass()){
+  const savedPass=getAdminPass();
+  if(!savedPass){
+    // Pierwsze uruchomienie — brak hasła, wejdź bezpośrednio i wymuś ustawienie
     document.getElementById("admin-extra").value=localStorage.getItem("admin_extra_"+currentLang)||"";
     document.getElementById("admin-new-pass").value="";
-    document.getElementById("admin-msg").textContent="";
-    // Wczytaj stan toggleów
+    const msg=document.getElementById("admin-msg");
+    msg.style.color="#ff9f0a";msg.textContent="Ustaw hasło administratora poniżej.";
     document.getElementById("auto-end-toggle").checked=getToggle("auto_end_call");
     document.getElementById("short-call-toggle").checked=getToggle("short_call");
     document.getElementById("street-error-toggle").checked=getToggle("street_error");
-    // Jeśli short_call włączony — przyciemnij street_error
+    const rowStreet=document.getElementById("toggle-row-street");
+    if(rowStreet)rowStreet.style.opacity=getToggle("short_call")?"0.4":"1";
+    updateTokenUI();
+    show("s-admin");
+    return;
+  }
+  const v=document.getElementById("admin-pass-input").value;
+  if(v===savedPass){
+    document.getElementById("admin-extra").value=localStorage.getItem("admin_extra_"+currentLang)||"";
+    document.getElementById("admin-new-pass").value="";
+    document.getElementById("admin-msg").textContent="";
+    document.getElementById("auto-end-toggle").checked=getToggle("auto_end_call");
+    document.getElementById("short-call-toggle").checked=getToggle("short_call");
+    document.getElementById("street-error-toggle").checked=getToggle("street_error");
     const rowStreet=document.getElementById("toggle-row-street");
     if(rowStreet)rowStreet.style.opacity=getToggle("short_call")?"0.4":"1";
     updateTokenUI();
@@ -923,9 +945,15 @@ function saveAdminSettings(){
   const L=getLoc();
   const extra=document.getElementById("admin-extra").value.trim();
   const newPass=document.getElementById("admin-new-pass").value.trim();
+  const msg=document.getElementById("admin-msg");
+  if(!getAdminPass()&&newPass.length<4){
+    msg.style.color="#ff9f0a";msg.textContent="Ustaw hasło — minimum 4 znaki.";
+    setTimeout(()=>{msg.textContent="Ustaw hasło administratora poniżej.";},3000);
+    return;
+  }
   localStorage.setItem("admin_extra_"+currentLang,extra);
   if(newPass.length>=4)localStorage.setItem("admin_pass",newPass);
-  const msg=document.getElementById("admin-msg");msg.style.color="#34c759";msg.textContent=L.adminSavedMsg;setTimeout(()=>{msg.textContent="";},2000);
+  msg.style.color="#34c759";msg.textContent=L.adminSavedMsg;setTimeout(()=>{msg.textContent="";},2000);
 }
 function clearExtra(){
   const L=getLoc();if(!confirm(L.adminClearConfirm))return;
@@ -973,12 +1001,27 @@ function updateDisplay(){
 async function speakEL(text,onEnd){
   speaking=true;updateMicState();
   const L=getLoc();log("EL","TTS ["+L.code+"]: "+text.substring(0,40)+"...");
+  const hint=document.getElementById("mic-hint");
+  let slowTimer=setTimeout(()=>{if(speaking&&hint){hint.textContent="⏳ Słabe połączenie z internetem...";hint.style.color="#ff9f0a";}},3500);
+  const tryTTS=async(timeoutMs)=>{
+    const ctrl=new AbortController();
+    const tId=setTimeout(()=>ctrl.abort(),timeoutMs);
+    try{
+      const isChild=childAnswers>=1;
+      const vs=isChild?{stability:0.35,similarity_boost:0.80,style:0.45,use_speaker_boost:true}:{stability:0.75,similarity_boost:0.75,style:0.0,use_speaker_boost:true};
+      const res=await fetch(BACKEND_URL+"/api/tts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text,lang:L.code,voice_id:L.voiceId,voice_settings:vs,token:ACCESS_TOKEN}),signal:ctrl.signal});
+      clearTimeout(tId);
+      log(res.ok?"OK":"ERR","EL response: "+res.status);
+      if(!res.ok)throw new Error("TTS "+res.status);
+      return res;
+    }catch(e){clearTimeout(tId);throw e;}
+  };
   try{
-    const isChild=childAnswers>=1;
-    const vs=isChild?{stability:0.35,similarity_boost:0.80,style:0.45,use_speaker_boost:true}:{stability:0.75,similarity_boost:0.75,style:0.0,use_speaker_boost:true};
-    const res=await fetch(BACKEND_URL+"/api/tts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text,lang:L.code,voice_id:L.voiceId,voice_settings:vs,token:ACCESS_TOKEN})});
-    log(res.ok?"OK":"ERR","EL response: "+res.status);
-    if(!res.ok)throw new Error("TTS "+res.status);
+    let res;
+    try{res=await tryTTS(6000);}
+    catch(firstErr){log("WARN","EL retry: "+firstErr.message);res=await tryTTS(4000);}
+    clearTimeout(slowTimer);
+    if(hint&&hint.textContent.includes("Słabe")){hint.textContent="";}
     const ab=await res.arrayBuffer();
     if(!audioCtx)unlockAudioContext();
     if(audioCtx.state==="suspended")await audioCtx.resume();
@@ -988,11 +1031,33 @@ async function speakEL(text,onEnd){
     src.onended=()=>{
       log("OK","EL ended");speaking=false;updateMicState();
       if(onEnd)onEnd();
-      // FIX: nie startuj nasłuchu po komunikacie o błędzie
       else if(!lastReplyWasError&&!paused)autoStartListening();
     };
     src.start(0);
-  }catch(e){log("ERR","EL error: "+e.message);speaking=false;updateMicState();if(onEnd)onEnd();}
+  }catch(e){
+    clearTimeout(slowTimer);
+    log("WARN","EL failed — fallback TTS: "+e.message);
+    speakFallback(text,onEnd);
+  }
+}
+
+function speakFallback(text,onEnd){
+  const L=getLoc();
+  const hint=document.getElementById("mic-hint");
+  if(hint){hint.textContent="🔈 Głos tymczasowy (brak połączenia)";hint.style.color="#ff9f0a";}
+  const cleanText=text.replace("[KONIEC_ROZMOWY]","").trim();
+  if(!window.speechSynthesis){
+    log("WARN","No speechSynthesis available");
+    speaking=false;updateMicState();
+    if(onEnd)onEnd();else if(!lastReplyWasError&&!paused)autoStartListening();
+    return;
+  }
+  window.speechSynthesis.cancel();
+  const utt=new SpeechSynthesisUtterance(cleanText);
+  utt.lang=L.sttLang;utt.rate=0.9;
+  utt.onend=()=>{speaking=false;updateMicState();if(onEnd)onEnd();else if(!lastReplyWasError&&!paused)autoStartListening();};
+  utt.onerror=()=>{speaking=false;updateMicState();if(onEnd)onEnd();else if(!lastReplyWasError&&!paused)autoStartListening();};
+  window.speechSynthesis.speak(utt);
 }
 
 // ============================================================
@@ -1154,7 +1219,7 @@ function resetApp(){callActive=false;paused=false;digits="";conversationHistory=
 // ============================================================
 // INIT — sessionStorage (nie persystuje po zamknięciu)
 // ============================================================
-if(ACCESS_TOKEN){show("s-lock");}else{show("s-rodo");}
+if(ACCESS_TOKEN){show("s-lock");}else{show("s-setup");}
 applyLocale();
 </script>
 </body>
