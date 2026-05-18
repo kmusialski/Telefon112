@@ -830,6 +830,10 @@ async function validateTokenAndStart(){
 // ============================================================
 let audioCtx=null;
 function unlockAudioContext(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==="suspended")audioCtx.resume();}
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden && audioCtx && audioCtx.state === "suspended")
+    audioCtx.resume();
+});
 function playTone(freq,duration,type="sine",gain=0.15){if(!audioCtx)return;try{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(0,audioCtx.currentTime);g.gain.linearRampToValueAtTime(gain,audioCtx.currentTime+0.01);g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+duration);o.start(audioCtx.currentTime);o.stop(audioCtx.currentTime+duration);}catch(e){}}
 function playKeyClick(){playTone(1200,0.06,"sine",0.12);}
 function playDialTone(){if(!audioCtx)return;let count=0;const iv=setInterval(()=>{if(count>=4||document.getElementById("s-calling").classList.contains("hidden")){clearInterval(iv);return;}playTone(440,0.4,"sine",0.1);setTimeout(()=>playTone(480,0.4,"sine",0.08),20);count++;},1000);}
