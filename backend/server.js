@@ -59,15 +59,18 @@ const PAYU_BASE = PAYU_SANDBOX === "true"
   ? "https://secure.snd.payu.com"
   : "https://secure.payu.com";
 
+// Pakiety — ceny w groszach (PayU wymaga groszy)
 const PACKAGES = {
-  basic:    { name: "Basic",    sessions: 30,  amount: 2900, label: "30 sesji · 29 zł" },
-  standard: { name: "Standard", sessions: 60,  amount: 4900, label: "60 sesji · 49 zł" },
-  pro:      { name: "Pro",      sessions: 100, amount: 7900, label: "100 sesji · 79 zł" }
+  basic:    { name: "P1",    sessions: 30,  amount: 2900, label: "30 sesji · 29 zł" },
+  standard: { name: "P2", sessions: 60,  amount: 4900, label: "60 sesji · 49 zł" },
+  pro:      { name: "P3",      sessions: 100, amount: 7900, label: "100 sesji · 79 zł" }
 };
 
 // ============================================================
-// ZIMBRA SOAP
+// ZIMBRA SOAP — helper do wysyłki maila przez HTTPS
 // ============================================================
+
+// Krok 1: Pobierz auth token (ważny ~24h, ale nie cachujemy — SMTP jest transakcyjny)
 async function zimbraAuth() {
   const body = {
     Header: { context: { _jsns: "urn:zimbra" } },
@@ -91,7 +94,9 @@ async function zimbraAuth() {
   return token;
 }
 
+// Krok 2: Wyślij maila używając auth tokena
 async function zimbraSendMail({ authToken, to, cc, subject, textBody, htmlBody }) {
+  // Budujemy adresy e (from, to, cc)
   const addresses = [
     { t: "f", a: ZIMBRA_USER, p: "HeroKids 112" },
     ...(Array.isArray(to) ? to : [to]).map(a => ({ t: "t", a })),
@@ -389,6 +394,7 @@ app.post("/api/send-log-email", async (req, res) => {
     `\n===\nZadzwoń pod 112 · herokids.eu`
   ].join("\n");
 
+  // ── HTML ───────────────────────────────────────────────────
   const htmlBody = `
     <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:640px;margin:0 auto;color:#1a1a1a">
       <div style="background:#c00;padding:20px 24px;border-radius:12px 12px 0 0">
@@ -712,6 +718,77 @@ app.post("/api/create-order", async (req, res) => {
   } catch (e) {
     return res.status(500).json({ error: "Błąd tworzenia zamówienia: " + e.message });
   }
+
+  const { extOrderId, orderId, status } = order;
+  console.log(`[PAYU-NOTIFY] extOrderId: ${extOrderId}, status: ${status}`);
+
+  await supabase.from("orders")
+    .update({ payu_order_id: orderId, status: status.toLowerCase() })
+    .eq("payu_ext_order_id", extOrderId);
+
+  if (status === "COMPLETED") {
+    console.log(`[PAYU-NOTIFY] ✅ Płatność COMPLETED — doliczam kredyty`);
+
+    const { data: orderData } = await supabase
+      .from("orders")
+      .select("token_id, sessions_count")
+      .eq("payu_ext_order_id", extOrderId)
+      .single();
+
+    if (orderData?.token_id) {
+      const { data: tokenData } = await supabase
+        .from("tokens").select("credits").eq("id", orderData.token_id).single();
+      const newCredits = (tokenData?.credits || 0) + orderData.sessions_count;
+      await supabase.from("tokens")
+        .update({ credits: newCredits, active: true }).eq("id", orderData.token_id);
+      console.log(`[PAYU-NOTIFY] ✅ Token ${orderData.token_id} → +${orderData.sessions_count} kredytów (razem: ${newCredits})`);
+
+    } else if (orderData) {
+      console.log(`[PAYU-NOTIFY] Tworzę nowy token dla zamówienia ${extOrderId}`);
+      const newTokenCode = "PSZ-" + Math.random().toString(36).slice(2,6).toUpperCase() + "-" + Math.random().toString(36).slice(2,6).toUpperCase();
+      const { data: newToken } = await supabase.from("tokens").insert({
+        token_code: newTokenCode,
+        school_id: orderData.school_id || null,
+        credits: orderData.sessions_count,
+        active: true
+      }).select("id").single();
+      await supabase.from("orders")
+        .update({ token_id: newToken?.id, status: "completed", completed_at: new Date().toISOString() })
+        .eq("payu_ext_order_id", extOrderId);
+      console.log(`[PAYU-NOTIFY] ✅ Nowy token: ${newTokenCode} (${orderData.sessions_count} sesji)`);
+    }
+
+    await supabase.from("orders")
+      .update({ status: "completed", completed_at: new Date().toISOString() })
+      .eq("payu_ext_order_id", extOrderId);
+  }
+
+  return res.status(200).json({ status: "OK" });
+});
+
+// ============================================================
+// GET /api/order-status/:extOrderId  [PayU]
+// ============================================================
+app.get("/api/order-status/:extOrderId", async (req, res) => {
+  const { extOrderId } = req.params;
+
+  const { data: order, error } = await supabase
+    .from("orders")
+    .select("id, package_name, sessions_count, amount_pln, status, payu_order_id, completed_at, token_id, tokens(token_code, credits)")
+    .eq("payu_ext_order_id", extOrderId)
+    .single();
+
+  if (error || !order) return res.status(404).json({ error: "Zamówienie nie znalezione" });
+
+  return res.json({
+    ok: true,
+    status: order.status,
+    package: order.package_name,
+    sessions: order.sessions_count,
+    completed_at: order.completed_at,
+    token_code: order.tokens?.token_code || null,
+    credits: order.tokens?.credits || null
+  });
 });
 
 // ============================================================

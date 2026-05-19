@@ -1,6 +1,6 @@
 {
   "name": "dzwon112-backend",
-  "version": "1.5.1",
+  "version": "1.6",
   "description": "Backend proxy dla aplikacji HeroKids 112",
   "main": "server.js",
   "scripts": {
