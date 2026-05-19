@@ -697,6 +697,11 @@
     <div class="modal-meta" id="modal-meta"></div>
     <pre id="modal-log"></pre>
 
+    <div style="margin-top:12px">
+      <label style="font-size:12px;color:var(--ink-mid);display:block;margin-bottom:4px">Wiadomość do supportu (opcjonalnie)</label>
+      <textarea id="user-message-input" placeholder="Opisz problem lub dodaj komentarz do tej sesji…" style="width:100%;height:72px;border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:13px;font-family:inherit;color:var(--ink);resize:vertical;outline:none"></textarea>
+    </div>
+
     <div class="modal-actions">
       <button id="modal-send-btn" onclick="sendCurrentLog()" class="btn-sm green">📧 Wyślij na email</button>
       <button onclick="copyModalLog()" class="btn-sm">Kopiuj</button>
@@ -941,6 +946,8 @@ async function openSessionLog(sessionId) {
 function closeModal() {
   document.getElementById("log-modal").classList.remove("open");
   currentSessionId = null;
+  const msgInput = document.getElementById("user-message-input");
+  if (msgInput) msgInput.value = "";
 }
 
 function copyModalLog() {
@@ -988,7 +995,11 @@ async function sendCurrentLog() {
     const res = await fetch(BACKEND_URL + "/api/send-log-email", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ session_id: currentSessionId, access_jwt: accessJwt })
+      body: JSON.stringify({
+        session_id: currentSessionId,
+        access_jwt: accessJwt,
+        user_message: (document.getElementById("user-message-input")?.value || "").trim() || undefined
+      })
     });
 
     dlog("HTTP status: " + res.status + " " + res.statusText, res.ok ? "ok" : "err");
@@ -1079,15 +1090,16 @@ async function doPayment() {
   btn.innerHTML = '<div class="spinner" style="border-top-color:#fff;margin:0 auto"></div>';
 
   try {
-    const { data: { session: authSession } } = await supabaseClient.auth.getSession();
     const res = await fetch(BACKEND_URL + "/api/create-order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        access_jwt: authSession?.access_token,
-        package: currentPkg.key,
-        sessions: parseInt(currentPkg.sessions),
-        amount_pln: parseInt(currentPkg.price)
+        package:      currentPkg.key,
+        school_id:    currentSchool.id,
+        token_id:     currentToken?.id || null,
+        buyer_email:  currentUser.email,
+        buyer_name:   currentSchool.name || "Dyrektor",
+        return_url:   "https://herokids.eu/panel.html"
       })
     });
     const data = await res.json();
@@ -1110,5 +1122,8 @@ async function doPayment() {
 // ════════════════════════════════════════════════════════
 checkSession();
 </script>
+<footer style="text-align:center;padding:20px 0 12px;font-size:11px;color:var(--ink-mid);border-top:1px solid var(--border);margin-top:40px">
+  HeroKids 112 &nbsp;·&nbsp; Panel administracyjny &nbsp;·&nbsp; <span style="color:var(--red)">v1.6.4</span>
+</footer>
 </body>
 </html>
