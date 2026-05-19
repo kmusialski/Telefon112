@@ -663,9 +663,6 @@ function getActivePrompt(){
   if(streetError && currentLang==="pl" && !shortCall){
     base = base + STREET_ERROR_SUFFIX_PL;
   }
-
-  const extra=localStorage.getItem("admin_extra_"+currentLang)||"";
-  if(extra.trim())return base+"\n\n"+getLoc().extraHeader+"\n"+extra;
   return base;
 }
 function setLang(lang){currentLang=lang;localStorage.setItem("app_lang",lang);applyLocale();}
@@ -877,21 +874,6 @@ function onShortCallToggle(checked){
     const row=document.getElementById("toggle-row-street");
     if(row)row.style.opacity="1";
   }
-}
-
-function saveAdminSettings(){
-  const L=getLoc();
-  const extra=document.getElementById("admin-extra").value.trim();
-  const newPass=document.getElementById("admin-new-pass").value.trim();
-  const msg=document.getElementById("admin-msg");
-  localStorage.setItem("admin_extra_"+currentLang,extra);
-  if(newPass.length>=4)localStorage.setItem("admin_pass",newPass);
-  msg.style.color="#C8001E";msg.textContent=L.adminSavedMsg;setTimeout(()=>{msg.textContent="";},2000);
-}
-function clearExtra(){
-  const L=getLoc();if(!confirm(L.adminClearConfirm))return;
-  localStorage.removeItem("admin_extra_"+currentLang);document.getElementById("admin-extra").value="";
-  const msg=document.getElementById("admin-msg");msg.style.color="#C8001E";msg.textContent=L.adminClearedMsg;setTimeout(()=>{msg.textContent="";},2000);
 }
 
 // ============================================================
