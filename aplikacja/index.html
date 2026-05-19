@@ -7,51 +7,51 @@
 <title>HeroKids 112</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{background:#000;height:100%;overflow-x:hidden}
-body{display:flex;flex-direction:column;align-items:center;font-family:-apple-system,sans-serif;color:#fff}
+html,body{background:#faf9f7;height:100%;overflow-x:hidden}
+body{display:flex;flex-direction:column;align-items:center;font-family:-apple-system,sans-serif;color:#18181b}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
 @keyframes ring{0%,100%{transform:scale(1)}40%{transform:scale(1.18)}70%{transform:scale(0.94)}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .screen{width:100%;max-width:400px;min-height:100dvh;display:flex;flex-direction:column;align-items:center;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .hidden{display:none!important}
-.key{background:#1c1c1e;border:none;border-radius:50%;width:72px;height:72px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;touch-action:manipulation;-webkit-user-select:none;user-select:none;transition:background 0.1s,transform 0.08s;flex-shrink:0}
-.key:active{background:#3a3a3c;transform:scale(0.93)}
+.key{background:#f4f4f5;border:none;border-radius:50%;width:72px;height:72px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#18181b;touch-action:manipulation;-webkit-user-select:none;user-select:none;transition:background 0.1s,transform 0.08s;flex-shrink:0}
+.key:active{background:#e4e4e7;transform:scale(0.93)}
 .key-num{font-size:28px;line-height:1}
-.key-sub{font-size:10px;color:#8e8e93;letter-spacing:2px;margin-top:2px}
+.key-sub{font-size:10px;color:#a1a1aa;letter-spacing:2px;margin-top:2px}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:0 20px;width:100%}
-.call-btn{background:#34c759;border:none;border-radius:50%;width:72px;height:72px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation;flex-shrink:0}
-.end-btn{background:#ff3b30;border:none;border-radius:50%;width:56px;height:56px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.call-btn{background:#C8001E;border:none;border-radius:50%;width:72px;height:72px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation;flex-shrink:0}
+.end-btn{background:#C8001E;border:none;border-radius:50%;width:56px;height:56px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .mic-btn{border:none;border-radius:50%;width:76px;height:76px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:none;-webkit-user-select:none;user-select:none}
 .pause-btn{background:#ff9f0a;border:none;border-radius:50%;width:52px;height:52px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation;-webkit-user-select:none;user-select:none;transition:background 0.15s,transform 0.1s}
 .pause-btn:active{transform:scale(0.93)}
-.bubble-op{align-self:flex-start;background:#1c1c1e;border-radius:16px;padding:10px 14px;max-width:82%;font-size:15px;line-height:1.4;color:#fff;animation:fadeIn 0.2s ease}
-.bubble-me{align-self:flex-end;background:#0a84ff;border-radius:16px;padding:10px 14px;max-width:82%;font-size:15px;line-height:1.4;color:#fff;animation:fadeIn 0.2s ease}
-.lbl{font-size:11px;color:#8e8e93;margin-bottom:3px}
-.dots span{display:inline-block;width:7px;height:7px;border-radius:50%;background:#8e8e93;margin:0 3px;animation:pulse 0.6s infinite}
+.bubble-op{align-self:flex-start;background:#f4f4f5;border-radius:16px;padding:10px 14px;max-width:82%;font-size:15px;line-height:1.4;color:#18181b;animation:fadeIn 0.2s ease}
+.bubble-me{align-self:flex-end;background:#C8001E;border-radius:16px;padding:10px 14px;max-width:82%;font-size:15px;line-height:1.4;color:#fff;animation:fadeIn 0.2s ease}
+.lbl{font-size:11px;color:#52525b;margin-bottom:3px}
+.dots span{display:inline-block;width:7px;height:7px;border-radius:50%;background:#d4d4d8;margin:0 3px;animation:pulse 0.6s infinite}
 .dots span:nth-child(2){animation-delay:0.15s}
 .dots span:nth-child(3){animation-delay:0.3s}
-.api-input{background:#1c1c1e;border:0.5px solid #3a3a3c;border-radius:12px;color:#fff;font-size:14px;padding:14px 16px;width:100%;outline:none;font-family:-apple-system,sans-serif;margin-top:8px}
-.api-input::placeholder{color:#636366}
-.api-btn{background:#0a84ff;color:#fff;border:none;border-radius:24px;padding:14px;font-size:16px;cursor:pointer;width:100%;margin-top:12px;font-family:-apple-system,sans-serif}
+.api-input{background:#fff;border:1px solid #e4e4e7;border-radius:12px;color:#18181b;font-size:14px;padding:14px 16px;width:100%;outline:none;font-family:-apple-system,sans-serif;margin-top:8px}
+.api-input::placeholder{color:#a1a1aa}
+.api-btn{background:#C8001E;color:#fff;border:none;border-radius:24px;padding:14px;font-size:16px;cursor:pointer;width:100%;margin-top:12px;font-family:-apple-system,sans-serif}
 .api-btn:disabled{opacity:0.4}
 .lang-btn{border:none;border-radius:16px;padding:10px 0;font-size:16px;cursor:pointer;flex:1;transition:background 0.15s,transform 0.1s;touch-action:manipulation;font-family:-apple-system,sans-serif;color:#fff}
 .lang-btn:active{transform:scale(0.94)}
-.lang-btn.active{background:#0a84ff}
-.lang-btn.inactive{background:#1c1c1e;color:#8e8e93}
-.token-badge{display:inline-flex;align-items:center;gap:6px;background:#0d2818;border:0.5px solid #34c759;border-radius:10px;padding:6px 12px;font-size:12px;color:#34c759;font-family:monospace;margin-top:8px}
-.credits-badge{display:inline-flex;align-items:center;gap:6px;background:#1c1c1e;border-radius:10px;padding:6px 12px;font-size:12px;color:#8e8e93;font-family:monospace;margin-top:4px}
-.call-action-btn{background:rgba(255,255,255,0.15);border:none;border-radius:50%;width:72px;height:72px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#fff;font-size:11px;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.lang-btn.active{background:#C8001E}
+.lang-btn.inactive{background:#f4f4f5;color:#52525b}
+.token-badge{display:inline-flex;align-items:center;gap:6px;background:#fff0f3;border:0.5px solid #C8001E;border-radius:10px;padding:6px 12px;font-size:12px;color:#C8001E;font-family:monospace;margin-top:8px}
+.credits-badge{display:inline-flex;align-items:center;gap:6px;background:#f4f4f5;border-radius:10px;padding:6px 12px;font-size:12px;color:#52525b;font-family:monospace;margin-top:4px}
+.call-action-btn{background:#f4f4f5;border:none;border-radius:50%;width:72px;height:72px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#18181b;font-size:11px;touch-action:manipulation;-webkit-user-select:none;user-select:none}
 .call-action-btn svg{flex-shrink:0}
-.call-end-big{background:#ff3b30;border:none;border-radius:50%;width:72px;height:72px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation}
+.call-end-big{background:#C8001E;border:none;border-radius:50%;width:72px;height:72px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation}
 /* toggle switch */
-.toggle-row{display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 0;border-bottom:0.5px solid #2c2c2e}
-.toggle-label{font-size:13px;color:#e5e5ea;flex:1;padding-right:12px;line-height:1.4}
-.toggle-sub{font-size:11px;color:#636366;margin-top:2px}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 0;border-bottom:0.5px solid #e4e4e7}
+.toggle-label{font-size:13px;color:#18181b;flex:1;padding-right:12px;line-height:1.4}
+.toggle-sub{font-size:11px;color:#52525b;margin-top:2px}
 .toggle{position:relative;display:inline-block;width:44px;height:26px;flex-shrink:0}
 .toggle input{opacity:0;width:0;height:0}
-.toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#3a3a3c;border-radius:26px;transition:0.3s}
+.toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#d4d4d8;border-radius:26px;transition:0.3s}
 .toggle-slider:before{position:absolute;content:"";height:20px;width:20px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:0.3s}
-input:checked+.toggle-slider{background:#34c759}
+input:checked+.toggle-slider{background:#C8001E}
 input:checked+.toggle-slider:before{transform:translateX(18px)}
 /* paused banner */
 .paused-banner{background:#ff9f0a;color:#000;font-size:13px;font-weight:600;text-align:center;padding:6px;width:100%;letter-spacing:0.5px}
@@ -63,91 +63,92 @@ input:checked+.toggle-slider:before{transform:translateX(18px)}
 <div id="s-rodo" class="screen hidden" style="padding:40px 24px;justify-content:center;gap:0">
   <div style="font-size:48px;text-align:center;margin-bottom:20px">🔒</div>
   <div style="font-size:20px;font-weight:600;text-align:center;margin-bottom:8px">Informacja RODO</div>
-  <div style="font-size:13px;color:#8e8e93;line-height:1.8;text-align:center;margin-bottom:20px">
+  <div style="font-size:13px;color:#52525b;line-height:1.8;text-align:center;margin-bottom:20px">
     Aplikacja zbiera anonimowe logi rozmów<br/>wyłącznie w celach edukacyjnych.<br/>
     Nie zapisujemy imion ani danych osobowych.<br/>
     Dane są widoczne tylko dla administratora szkoły.
   </div>
-  <div style="background:#1c1c1e;border-radius:16px;padding:16px 20px;width:100%;font-size:13px;color:#8e8e93;line-height:1.8;margin-bottom:16px">
-    <div style="color:#fff;font-weight:600;margin-bottom:8px">Jak działamy:</div>
+  <div style="background:#f4f4f5;border-radius:16px;padding:16px 20px;width:100%;font-size:13px;color:#52525b;line-height:1.8;margin-bottom:16px">
+    <div style="color:#18181b;font-weight:600;margin-bottom:8px">Jak działamy:</div>
     <div>✅ Rozmowy są anonimizowane przez AI</div>
     <div>✅ Brak przechowywania danych osobowych</div>
     <div>✅ Klucze API tylko na serwerze</div>
     <div>✅ Zgodność z RODO / GDPR</div>
   </div>
-  <div style="background:#1c1c1e;border-radius:16px;padding:16px 20px;width:100%;font-size:13px;color:#8e8e93;line-height:1.8;margin-bottom:16px">
-    <div style="color:#fff;font-weight:600;margin-bottom:8px">🌐 Serwis webowy — brak instalacji:</div>
+  <div style="background:#f4f4f5;border-radius:16px;padding:16px 20px;width:100%;font-size:13px;color:#52525b;line-height:1.8;margin-bottom:16px">
+    <div style="color:#18181b;font-weight:600;margin-bottom:8px">🌐 Serwis webowy — brak instalacji:</div>
     <div>✅ Nie instaluje nic na Twoim urządzeniu</div>
     <div>✅ Działa wyłącznie w przeglądarce</div>
     <div>✅ Po zamknięciu przeglądarki brak dostępu do mikrofonu</div>
     <div>✅ Dane przechowywane tylko na czas sesji</div>
   </div>
-  <div style="width:100%;background:#1c1c1e;border-radius:16px;padding:16px 20px;margin-bottom:24px;font-size:13px;color:#8e8e93;line-height:1.8">
-    <div style="color:#fff;font-weight:600;margin-bottom:8px">Polityki prywatności dostawców AI:</div>
-    <div style="margin-bottom:6px">🤖 <a href="https://www.anthropic.com/privacy" target="_blank" style="color:#0a84ff;text-decoration:none">Anthropic (Claude) — Privacy Policy</a></div>
-    <div>🔊 <a href="https://elevenlabs.io/privacy" target="_blank" style="color:#0a84ff;text-decoration:none">ElevenLabs — Privacy Policy</a></div>
+  <div style="width:100%;background:#f4f4f5;border-radius:16px;padding:16px 20px;margin-bottom:24px;font-size:13px;color:#52525b;line-height:1.8">
+    <div style="color:#18181b;font-weight:600;margin-bottom:8px">Polityki prywatności dostawców AI:</div>
+    <div style="margin-bottom:6px">🤖 <a href="https://www.anthropic.com/privacy" target="_blank" style="color:#C8001E;text-decoration:none">Anthropic (Claude) — Privacy Policy</a></div>
+    <div>🔊 <a href="https://elevenlabs.io/privacy" target="_blank" style="color:#C8001E;text-decoration:none">ElevenLabs — Privacy Policy</a></div>
   </div>
   <button onclick="handleRodoAccept()" class="api-btn" style="margin-top:0">Rozpocznij</button>
-  <button onclick="openAdminFromSetup('s-rodo')" style="background:transparent;border:0.5px solid #3a3a3c;border-radius:24px;padding:12px 24px;font-size:14px;color:#8e8e93;cursor:pointer;font-family:-apple-system,sans-serif;width:100%;margin-top:10px">Ustawienia</button>
-  <div style="font-size:11px;color:#636366;text-align:center;margin-top:12px">HeroKids 112 · v1.6.4</div>
+  <button onclick="openAdminFromSetup('s-rodo')" style="background:transparent;border:0.5px solid #e4e4e7;border-radius:24px;padding:12px 24px;font-size:14px;color:#52525b;cursor:pointer;font-family:-apple-system,sans-serif;width:100%;margin-top:10px">Ustawienia</button>
+  <div style="font-size:11px;color:#a1a1aa;text-align:center;margin-top:12px">HeroKids 112 · v1.6.4</div>
 </div>
 
 <!-- SETUP -->
 <div id="s-setup" class="screen hidden" style="padding:40px 24px;gap:0">
-  <div style="font-size:48px;margin-bottom:16px;margin-top:20px">🚨</div>
-  <div id="setup-title" style="font-size:22px;font-weight:600;text-align:center"></div>
-  <div id="setup-subtitle" style="font-size:14px;color:#8e8e93;text-align:center;margin-top:8px;line-height:1.6"></div>
-  <div style="width:100%;margin-top:24px">
-    <div style="font-size:13px;color:#8e8e93;margin-bottom:4px">Kod dostępu szkoły</div>
-    <input id="token-input" class="api-input" type="text" placeholder="PSZ-MIASTO-XXXX" oninput="checkToken()" autocomplete="off" autocapitalize="characters"/>
-    <div style="font-size:11px;color:#636366;margin-top:6px">Kod otrzymany od administratora aplikacji</div>
+  <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;margin-top:24px">
+    <span style="font-family:Georgia,'Times New Roman',serif;font-size:38px;font-weight:700;color:#18181b;letter-spacing:-1px"><strong>Hero</strong>Kids</span>
+    <span style="background:#C8001E;color:#fff;font-family:-apple-system,sans-serif;font-size:16px;font-weight:700;padding:5px 12px;border-radius:3px;letter-spacing:1px">112</span>
   </div>
-  <div id="token-status" style="font-size:13px;color:#8e8e93;text-align:center;min-height:20px;margin-top:10px"></div>
-  <div id="setup-error" style="font-size:13px;color:#ff3b30;margin-top:4px;text-align:center;min-height:16px"></div>
+  <div id="setup-subtitle" style="font-size:14px;color:#52525b;text-align:center;margin-top:8px;line-height:1.6"></div>
+  <div style="width:100%;margin-top:24px">
+    <div style="font-size:13px;color:#52525b;margin-bottom:4px">Kod dostępu szkoły</div>
+    <input id="token-input" class="api-input" type="text" placeholder="PSZ-MIASTO-XXXX" oninput="checkToken()" autocomplete="off" autocapitalize="characters"/>
+    <div style="font-size:11px;color:#a1a1aa;margin-top:6px">Kod otrzymany od administratora aplikacji</div>
+  </div>
+  <div id="token-status" style="font-size:13px;color:#52525b;text-align:center;min-height:20px;margin-top:10px"></div>
+  <div id="setup-error" style="font-size:13px;color:#C8001E;margin-top:4px;text-align:center;min-height:16px"></div>
   <button id="start-btn" class="api-btn" onclick="validateTokenAndStart()" disabled>Rozpocznij</button>
-  <div style="font-size:11px;color:#636366;text-align:center;margin-top:12px;line-height:1.6">Klucze API są przechowywane wyłącznie na serwerze.</div>
+  <div style="font-size:11px;color:#a1a1aa;text-align:center;margin-top:12px;line-height:1.6">Klucze API są przechowywane wyłącznie na serwerze.</div>
 </div>
 
 <!-- LOCK SCREEN -->
-<div id="s-lock" class="screen hidden" style="position:fixed;inset:0;overflow:hidden;justify-content:space-between;padding:0;max-width:100%;z-index:10">
-  <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.55) 0%,rgba(0,0,0,0.15) 40%,rgba(0,0,0,0.15) 70%,rgba(0,0,0,0.7) 100%),url('https://images.unsplash.com/photo-1540479859555-17af45c78602?w=600&q=80') center/cover no-repeat;z-index:0"></div>
+<div id="s-lock" class="screen hidden" style="position:fixed;inset:0;overflow:hidden;justify-content:space-between;padding:0;max-width:100%;z-index:10;background:#fff">
   <div style="position:relative;z-index:1;display:flex;justify-content:center;padding-top:52px;width:100%">
-    <div style="background:rgba(0,0,0,0.75);border-radius:24px;padding:8px 20px;display:flex;align-items:center;gap:28px">
-      <svg width="22" height="26" viewBox="0 0 22 26" fill="white"><rect x="3" y="11" width="16" height="13" rx="3" fill="white"/><path d="M6 11V7.5a5 5 0 0110 0V11" stroke="white" stroke-width="2" fill="none"/></svg>
-      <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M4 9V5a1 1 0 011-1h4" stroke="#34c759" stroke-width="2" stroke-linecap="round"/><path d="M24 9V5a1 1 0 00-1-1h-4" stroke="#34c759" stroke-width="2" stroke-linecap="round"/><path d="M4 19v4a1 1 0 001 1h4" stroke="#34c759" stroke-width="2" stroke-linecap="round"/><path d="M24 19v4a1 1 0 01-1 1h-4" stroke="#34c759" stroke-width="2" stroke-linecap="round"/><circle cx="9" cy="12" r="1.5" fill="#34c759"/><circle cx="19" cy="12" r="1.5" fill="#34c759"/><path d="M9 18c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="#34c759" stroke-width="1.5" stroke-linecap="round"/></svg>
+    <div style="background:#f4f4f5;border-radius:24px;padding:8px 20px;display:flex;align-items:center;gap:28px">
+      <svg width="22" height="26" viewBox="0 0 22 26" fill="#18181b"><rect x="3" y="11" width="16" height="13" rx="3" fill="#18181b"/><path d="M6 11V7.5a5 5 0 0110 0V11" stroke="#18181b" stroke-width="2" fill="none"/></svg>
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M4 9V5a1 1 0 011-1h4" stroke="#C8001E" stroke-width="2" stroke-linecap="round"/><path d="M24 9V5a1 1 0 00-1-1h-4" stroke="#C8001E" stroke-width="2" stroke-linecap="round"/><path d="M4 19v4a1 1 0 001 1h4" stroke="#C8001E" stroke-width="2" stroke-linecap="round"/><path d="M24 19v4a1 1 0 01-1 1h-4" stroke="#C8001E" stroke-width="2" stroke-linecap="round"/><circle cx="9" cy="12" r="1.5" fill="#C8001E"/><circle cx="19" cy="12" r="1.5" fill="#C8001E"/><path d="M9 18c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="#C8001E" stroke-width="1.5" stroke-linecap="round"/></svg>
     </div>
   </div>
   <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:32px">
-    <div id="lock-time" style="font-size:72px;font-weight:200;letter-spacing:-2px;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,0.5)">00:00</div>
-    <div id="lock-date" style="font-size:17px;color:rgba(255,255,255,0.85)"></div>
-    <div id="lock-hint" style="font-size:15px;color:rgba(255,255,255,0.75);text-align:center;margin-top:16px;line-height:1.7;padding:0 24px"></div>
+    <div id="lock-time" style="font-size:72px;font-weight:200;letter-spacing:-2px;color:#C8001E;text-shadow:none">00:00</div>
+    <div id="lock-date" style="font-size:17px;color:#52525b"></div>
+    <div id="lock-hint" style="font-size:15px;color:#52525b;text-align:center;margin-top:16px;line-height:1.7;padding:0 24px"></div>
     <div style="display:flex;gap:18px;margin-top:8px">
-      <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.7)"></div>
-      <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.7)"></div>
-      <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.7)"></div>
-      <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.7)"></div>
-      <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.7)"></div>
-      <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.7)"></div>
+      <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid #d4d4d8"></div>
+      <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid #d4d4d8"></div>
+      <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid #d4d4d8"></div>
+      <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid #d4d4d8"></div>
+      <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid #d4d4d8"></div>
+      <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid #d4d4d8"></div>
     </div>
     <div id="lock-token-info" style="margin-top:8px;display:none;flex-direction:column;align-items:center;gap:4px">
       <div class="token-badge">🔑 <span id="lock-token-code"></span></div>
-      <div class="credits-badge">Pozostałe sesje: <span id="lock-credits" style="color:#fff;font-weight:600"></span></div>
+      <div class="credits-badge">Pozostałe sesje: <span id="lock-credits" style="color:#18181b;font-weight:600"></span></div>
     </div>
   </div>
   <div style="position:relative;z-index:1;display:flex;justify-content:space-between;align-items:flex-end;padding:0 32px 44px;width:100%">
-    <button onclick="goToEmergency()" style="background:rgba(30,30,30,0.75);backdrop-filter:blur(12px);border:none;border-radius:20px;padding:12px 22px;color:#fff;font-size:16px;cursor:pointer;font-family:-apple-system,sans-serif;display:flex;flex-direction:column;align-items:center;gap:6px">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
+    <button onclick="goToEmergency()" style="background:#f4f4f5;border:1px solid #e4e4e7;border-radius:20px;padding:12px 22px;color:#18181b;font-size:16px;cursor:pointer;font-family:-apple-system,sans-serif;display:flex;flex-direction:column;align-items:center;gap:6px">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="#18181b"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
       <span id="lock-emergency-label"></span>
     </button>
-    <button onclick="logoutAndRodo()" style="background:rgba(30,30,30,0.75);backdrop-filter:blur(12px);border:none;border-radius:20px;padding:12px 22px;color:#fff;font-size:16px;cursor:pointer;font-family:-apple-system,sans-serif"><span id="lock-cancel-label"></span></button>
+    <button onclick="logoutAndRodo()" style="background:#f4f4f5;border:1px solid #e4e4e7;border-radius:20px;padding:12px 22px;color:#18181b;font-size:16px;cursor:pointer;font-family:-apple-system,sans-serif"><span id="lock-cancel-label"></span></button>
   </div>
 </div>
 
 <!-- DIALER -->
 <div id="s-dialer" class="screen hidden" style="justify-content:flex-start">
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;padding:16px 0 0">
-    <div id="dialer-top-label" style="font-size:11px;color:#636666;letter-spacing:2px"></div>
-    <div id="display" style="margin-top:8px;font-size:40px;letter-spacing:12px;height:52px;text-align:center;color:#fff;min-width:160px"><span style="color:#2c2c2e">_ _ _</span></div>
+    <div id="dialer-top-label" style="font-size:11px;color:#52525b;letter-spacing:2px"></div>
+    <div id="display" style="margin-top:8px;font-size:40px;letter-spacing:12px;height:52px;text-align:center;color:#18181b;min-width:160px"><span style="color:#d4d4d8">_ _ _</span></div>
     <div id="dialer-hint" style="height:22px;font-size:13px;margin-bottom:8px;text-align:center"></div>
     <div class="grid">
       <button class="key" onclick="pressDigit('1')"><span class="key-num">1</span></button>
@@ -169,48 +170,48 @@ input:checked+.toggle-slider:before{transform:translateX(18px)}
         <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
       </button>
       <button onclick="pressDelete()" style="background:transparent;border:none;cursor:pointer;padding:8px">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="#8e8e93"><path d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3 12.59L17.59 17 14 13.41 10.41 17 9 15.59 12.59 12 9 8.41 10.41 7 14 10.59 17.59 7 19 8.41 15.41 12 19 15.59z"/></svg>
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="#a1a1aa"><path d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3 12.59L17.59 17 14 13.41 10.41 17 9 15.59 12.59 12 9 8.41 10.41 7 14 10.59 17.59 7 19 8.41 15.41 12 19 15.59z"/></svg>
       </button>
     </div>
-    <div id="dialer-hint-bottom" style="font-size:13px;color:#636366;margin-top:10px;text-align:center;padding-bottom:16px"></div>
+    <div id="dialer-hint-bottom" style="font-size:13px;color:#a1a1aa;margin-top:10px;text-align:center;padding-bottom:16px"></div>
   </div>
 </div>
 
 <!-- CALLING — natywny styl iOS -->
-<div id="s-calling" class="screen hidden" style="background:#000;justify-content:space-between;padding:60px 0 48px">
+<div id="s-calling" class="screen hidden" style="background:#fff;justify-content:space-between;padding:60px 0 48px">
   <div style="display:flex;flex-direction:column;align-items:flex-start;width:100%;padding:0 28px">
-    <div id="calling-status" style="font-size:17px;color:rgba(255,255,255,0.6);margin-bottom:8px"></div>
-    <div id="calling-title" style="font-size:52px;font-weight:700;color:#fff;line-height:1.1;letter-spacing:-1px"></div>
-    <div id="logo-tap" style="margin-top:16px;cursor:pointer;opacity:0.4;font-size:13px;color:#fff">☞ 3× aby otworzyć panel</div>
+    <div id="calling-status" style="font-size:17px;color:#52525b;margin-bottom:8px"></div>
+    <div id="calling-title" style="font-size:52px;font-weight:700;color:#18181b;line-height:1.1;letter-spacing:-1px"></div>
+    <div id="logo-tap" style="margin-top:16px;cursor:pointer;opacity:0.4;font-size:13px;color:#a1a1aa">☞ 3× aby otworzyć panel</div>
   </div>
   <div style="flex:1"></div>
   <div style="width:100%;padding:0 24px">
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px">
       <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
-        <button class="call-action-btn" disabled style="opacity:0.4"><svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg></button>
-        <span style="font-size:12px;color:rgba(255,255,255,0.6)">Głośnik</span>
+        <button class="call-action-btn" disabled style="opacity:0.4"><svg width="28" height="28" viewBox="0 0 24 24" fill="#18181b"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg></button>
+        <span style="font-size:12px;color:#52525b">Głośnik</span>
       </div>
       <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
-        <button class="call-action-btn" disabled style="opacity:0.4"><svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/><rect x="8" y="9" width="4" height="4" rx="1" fill="#8e8e93"/></svg></button>
-        <span style="font-size:12px;color:rgba(255,255,255,0.6)">FaceTime</span>
+        <button class="call-action-btn" disabled style="opacity:0.4"><svg width="28" height="28" viewBox="0 0 24 24" fill="#18181b"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/><rect x="8" y="9" width="4" height="4" rx="1" fill="#52525b"/></svg></button>
+        <span style="font-size:12px;color:#52525b">FaceTime</span>
       </div>
       <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
-        <button class="call-action-btn" disabled style="opacity:0.4"><svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><line x1="3" y1="3" x2="21" y2="21" stroke="white" stroke-width="2"/></svg></button>
-        <span style="font-size:12px;color:rgba(255,255,255,0.6)">Wycisz</span>
+        <button class="call-action-btn" disabled style="opacity:0.4"><svg width="28" height="28" viewBox="0 0 24 24" fill="#18181b"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><line x1="3" y1="3" x2="21" y2="21" stroke="#18181b" stroke-width="2"/></svg></button>
+        <span style="font-size:12px;color:#52525b">Wycisz</span>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
       <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
-        <button class="call-action-btn" disabled style="opacity:0.4"><svg width="28" height="28" viewBox="0 0 24 24" fill="white"><circle cx="12" cy="12" r="2"/><circle cx="6" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg></button>
-        <span style="font-size:12px;color:rgba(255,255,255,0.6)">Więcej</span>
+        <button class="call-action-btn" disabled style="opacity:0.4"><svg width="28" height="28" viewBox="0 0 24 24" fill="#18181b"><circle cx="12" cy="12" r="2"/><circle cx="6" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg></button>
+        <span style="font-size:12px;color:#52525b">Więcej</span>
       </div>
       <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
         <button class="call-end-big" onclick="cancelCall()"><svg width="32" height="32" viewBox="0 0 24 24" fill="white" transform="rotate(135)"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg></button>
-        <span style="font-size:12px;color:rgba(255,255,255,0.6)">Zakończ</span>
+        <span style="font-size:12px;color:#52525b">Zakończ</span>
       </div>
       <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
-        <button class="call-action-btn" disabled style="opacity:0.4"><svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z"/></svg></button>
-        <span style="font-size:12px;color:rgba(255,255,255,0.6)">Przyciski</span>
+        <button class="call-action-btn" disabled style="opacity:0.4"><svg width="28" height="28" viewBox="0 0 24 24" fill="#18181b"><path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z"/></svg></button>
+        <span style="font-size:12px;color:#52525b">Przyciski</span>
       </div>
     </div>
   </div>
@@ -220,7 +221,7 @@ input:checked+.toggle-slider:before{transform:translateX(18px)}
 <div id="s-talking" class="screen hidden" style="height:100%">
   <!-- PAUSED BANNER -->
   <div id="paused-banner" class="paused-banner hidden">⏸ PAUZA — Wyjaśnij dziecku pytanie, potem wznów</div>
-  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 10px;border-bottom:0.5px solid #222;width:100%;flex-shrink:0">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 10px;border-bottom:1px solid #e4e4e7;width:100%;flex-shrink:0">
     <div style="display:flex;align-items:center;gap:10px">
       <!-- v1.6.2: przycisk pauzy przeniesiony do lewego górnego rogu -->
       <button id="pause-btn" class="pause-btn" onclick="togglePause()" title="Pauza dla nauczyciela" style="background:#ff9f0a;flex-shrink:0">
@@ -228,7 +229,7 @@ input:checked+.toggle-slider:before{transform:translateX(18px)}
       </button>
       <div>
         <div id="talking-title" style="font-size:15px;font-weight:500"></div>
-        <div id="call-status" style="font-size:12px;color:#34c759">00:00</div>
+        <div id="call-status" style="font-size:12px;color:#C8001E">00:00</div>
       </div>
     </div>
     <button class="end-btn" onclick="endCall()">
@@ -236,12 +237,12 @@ input:checked+.toggle-slider:before{transform:translateX(18px)}
     </button>
   </div>
   <div id="messages" style="flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:10px;width:100%"></div>
-  <div style="padding:12px 20px 28px;display:flex;flex-direction:column;align-items:center;gap:8px;border-top:0.5px solid #222;width:100%;flex-shrink:0">
-    <div id="transcript-box" style="font-size:13px;color:#8e8e93;font-style:italic;text-align:center;min-height:18px"></div>
-    <div id="mic-hint" style="font-size:13px;color:#8e8e93;text-align:center"></div>
+  <div style="padding:12px 20px 28px;display:flex;flex-direction:column;align-items:center;gap:8px;border-top:1px solid #e4e4e7;width:100%;flex-shrink:0">
+    <div id="transcript-box" style="font-size:13px;color:#52525b;font-style:italic;text-align:center;min-height:18px"></div>
+    <div id="mic-hint" style="font-size:13px;color:#52525b;text-align:center"></div>
     <!-- MIC row — bez przycisku pauzy (przeniesiony do nagłówka) -->
     <div style="display:flex;align-items:center;justify-content:center;width:100%">
-      <button id="mic-btn" class="mic-btn" style="background:#34c759"
+      <button id="mic-btn" class="mic-btn" style="background:#C8001E"
         ontouchstart="startListening(event)" ontouchend="stopListening(event)"
         onmousedown="startListening(event)" onmouseup="stopListening(event)">
         <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
@@ -252,38 +253,41 @@ input:checked+.toggle-slider:before{transform:translateX(18px)}
 
 <!-- SUMMARY -->
 <div id="s-summary" class="screen hidden" style="justify-content:center;gap:18px;padding:28px;text-align:center">
-  <div style="font-size:72px">🦸</div>
+  <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:-4px">
+    <span style="font-family:Georgia,'Times New Roman',serif;font-size:28px;font-weight:700;color:#18181b;letter-spacing:-0.5px"><strong>Hero</strong>Kids</span>
+    <span style="background:#C8001E;color:#fff;font-family:-apple-system,sans-serif;font-size:12px;font-weight:700;padding:3px 9px;border-radius:3px;letter-spacing:1px">112</span>
+  </div>
   <div id="summary-title" style="font-size:26px;font-weight:600"></div>
-  <div id="summary-subtitle" style="font-size:15px;color:#8e8e93;line-height:1.7"></div>
+  <div id="summary-subtitle" style="font-size:15px;color:#52525b;line-height:1.7"></div>
   <div id="stars-row" style="display:flex;gap:8px;font-size:44px"></div>
-  <div id="summary-tips-box" style="background:#1c1c1e;border-radius:16px;padding:18px 20px;width:100%;font-size:14px;color:#e5e5ea;line-height:2;text-align:left"></div>
-  <div id="summary-disclaimer" style="font-size:12px;color:#636366"></div>
-  <button onclick="resetApp()" id="summary-retry-btn" style="background:#0a84ff;color:#fff;border:none;border-radius:24px;padding:14px 44px;font-size:17px;cursor:pointer;margin-top:4px"></button>
-  <button onclick="openAdminFromSetup('s-summary')" id="summary-admin-btn" style="background:transparent;border:0.5px solid #3a3a3c;border-radius:24px;padding:12px 24px;font-size:14px;color:#8e8e93;cursor:pointer;font-family:-apple-system,sans-serif;width:100%;margin-top:8px"></button>
+  <div id="summary-tips-box" style="background:#f4f4f5;border-radius:16px;padding:18px 20px;width:100%;font-size:14px;color:#18181b;line-height:2;text-align:left"></div>
+  <div id="summary-disclaimer" style="font-size:12px;color:#a1a1aa"></div>
+  <button onclick="resetApp()" id="summary-retry-btn" style="background:#C8001E;color:#fff;border:none;border-radius:24px;padding:14px 44px;font-size:17px;cursor:pointer;margin-top:4px"></button>
+  <button onclick="openAdminFromSetup('s-summary')" id="summary-admin-btn" style="background:transparent;border:1px solid #e4e4e7;border-radius:24px;padding:12px 24px;font-size:14px;color:#52525b;cursor:pointer;font-family:-apple-system,sans-serif;width:100%;margin-top:8px"></button>
 </div>
 
 <!-- ADMIN PANEL -->
 <div id="s-admin" class="screen hidden" style="padding:24px;gap:0">
   <div style="display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:20px;margin-bottom:16px">
     <div id="admin-panel-title" style="font-size:18px;font-weight:600"></div>
-    <button onclick="show(window._adminReturnTo||'s-rodo')" style="background:transparent;border:none;color:#8e8e93;cursor:pointer;font-size:14px;font-family:-apple-system,sans-serif" id="admin-panel-close"></button>
+    <button onclick="show(window._adminReturnTo||'s-rodo')" style="background:transparent;border:none;color:#52525b;cursor:pointer;font-size:14px;font-family:-apple-system,sans-serif" id="admin-panel-close"></button>
   </div>
 
   <!-- JĘZYK -->
   <div style="width:100%;margin-bottom:20px">
-    <div id="admin-lang-section-title" style="font-size:13px;color:#8e8e93;margin-bottom:8px"></div>
+    <div id="admin-lang-section-title" style="font-size:13px;color:#52525b;margin-bottom:8px"></div>
     <div style="display:flex;gap:8px;width:100%">
       <button id="admin-lang-btn-pl" class="lang-btn active" onclick="setLang('pl');refreshAdminExtra()">🇵🇱 Polski</button>
       <button id="admin-lang-btn-de" class="lang-btn inactive" onclick="setLang('de');refreshAdminExtra()">🇩🇪 Deutsch</button>
     </div>
-    <div id="admin-lang-note" style="font-size:11px;color:#636366;margin-top:8px;line-height:1.5"></div>
+    <div id="admin-lang-note" style="font-size:11px;color:#a1a1aa;margin-top:8px;line-height:1.5"></div>
   </div>
 
   <!-- USTAWIENIA SESJI -->
-  <div style="width:100%;margin-bottom:16px;background:#1c1c1e;border-radius:12px;padding:12px 16px">
-    <div style="font-size:12px;color:#8e8e93;margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Ustawienia sesji</div>
+  <div style="width:100%;margin-bottom:16px;background:#f4f4f5;border-radius:12px;padding:12px 16px">
+    <div style="font-size:12px;color:#52525b;margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Ustawienia sesji</div>
     <!-- Auto-zakończ -->
-    <div class="toggle-row" style="border-bottom:0.5px solid #2c2c2e">
+    <div class="toggle-row" style="border-bottom:0.5px solid #e4e4e7">
       <div>
         <div class="toggle-label">Automatycznie zakończ rozmowę</div>
         <div class="toggle-sub">Po wysłaniu pomocy aplikacja automatycznie kończy sesję i pokazuje podsumowanie</div>
@@ -294,7 +298,7 @@ input:checked+.toggle-slider:before{transform:translateX(18px)}
       </label>
     </div>
     <!-- Krótka rozmowa (v1.6.2) -->
-    <div class="toggle-row" style="border-bottom:0.5px solid #2c2c2e" id="toggle-row-short">
+    <div class="toggle-row" style="border-bottom:0.5px solid #e4e4e7" id="toggle-row-short">
       <div>
         <div class="toggle-label">Krótka rozmowa</div>
         <div class="toggle-sub">Uproszczony scenariusz: co się stało → miasto → adres → imię. Dla młodszych dzieci lub pierwszego ćwiczenia</div>
@@ -318,54 +322,54 @@ input:checked+.toggle-slider:before{transform:translateX(18px)}
   </div>
 
   <!-- Token info -->
-  <div id="admin-token-section" style="width:100%;margin-bottom:16px;background:#0d2818;border:0.5px solid #34c759;border-radius:12px;padding:14px 16px;display:none">
-    <div style="font-size:12px;color:#34c759;margin-bottom:8px;font-weight:600">🔑 Token szkoły</div>
+  <div id="admin-token-section" style="width:100%;margin-bottom:16px;background:#fff0f3;border:0.5px solid #C8001E;border-radius:12px;padding:14px 16px;display:none">
+    <div style="font-size:12px;color:#C8001E;margin-bottom:8px;font-weight:600">🔑 Token szkoły</div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-      <span style="font-size:13px;color:#8e8e93">Kod:</span>
-      <span id="admin-token-code" style="font-family:monospace;font-size:13px;color:#fff"></span>
+      <span style="font-size:13px;color:#52525b">Kod:</span>
+      <span id="admin-token-code" style="font-family:monospace;font-size:13px;color:#18181b"></span>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-      <span style="font-size:13px;color:#8e8e93">Pozostałe sesje:</span>
-      <span id="admin-token-credits" style="font-size:13px;color:#34c759;font-weight:600"></span>
+      <span style="font-size:13px;color:#52525b">Pozostałe sesje:</span>
+      <span id="admin-token-credits" style="font-size:13px;color:#C8001E;font-weight:600"></span>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center">
-      <span style="font-size:13px;color:#8e8e93">Szkoła:</span>
-      <span id="admin-token-school" style="font-size:13px;color:#8e8e93"></span>
+      <span style="font-size:13px;color:#52525b">Szkoła:</span>
+      <span id="admin-token-school" style="font-size:13px;color:#52525b"></span>
     </div>
   </div>
 
   <!-- Baza promptu -->
   <div style="width:100%;margin-bottom:16px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-      <div id="admin-base-label" style="font-size:13px;color:#8e8e93"></div>
-      <div id="admin-readonly-badge" style="font-size:11px;color:#636366;background:#1c1c1e;padding:3px 8px;border-radius:6px"></div>
+      <div id="admin-base-label" style="font-size:13px;color:#52525b"></div>
+      <div id="admin-readonly-badge" style="font-size:11px;color:#52525b;background:#f4f4f5;padding:3px 8px;border-radius:6px"></div>
     </div>
-    <div id="admin-base-desc" style="background:#111;border:0.5px solid #2c2c2e;border-radius:12px;padding:12px;font-size:12px;color:#636366;line-height:1.6"></div>
+    <div id="admin-base-desc" style="background:#f4f4f5;border:0.5px solid #e4e4e7;border-radius:12px;padding:12px;font-size:12px;color:#a1a1aa;line-height:1.6"></div>
   </div>
 
   <!-- Dodatkowe instrukcje -->
   <div style="width:100%;margin-bottom:12px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-      <div id="admin-extra-label" style="font-size:13px;color:#8e8e93"></div>
-      <div id="admin-editable-badge" style="font-size:11px;color:#34c759;background:#0d2818;padding:3px 8px;border-radius:6px"></div>
+      <div id="admin-extra-label" style="font-size:13px;color:#52525b"></div>
+      <div id="admin-editable-badge" style="font-size:11px;color:#C8001E;background:#fff0f3;padding:3px 8px;border-radius:6px"></div>
     </div>
-    <div id="admin-extra-hint" style="font-size:12px;color:#636366;margin-bottom:8px;line-height:1.5"></div>
-    <textarea id="admin-extra" style="background:#1c1c1e;border:0.5px solid #3a3a3c;border-radius:12px;color:#fff;font-size:13px;padding:14px;width:100%;height:160px;outline:none;font-family:-apple-system,sans-serif;line-height:1.6;resize:vertical"></textarea>
+    <div id="admin-extra-hint" style="font-size:12px;color:#a1a1aa;margin-bottom:8px;line-height:1.5"></div>
+    <textarea id="admin-extra" style="background:#fff;border:1px solid #e4e4e7;border-radius:12px;color:#18181b;font-size:13px;padding:14px;width:100%;height:160px;outline:none;font-family:-apple-system,sans-serif;line-height:1.6;resize:vertical"></textarea>
   </div>
 
   <!-- Hasło -->
   <div style="width:100%;margin-bottom:12px">
-    <div id="admin-pass-label" style="font-size:13px;color:#8e8e93;margin-bottom:6px"></div>
+    <div id="admin-pass-label" style="font-size:13px;color:#52525b;margin-bottom:6px"></div>
     <input id="admin-new-pass" class="api-input" type="password" placeholder="..."/>
   </div>
-  <div id="admin-msg" style="font-size:13px;color:#34c759;text-align:center;min-height:20px;margin-bottom:8px"></div>
+  <div id="admin-msg" style="font-size:13px;color:#C8001E;text-align:center;min-height:20px;margin-bottom:8px"></div>
   <button onclick="saveAdminSettings()" class="api-btn" id="admin-save-btn"></button>
-  <button onclick="clearExtra()" style="background:transparent;color:#ff9f0a;border:0.5px solid #ff9f0a;border-radius:24px;padding:12px;font-size:14px;cursor:pointer;width:100%;margin-top:10px;font-family:-apple-system,sans-serif" id="admin-clear-btn"></button>
+  <button onclick="clearExtra()" style="background:transparent;color:#52525b;border:0.5px solid #e4e4e7;border-radius:24px;padding:12px;font-size:14px;cursor:pointer;width:100%;margin-top:10px;font-family:-apple-system,sans-serif" id="admin-clear-btn"></button>
 
   <!-- Link do panelu dyrektora -->
-  <div style="width:100%;margin-top:20px;padding-top:16px;border-top:0.5px solid #2c2c2e;text-align:center">
-    <div style="font-size:12px;color:#636366;margin-bottom:8px">Panel dyrektora / administratora szkoły</div>
-    <a href="https://herokids.eu/panel.html" target="_blank" style="display:block;background:transparent;border:0.5px solid #0a84ff;border-radius:24px;padding:12px 24px;font-size:14px;color:#0a84ff;text-decoration:none;text-align:center">Otwórz panel szkoły →</a>
+  <div style="width:100%;margin-top:20px;padding-top:16px;border-top:0.5px solid #e4e4e7;text-align:center">
+    <div style="font-size:12px;color:#a1a1aa;margin-bottom:8px">Panel dyrektora / administratora szkoły</div>
+    <a href="https://herokids.eu/panel.html" target="_blank" style="display:block;background:transparent;border:0.5px solid #C8001E;border-radius:24px;padding:12px 24px;font-size:14px;color:#C8001E;text-decoration:none;text-align:center">Otwórz panel szkoły →</a>
   </div>
 </div>
 
@@ -391,7 +395,7 @@ let paused = false;
 const LOCALES = {
   pl: {
     code:"pl", sttLang:"pl-PL", voiceId:VOICE_ID_PL,
-    setupTitle:"Zadzwoń pod 112",
+    setupTitle:"HeroKids 112",
     setupSubtitle:"Symulator rozmowy z dyspozytorem\ndla przedszkolaków",
     setupStartBtn:"Rozpocznij", setupCheckingBtn:"Sprawdzam...",
     lockHint:"Przesuń palcem w górę i użyj Face ID,\nlub podaj kod",
@@ -723,7 +727,7 @@ function applyLocale(){
   setText("summary-disclaimer",L.summaryDisclaimer);
   setText("summary-retry-btn",L.summaryRetryBtn);
   setText("summary-admin-btn",L.summaryAdminBtn);
-  setHTML("summary-tips-box",`<div style="font-weight:600;margin-bottom:6px;color:#fff;font-size:15px">${L.summaryTipsTitle}</div>`+L.summaryTips.map(t=>`<div>${t}</div>`).join(""));
+  setHTML("summary-tips-box",`<div style="font-weight:600;margin-bottom:6px;color:#18181b;font-size:15px">${L.summaryTipsTitle}</div>`+L.summaryTips.map(t=>`<div>${t}</div>`).join(""));
   setText("admin-login-title",L.adminLoginTitle);
   setText("admin-login-subtitle",L.adminLoginSubtitle);
   setText("admin-panel-title",L.adminPanelTitle);
@@ -809,7 +813,7 @@ async function validateTokenAndStart(){
   const errEl=document.getElementById("setup-error");
   const statusEl=document.getElementById("token-status");
   btn.textContent=L.setupCheckingBtn;btn.disabled=true;errEl.textContent="";
-  statusEl.textContent="Weryfikuję kod...";statusEl.style.color="#8e8e93";
+  statusEl.textContent="Weryfikuję kod...";statusEl.style.color="#52525b";
   try{
     const res=await fetch(BACKEND_URL+"/api/validate-token",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token})});
     const data=await res.json();
@@ -819,7 +823,7 @@ async function validateTokenAndStart(){
     sessionStorage.setItem("access_token",ACCESS_TOKEN);
     sessionStorage.setItem("token_credits",TOKEN_CREDITS);
     sessionStorage.setItem("token_school",TOKEN_SCHOOL);
-    statusEl.textContent="✅ Kod aktywny · Sesje: "+TOKEN_CREDITS;statusEl.style.color="#34c759";
+    statusEl.textContent="✅ Kod aktywny · Sesje: "+TOKEN_CREDITS;statusEl.style.color="#C8001E";
     updateTokenUI();unlockAudioContext();
     setTimeout(()=>show("s-rodo"),800);
   }catch(e){errEl.textContent="Błąd połączenia: "+e.message;btn.textContent=L.setupStartBtn;btn.disabled=false;statusEl.textContent="";}
@@ -853,10 +857,10 @@ function togglePause(){
     if(rec){try{rec.onend=null;rec.abort();}catch(x){}}
     listening=false;
     banner.classList.remove("hidden");
-    btn.style.background="#34c759";
+    btn.style.background="#C8001E";
     // Ikona play
     icon.innerHTML='<path d="M8 5v14l11-7z"/>';
-    if(hint){hint.textContent=L.micPaused;hint.style.color="#ff9f0a";}
+    if(hint){hint.textContent=L.micPaused;hint.style.color="#C8001E";}
     log("INFO","Pauza włączona");
   }else{
     banner.classList.add("hidden");
@@ -913,12 +917,12 @@ function saveAdminSettings(){
   const msg=document.getElementById("admin-msg");
   localStorage.setItem("admin_extra_"+currentLang,extra);
   if(newPass.length>=4)localStorage.setItem("admin_pass",newPass);
-  msg.style.color="#34c759";msg.textContent=L.adminSavedMsg;setTimeout(()=>{msg.textContent="";},2000);
+  msg.style.color="#C8001E";msg.textContent=L.adminSavedMsg;setTimeout(()=>{msg.textContent="";},2000);
 }
 function clearExtra(){
   const L=getLoc();if(!confirm(L.adminClearConfirm))return;
   localStorage.removeItem("admin_extra_"+currentLang);document.getElementById("admin-extra").value="";
-  const msg=document.getElementById("admin-msg");msg.style.color="#ff9f0a";msg.textContent=L.adminClearedMsg;setTimeout(()=>{msg.textContent="";},2000);
+  const msg=document.getElementById("admin-msg");msg.style.color="#C8001E";msg.textContent=L.adminClearedMsg;setTimeout(()=>{msg.textContent="";},2000);
 }
 
 // ============================================================
@@ -949,9 +953,9 @@ function pressDelete(){if(digits.length>0)playKeyClick();digits=digits.slice(0,-
 function updateDisplay(){
   const L=getLoc();
   const el=document.getElementById("display"),hint=document.getElementById("dialer-hint");
-  if(!digits){el.innerHTML='<span style="color:#2c2c2e">_ _ _</span>';}else{el.textContent=digits;}
-  if(digits==="112")hint.innerHTML='<span style="color:#34c759">'+L.dialerHintOk+'</span>';
-  else if(digits.length>0)hint.innerHTML='<span style="color:#ff9f0a">'+L.dialerHintWrong+'</span>';
+  if(!digits){el.innerHTML='<span style="color:#d4d4d8">_ _ _</span>';}else{el.textContent=digits;}
+  if(digits==="112")hint.innerHTML='<span style="color:#C8001E">'+L.dialerHintOk+'</span>';
+  else if(digits.length>0)hint.innerHTML='<span style="color:#C8001E">'+L.dialerHintWrong+'</span>';
   else hint.textContent="";
 }
 
@@ -962,7 +966,7 @@ async function speakEL(text,onEnd){
   speaking=true;updateMicState();
   const L=getLoc();log("EL","TTS ["+L.code+"]: "+text.substring(0,40)+"...");
   const hint=document.getElementById("mic-hint");
-  let slowTimer=setTimeout(()=>{if(speaking&&hint){hint.textContent="⏳ Słabe połączenie z internetem...";hint.style.color="#ff9f0a";}},3500);
+  let slowTimer=setTimeout(()=>{if(speaking&&hint){hint.textContent="⏳ Słabe połączenie z internetem...";hint.style.color="#C8001E";}},3500);
   const tryTTS=async(timeoutMs)=>{
     const ctrl=new AbortController();
     const tId=setTimeout(()=>ctrl.abort(),timeoutMs);
@@ -1004,7 +1008,7 @@ async function speakEL(text,onEnd){
 function speakFallback(text,onEnd){
   const L=getLoc();
   const hint=document.getElementById("mic-hint");
-  if(hint){hint.textContent="🔈 Głos tymczasowy (brak połączenia)";hint.style.color="#ff9f0a";}
+  if(hint){hint.textContent="🔈 Głos tymczasowy (brak połączenia)";hint.style.color="#C8001E";}
   const cleanText=text.replace("[KONIEC_ROZMOWY]","").trim();
   if(!window.speechSynthesis){
     log("WARN","No speechSynthesis available");
@@ -1048,13 +1052,13 @@ function updateMicState(){
   const btn=document.getElementById("mic-btn"),hint=document.getElementById("mic-hint"),status=document.getElementById("call-status");
   if(!btn)return;
   if(paused){
-    btn.style.background="#3a3a3c";btn.style.opacity="0.4";btn.style.animation="none";
-    if(hint){hint.style.color="#ff9f0a";hint.textContent=L.micPaused;}
+    btn.style.background="#e4e4e7";btn.style.opacity="0.4";btn.style.animation="none";
+    if(hint){hint.style.color="#C8001E";hint.textContent=L.micPaused;}
     return;
   }
-  if(speaking){btn.style.background="#34c759";btn.style.opacity="0.4";btn.style.animation="none";if(hint){hint.style.color="#ff9f0a";hint.textContent=L.micSpeaking;}if(status){status.style.color="#ff9f0a";status.textContent=L.micSpeaking;}}
-  else if(listening){btn.style.background="#ff3b30";btn.style.opacity="1";btn.style.animation="pulse 0.8s infinite";if(hint){hint.style.color="#34c759";hint.textContent=L.micListening;}}
-  else{btn.style.background="#34c759";btn.style.opacity="1";btn.style.animation="none";if(hint){hint.style.color="#8e8e93";hint.textContent=L.micHoldToTalk;}const mm=Math.floor(callSecs/60),ss=callSecs%60;if(status){status.style.color="#34c759";status.textContent=String(mm).padStart(2,"0")+":"+String(ss).padStart(2,"0")+" "+L.talkingConnected;}}
+  if(speaking){btn.style.background="#C8001E";btn.style.opacity="0.4";btn.style.animation="none";if(hint){hint.style.color="#C8001E";hint.textContent=L.micSpeaking;}if(status){status.style.color="#C8001E";status.textContent=L.micSpeaking;}}
+  else if(listening){btn.style.background="#C8001E";btn.style.opacity="1";btn.style.animation="pulse 0.8s infinite";if(hint){hint.style.color="#C8001E";hint.textContent=L.micListening;}}
+  else{btn.style.background="#C8001E";btn.style.opacity="1";btn.style.animation="none";if(hint){hint.style.color="#52525b";hint.textContent=L.micHoldToTalk;}const mm=Math.floor(callSecs/60),ss=callSecs%60;if(status){status.style.color="#C8001E";status.textContent=String(mm).padStart(2,"0")+":"+String(ss).padStart(2,"0")+" "+L.talkingConnected;}}
 }
 
 // ============================================================
@@ -1088,7 +1092,14 @@ async function startCall(){
   setTimeout(async()=>{
     show("s-talking");document.getElementById("messages").innerHTML="";
     document.getElementById("paused-banner").classList.add("hidden");
-    timerInt=setInterval(()=>{callSecs++;if(!speaking&&!listening&&!paused)updateMicState();},1000);
+    timerInt=setInterval(()=>{
+      callSecs++;
+      if(getToggle("auto_end_call")&&!callEndingTriggered){
+        const maxSecs=getToggle("short_call")?150:300;
+        if(callSecs>=maxSecs){callEndingTriggered=true;finishCall();return;}
+      }
+      if(!speaking&&!listening&&!paused)updateMicState();
+    },1000);
     callActive=true;showTyping();
     const firstMsg=await askClaude(L.startMsg);removeTyping();
     const clean=firstMsg.replace("[KONIEC_ROZMOWY]","").trim();
@@ -1110,9 +1121,9 @@ function autoStartListening(){
   rec=new SR();rec.lang=L.sttLang;rec.interimResults=true;rec.maxAlternatives=1;currentTranscript="";
   rec.onresult=(ev)=>{currentTranscript=Array.from(ev.results).map(r=>r[0].transcript).join("");document.getElementById("transcript-box").textContent='"'+currentTranscript+'"';};
   rec.onend=()=>{listening=false;document.getElementById("transcript-box").textContent="";updateMicState();if(currentTranscript.trim()&&!paused)handleAnswer(currentTranscript.trim());currentTranscript="";};
-  rec.onerror=(e)=>{log("ERR","SR: "+e.error);listening=false;updateMicState();if(e.error==="aborted"&&!speaking&&!paused){setTimeout(()=>{if(!speaking&&!listening&&!paused)autoStartListening();},500);return;}if(e.error==="not-allowed"||e.error==="service-not-allowed"){const hint=document.getElementById("mic-hint");if(hint){hint.textContent=L.micPressToTalk;hint.style.color="#ff9f0a";}}};
+  rec.onerror=(e)=>{log("ERR","SR: "+e.error);listening=false;updateMicState();if(e.error==="aborted"&&!speaking&&!paused){setTimeout(()=>{if(!speaking&&!listening&&!paused)autoStartListening();},500);return;}if(e.error==="not-allowed"||e.error==="service-not-allowed"){const hint=document.getElementById("mic-hint");if(hint){hint.textContent=L.micPressToTalk;hint.style.color="#C8001E";}}};
   rec.onstart=()=>{log("OK","Auto-listen ["+L.sttLang+"]");listening=true;updateMicState();};
-  try{rec.start();}catch(err){log("ERR","Auto-listen failed: "+err.message);listening=false;const btn=document.getElementById("mic-btn"),hint=document.getElementById("mic-hint");if(btn){btn.style.background="#ff9f0a";btn.style.animation="pulse 1s infinite";btn.style.opacity="1";}if(hint){hint.textContent=L.micPressToTalk;hint.style.color="#ff9f0a";}}
+  try{rec.start();}catch(err){log("ERR","Auto-listen failed: "+err.message);listening=false;const btn=document.getElementById("mic-btn"),hint=document.getElementById("mic-hint");if(btn){btn.style.background="#C8001E";btn.style.animation="pulse 1s infinite";btn.style.opacity="1";}if(hint){hint.textContent=L.micPressToTalk;hint.style.color="#C8001E";}}
 }
 function startListening(e){
   if(paused){return;}
@@ -1161,7 +1172,7 @@ function finishCall(){
   callActive=false;paused=false;clearInterval(timerInt);speaking=false;listening=false;
   if(rec){try{rec.onend=null;rec.onresult=null;rec.onerror=null;rec.abort();}catch(x){}rec=null;}
   const stars=childAnswers>=4?3:childAnswers>=2?2:1;
-  document.getElementById("stars-row").innerHTML=[1,2,3].map(i=>'<span style="color:'+(i<=stars?"#ffd60a":"#3a3a3c")+'">★</span>').join("");
+  document.getElementById("stars-row").innerHTML=[1,2,3].map(i=>'<span style="color:'+(i<=stars?"#ffd60a":"#d4d4d8")+'">★</span>').join("");
   if(sessionId){fetch(BACKEND_URL+"/api/session-end",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({session_id:sessionId,token:ACCESS_TOKEN,stars,messages:childAnswers,duration:callSecs,lang:currentLang})}).catch(()=>{});}
   show("s-summary");
 }
@@ -1169,7 +1180,7 @@ function endCall(){
   callActive=false;paused=false;clearInterval(timerInt);speaking=false;listening=false;
   if(rec){try{rec.onend=null;rec.onresult=null;rec.onerror=null;rec.abort();}catch(x){}rec=null;}
   const stars=childAnswers>=4?3:childAnswers>=2?2:1;
-  document.getElementById("stars-row").innerHTML=[1,2,3].map(i=>'<span style="color:'+(i<=stars?"#ffd60a":"#3a3a3c")+'">★</span>').join("");
+  document.getElementById("stars-row").innerHTML=[1,2,3].map(i=>'<span style="color:'+(i<=stars?"#ffd60a":"#d4d4d8")+'">★</span>').join("");
   if(sessionId){fetch(BACKEND_URL+"/api/session-end",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({session_id:sessionId,token:ACCESS_TOKEN,stars,messages:childAnswers,duration:callSecs,lang:currentLang,ended_by:"user"})}).catch(()=>{});}
   show("s-summary");
 }
@@ -1181,5 +1192,6 @@ function resetApp(){callActive=false;paused=false;digits="";conversationHistory=
 if(ACCESS_TOKEN){show("s-lock");}else{show("s-setup");}
 applyLocale();
 </script>
+<div style="position:fixed;bottom:6px;right:10px;font-size:10px;color:#a1a1aa;pointer-events:none;z-index:999;letter-spacing:0.3px">v1.6.4</div>
 </body>
 </html>
