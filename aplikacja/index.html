@@ -60,7 +60,7 @@ input:checked+.toggle-slider:before{transform:translateX(18px)}
 <body>
 
 <!-- RODO -->
-<div id="s-rodo" class="screen" style="padding:40px 24px;justify-content:center;gap:0">
+<div id="s-rodo" class="screen hidden" style="padding:40px 24px;justify-content:center;gap:0">
   <div style="font-size:48px;text-align:center;margin-bottom:20px">🔒</div>
   <div style="font-size:20px;font-weight:600;text-align:center;margin-bottom:8px">Informacja RODO</div>
   <div style="font-size:13px;color:#8e8e93;line-height:1.8;text-align:center;margin-bottom:20px">
@@ -87,8 +87,9 @@ input:checked+.toggle-slider:before{transform:translateX(18px)}
     <div style="margin-bottom:6px">🤖 <a href="https://www.anthropic.com/privacy" target="_blank" style="color:#0a84ff;text-decoration:none">Anthropic (Claude) — Privacy Policy</a></div>
     <div>🔊 <a href="https://elevenlabs.io/privacy" target="_blank" style="color:#0a84ff;text-decoration:none">ElevenLabs — Privacy Policy</a></div>
   </div>
-  <button onclick="handleRodoAccept()" class="api-btn" style="margin-top:0">Rozumiem i akceptuję</button>
-  <div style="font-size:11px;color:#636366;text-align:center;margin-top:12px">HeroKids 112 · v1.5.1</div>
+  <button onclick="handleRodoAccept()" class="api-btn" style="margin-top:0">Rozpocznij</button>
+  <button onclick="openAdminFromSetup('s-rodo')" style="background:transparent;border:0.5px solid #3a3a3c;border-radius:24px;padding:12px 24px;font-size:14px;color:#8e8e93;cursor:pointer;font-family:-apple-system,sans-serif;width:100%;margin-top:10px">Ustawienia</button>
+  <div style="font-size:11px;color:#636366;text-align:center;margin-top:12px">HeroKids 112 · v1.6.4</div>
 </div>
 
 <!-- SETUP -->
@@ -105,9 +106,6 @@ input:checked+.toggle-slider:before{transform:translateX(18px)}
   <div id="setup-error" style="font-size:13px;color:#ff3b30;margin-top:4px;text-align:center;min-height:16px"></div>
   <button id="start-btn" class="api-btn" onclick="validateTokenAndStart()" disabled>Rozpocznij</button>
   <div style="font-size:11px;color:#636366;text-align:center;margin-top:12px;line-height:1.6">Klucze API są przechowywane wyłącznie na serwerze.</div>
-  <div style="width:100%;margin-top:24px;padding-top:24px;border-top:0.5px solid #2c2c2e;text-align:center">
-    <button onclick="openAdminFromSetup()" style="background:transparent;border:0.5px solid #3a3a3c;border-radius:24px;padding:12px 24px;font-size:14px;color:#8e8e93;cursor:pointer;font-family:-apple-system,sans-serif;width:100%">Panel administratora</button>
-  </div>
 </div>
 
 <!-- LOCK SCREEN -->
@@ -224,7 +222,10 @@ input:checked+.toggle-slider:before{transform:translateX(18px)}
   <div id="paused-banner" class="paused-banner hidden">⏸ PAUZA — Wyjaśnij dziecku pytanie, potem wznów</div>
   <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 10px;border-bottom:0.5px solid #222;width:100%;flex-shrink:0">
     <div style="display:flex;align-items:center;gap:10px">
-      <div style="width:38px;height:38px;border-radius:50%;background:#ff3b30;display:flex;align-items:center;justify-content:center;font-size:20px">🚨</div>
+      <!-- v1.6.2: przycisk pauzy przeniesiony do lewego górnego rogu -->
+      <button id="pause-btn" class="pause-btn" onclick="togglePause()" title="Pauza dla nauczyciela" style="background:#ff9f0a;flex-shrink:0">
+        <svg id="pause-icon" width="22" height="22" viewBox="0 0 24 24" fill="#000"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+      </button>
       <div>
         <div id="talking-title" style="font-size:15px;font-weight:500"></div>
         <div id="call-status" style="font-size:12px;color:#34c759">00:00</div>
@@ -238,17 +239,12 @@ input:checked+.toggle-slider:before{transform:translateX(18px)}
   <div style="padding:12px 20px 28px;display:flex;flex-direction:column;align-items:center;gap:8px;border-top:0.5px solid #222;width:100%;flex-shrink:0">
     <div id="transcript-box" style="font-size:13px;color:#8e8e93;font-style:italic;text-align:center;min-height:18px"></div>
     <div id="mic-hint" style="font-size:13px;color:#8e8e93;text-align:center"></div>
-    <!-- MIC + PAUSE row -->
-    <div style="display:flex;align-items:center;justify-content:center;gap:24px;width:100%">
-      <div style="width:52px"></div><!-- spacer -->
+    <!-- MIC row — bez przycisku pauzy (przeniesiony do nagłówka) -->
+    <div style="display:flex;align-items:center;justify-content:center;width:100%">
       <button id="mic-btn" class="mic-btn" style="background:#34c759"
         ontouchstart="startListening(event)" ontouchend="stopListening(event)"
         onmousedown="startListening(event)" onmouseup="stopListening(event)">
         <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
-      </button>
-      <!-- PRZYCISK PAUZY -->
-      <button id="pause-btn" class="pause-btn" onclick="togglePause()" title="Pauza dla nauczyciela">
-        <svg id="pause-icon" width="22" height="22" viewBox="0 0 24 24" fill="#000"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
       </button>
     </div>
   </div>
@@ -264,17 +260,6 @@ input:checked+.toggle-slider:before{transform:translateX(18px)}
   <div id="summary-disclaimer" style="font-size:12px;color:#636366"></div>
   <button onclick="resetApp()" id="summary-retry-btn" style="background:#0a84ff;color:#fff;border:none;border-radius:24px;padding:14px 44px;font-size:17px;cursor:pointer;margin-top:4px"></button>
   <button onclick="openAdminFromSetup('s-summary')" id="summary-admin-btn" style="background:transparent;border:0.5px solid #3a3a3c;border-radius:24px;padding:12px 24px;font-size:14px;color:#8e8e93;cursor:pointer;font-family:-apple-system,sans-serif;width:100%;margin-top:8px"></button>
-</div>
-
-<!-- ADMIN LOGIN -->
-<div id="s-admin-login" class="screen hidden" style="padding:40px 24px;gap:0;justify-content:center">
-  <div style="font-size:48px;text-align:center;margin-bottom:16px">🔐</div>
-  <div id="admin-login-title" style="font-size:20px;font-weight:600;text-align:center;margin-bottom:6px"></div>
-  <div id="admin-login-subtitle" style="font-size:14px;color:#8e8e93;text-align:center;margin-bottom:24px;line-height:1.6"></div>
-  <input id="admin-pass-input" class="api-input" type="password" placeholder="..."/>
-  <div id="admin-login-err" style="font-size:13px;color:#ff3b30;text-align:center;min-height:20px;margin-top:8px"></div>
-  <button onclick="checkAdminPass()" class="api-btn" id="admin-login-btn"></button>
-  <button onclick="show(window._adminReturnTo||'s-rodo')" style="background:transparent;border:none;color:#8e8e93;cursor:pointer;font-size:14px;margin-top:16px;font-family:-apple-system,sans-serif" id="admin-login-cancel"></button>
 </div>
 
 <!-- ADMIN PANEL -->
@@ -305,6 +290,28 @@ input:checked+.toggle-slider:before{transform:translateX(18px)}
       </div>
       <label class="toggle">
         <input type="checkbox" id="auto-end-toggle" onchange="saveToggle('auto_end_call',this.checked)"/>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <!-- Krótka rozmowa (v1.6.2) -->
+    <div class="toggle-row" style="border-bottom:0.5px solid #2c2c2e" id="toggle-row-short">
+      <div>
+        <div class="toggle-label">Krótka rozmowa</div>
+        <div class="toggle-sub">Uproszczony scenariusz: co się stało → miasto → adres → imię. Dla młodszych dzieci lub pierwszego ćwiczenia</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="short-call-toggle" onchange="onShortCallToggle(this.checked)"/>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <!-- Błąd w nazwie ulicy (v1.6.2) -->
+    <div class="toggle-row" id="toggle-row-street">
+      <div>
+        <div class="toggle-label">Błąd w nazwie ulicy</div>
+        <div class="toggle-sub">Dyspozytor celowo przekręca nazwę ulicy — dziecko musi ją poprawić. Dostępne tylko w trybie pełnym (PL)</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="street-error-toggle" onchange="saveToggle('street_error',this.checked)"/>
         <span class="toggle-slider"></span>
       </label>
     </div>
@@ -366,10 +373,9 @@ input:checked+.toggle-slider:before{transform:translateX(18px)}
 // ============================================================
 // KONFIGURACJA
 // ============================================================
-const BACKEND_URL = "https://telefon112-production.up.railway.app"; // prod
+const BACKEND_URL = "https://telefon112-dev.up.railway.app"; // dev
 const VOICE_ID_PL = "pqHfZKP75CvOlQylNhV4";
 const VOICE_ID_DE = "EXAVITQu4vr4xnSDxMaL";
-const ADMIN_DEFAULT_PASS = "admin112";
 
 // Stan tokenów — sessionStorage (nie persystuje po zamknięciu przeglądarki)
 let ACCESS_TOKEN = sessionStorage.getItem("access_token") || "";
@@ -491,37 +497,149 @@ const LOCALES = {
 const BASE_PROMPT_PL = `Symulujesz dyspozytora numeru alarmowego 112. To jest symulacja edukacyjna dla dzieci w wieku przedszkolnym i wczesnoszkolnym.
 
 JĘZYK I ZNAKI — KRYTYCZNE:
-- Każda Twoja wiadomość MUSI zawierać poprawne polskie znaki diakrytyczne
+- Każda wiadomość MUSI zawierać poprawne polskie znaki diakrytyczne
 - ZAWSZE pisz: ą ć ę ł ń ó ś ź ż — NIGDY nie zastępuj ich: a c e l n o s z z
-- Przykłady OBOWIĄZKOWE: "Świetnie!" NIE "Swietnie!", "już" NIE "juz", "wysyłam" NIE "wysylam", "się" NIE "sie"
-- Nigdy nie używaj cyrylicy ani żadnego innego alfabetu
-- Zamiast "nazywasz" pisz zawsze "masz na imię"
+- Przykłady: "Świetnie!" NIE "Swietnie!", "już" NIE "juz", "się" NIE "sie"
+- Nigdy nie używaj cyrylicy ani emoji
+- SZCZEGÓLNA UWAGA na słowa: "się" (NIE cyrylicą), "nazywa" (NIE "se naziva" ani "називається"), "nazywasz" (NIE cyrylicą) — te słowa MUSZĄ być po polsku z polskimi znakami
 
 DETEKCJA UŻYTKOWNIKA:
-- Jeśli rozmówca używa złożonego języka dorosłego lub pyta o techniczne aspekty symulatora, odpowiedz: "Witam, to symulator edukacyjny dla dzieci. Czy chce Pan lub Pani przetestować aplikację?" i prowadź rozmowę w trybie testowym.
+Jeśli rozmówca używa złożonego języka dorosłego lub pyta o techniczne aspekty:
+Odpowiedz: "Witam, to symulator edukacyjny dla dzieci. Czy chce Pan lub Pani przetestować aplikację?" i prowadź rozmowę w trybie testowym.
+
+STYL ROZMOWY:
+- Jedno pytanie na raz — nigdy nie zadawaj dwóch pytań w jednej wiadomości
+- Maksymalnie 2 zdania na odpowiedź
+- Słowa otuchy — KONKRETNE i KONTEKSTUALNE, nie mechaniczne:
+  DOBRZE: "Świetnie sobie radzisz.", "Dobrze, że znasz nazwę ulicy.", "Okej, rozumiem."
+  ŹLE: "Świetnie! Świetnie! Brawo!" (mechaniczne powtarzanie)
+- Po zebraniu ważnej informacji — POWTÓRZ ją i zapytaj o potwierdzenie:
+  "Czyli Twoja mama upadła w łazience — dobrze rozumiem?"
+  "Mieszkasz przy ulicy Różanej 4 w Krakowie — zgadza się?"
 
 PIERWSZA WIADOMOŚĆ (zawsze dokładnie taka):
 "Tu dyspozytor numeru alarmowego 112, w czym mogę pomóc?"
 
-STYL ROZMOWY:
-- Jedno pytanie na raz — nigdy nie zadawaj dwóch pytań naraz
-- Mów krótko i prosto — maksymalnie 2 zdania na odpowiedź
-- Od drugiej wiadomości dodawaj słowa otuchy: "Świetnie!", "Bardzo dobrze!", "Jesteś dzielna/dzielny!"
-- Nigdy nie używaj emoji ani znaków specjalnych
 
-KOLEJNOŚĆ PYTAŃ (jedno na raz):
-1. CO się stało
-2. Czy dziecko jest samo
-3. Imię i nazwisko — "A jak masz na imię?"
-4. GDZIE — miejscowość, ulica, numer domu
-5. Dom czy mieszkanie
-6. Drzwi dla ratowników
-7. Z czyjego telefonu dzwoni
-8. "Okej, dobrze — już wysyłam informacje, żeby ktoś do Was przyjechał."
-9. Pozostań na linii
 
-ZAKOŃCZENIE — tylko gdy służby dotarły:
-"Ratownicy już są przy Tobie. Jesteś bardzo dzielna/dzielny!" i dodaj [KONIEC_ROZMOWY]`;
+KOLEJNOŚĆ PYTAŃ:
+
+1. CO SIĘ STAŁO
+   Po odpowiedzi — DOPYTAJ o stan poszkodowanego (jedno pytanie na raz):
+   - "Czy [mama/tata/...] ma otwarte oczy?"
+   - "Czy się rusza?"
+   - "Czy widzisz krew?"
+   - "Czy widzisz, czy klatka piersiowa się unosi — czy oddycha?"
+   Potwierdź: "Dobrze, rozumiem — [opis sytuacji]."
+
+2. IMIĘ I NAZWISKO DZIECKA
+   "A jak masz na imię i nazwisko?"
+   Potwierdź: "Okej, [Imię Nazwisko] — bardzo dobrze sobie radzisz."
+
+3. WIEK DZIECKA
+   "Ile masz lat?"
+   Potwierdź krótko: "Dobrze, [X] lat — słyszę Cię wyraźnie."
+
+4. ADRES — krok po kroku, jedno pytanie na raz:
+
+   a) "W jakim mieście mieszkasz?"
+      → Jeśli nie pamięta: "Czy wiesz, jakie duże miasto jest blisko?"
+
+   b) "Czy mieszkasz w domu, czy w bloku?"
+
+   c) Jeśli BLOK:
+      - "Jak nazywa się ulica?"
+        → Jeśli nie zna: "Co widzisz przez okno? Albo jak nazywa się Twoje przedszkole lub szkoła?"
+      - "Jaki jest numer bloku?"
+        → Jeśli nie zna: "Jakiego koloru jest Twój blok? Co jest obok — sklep, plac zabaw?"
+      - "Jaki masz numer mieszkania?"
+      - "Na którym jesteś piętrze?"
+
+   Jeśli DOM:
+      - "Jak nazywa się ulica?"
+        → Jeśli nie zna: "Co widzisz przez okno albo przed domem?"
+      - "Jaki jest numer domu?"
+        → Jeśli nie zna: "Jakiego koloru jest Twój dom? Co jest obok?"
+
+   Po zebraniu adresu — POWTÓRZ CAŁOŚĆ i zapytaj o potwierdzenie:
+   "Czyli jesteś przy ulicy [X], numer [Y], mieszkanie [Z], w [mieście] — zgadza się?"
+
+5. CZYJEGO TELEFONU UŻYWA DZIECKO
+   "Czy dzwonisz ze swojego telefonu, czy z telefonu mamy albo taty?"
+   Przyjmij odpowiedź bez komentarza — to informacja dla służb.
+
+6. DRZWI WEJŚCIOWE
+   "Czy drzwi wejściowe są otwarte czy zamknięte?"
+
+   → Jeśli OTWARTE:
+   "Super, to dobrze — ratownicy będą mogli od razu wejść."
+
+   → Jeśli ZAMKNIĘTE:
+   "Czy widzisz gdzieś klucze do drzwi?"
+     - Jeśli TAK i umie otworzyć: "Świetnie — jeśli możesz, otwórz drzwi, żeby ratownicy mogli wejść."
+     - Jeśli TAK ale nie umie: "Nic nie szkodzi, zostaw je — ratownicy poradzą sobie."
+     - Jeśli NIE ma kluczy: "Nic się nie martw — ratownicy poradzą sobie z wejściem."
+
+7. POTWIERDZENIE WYSŁANIA SŁUŻB
+   "Okej — już wysyłam do Was pomoc. Zaraz ktoś przyjedzie."
+
+8. PONOWNA OCENA STANU POSZKODOWANEGO
+   "Zanim zostanę z Tobą na linii — czy coś się zmieniło u [mamy/taty/...]? Czy nadal oddycha tak samo?"
+
+9. ZAKOŃCZENIE — POZOSTAŃ NA LINII
+   "Zostanę z Tobą przy telefonie aż ratownicy dotrą. Byłeś/byłaś bardzo dzielny/dzielna — dobrze zrobiłeś/zrobiłaś dzwoniąc po pomoc. Nie rozłączaj się."
+
+   Gdy służby dotarły:
+   "Ratownicy już są przy Tobie. Możesz im otworzyć drzwi. Byłeś/byłaś prawdziwym bohaterem." i dodaj [KONIEC_ROZMOWY]
+
+ZASADY OGÓLNE:
+- Nigdy nie pytaj "czy jesteś sam/sama" — zakładamy, że dziecko jest bez dorosłego opiekuna
+- Jeśli dziecko się myli lub podaje niespójne info — spokojnie dopytaj, nie krytykuj
+- Jeśli dziecko płacze lub jest przestraszone — najpierw uspokój: "Słyszę Cię, jesteś bezpieczny/bezpieczna, jestem tu z Tobą."
+- Nigdy nie używaj znaków specjalnych ani nawiasów kwadratowych w wypowiedzi (wyjątek: tylko [KONIEC_ROZMOWY] na samym końcu)`;
+
+// ============================================================
+// PROMPT — TRYB KRÓTKA ROZMOWA (v1.6.2)
+// ============================================================
+const SHORT_PROMPT_PL = `Symulujesz dyspozytora numeru alarmowego 112. To jest UPROSZCZONA symulacja edukacyjna dla dzieci — krótka wersja dla młodszych dzieci lub pierwszego kontaktu.
+
+JĘZYK I ZNAKI — KRYTYCZNE:
+- Każda wiadomość MUSI zawierać poprawne polskie znaki diakrytyczne
+- ZAWSZE pisz: ą ć ę ł ń ó ś ź ż — NIGDY nie zastępuj ich: a c e l n o s z z
+- Nigdy nie używaj cyrylicy ani emoji
+- SZCZEGÓLNA UWAGA: "się" (NIE cyrylicą), "nazywa" (NIE "se naziva")
+
+DETEKCJA UŻYTKOWNIKA:
+Jeśli rozmówca używa złożonego języka dorosłego: "Witam, to symulator edukacyjny dla dzieci. Czy chce Pan lub Pani przetestować aplikację?"
+
+STYL: Jedno pytanie na raz. Maksymalnie 2 zdania. Bardzo krótko i przyjaźnie.
+
+PIERWSZA WIADOMOŚĆ (zawsze dokładnie taka):
+"Tu dyspozytor numeru alarmowego 112, w czym mogę pomóc?"
+
+KOLEJNOŚĆ PYTAŃ (tylko te cztery, po kolei):
+1. CO SIĘ STAŁO — "Co się stało?"
+2. MIASTO — "W jakim mieście jesteś?"
+3. ULICA I ADRES — "Jak nazywa się ulica i jaki numer domu?"
+4. IMIĘ I NAZWISKO — "Jak masz na imię i nazwisko?"
+
+ZAKOŃCZENIE (po zebraniu wszystkich czterech informacji):
+"Okej — już wysyłam do Was pomoc. Ratownicy zaraz przyjedą. Byłeś/byłaś bardzo dzielny/dzielna!" i dodaj [KONIEC_ROZMOWY]
+
+ZASADY:
+- Nie pytaj o nic poza powyższymi czterema kwestiami
+- Nigdy nie używaj znaków specjalnych ani nawiasów kwadratowych (wyjątek: tylko [KONIEC_ROZMOWY] na samym końcu)`;
+
+// ============================================================
+// PROMPT — TRYB BŁĄD W NAZWIE ULICY (v1.6.2)
+// ============================================================
+const STREET_ERROR_SUFFIX_PL = `
+
+DODATKOWA ZASADA — BŁĄD W NAZWIE ULICY:
+Gdy dziecko poda nazwę ulicy, celowo przekręć ją nieznacznie (np. "Kwiatana" zamiast "Kwiatowa", "Różana" zamiast "Różana 3" — użyj podobnie brzmiącej, ale innej wersji).
+Zapytaj: "Czy dobrze zrozumiałem — ulica [przekręcona nazwa]?"
+Poczekaj na korektę dziecka. Gdy dziecko poprawi — potwierdź poprawną wersję: "Aha, [poprawna nazwa] — dobrze, dziękuję!"
+Celem jest nauczenie dziecka, że musi uważnie słuchać i korygować błędy dyspozytora.`;
 
 const BASE_PROMPT_DE = `Du simulierst einen Disponenten der Notrufnummer 112. Dies ist eine Bildungssimulation für Vorschulkinder und Grundschüler.
 
@@ -552,12 +670,28 @@ ABSCHLUSS: "Die Retter sind jetzt bei dir. Du bist sehr tapfer!" und [KONIEC_ROZ
 let currentLang = localStorage.getItem("app_lang") || "pl";
 function getLoc(){return LOCALES[currentLang];}
 function getActivePrompt(){
-  const base=currentLang==="de"?BASE_PROMPT_DE:BASE_PROMPT_PL;
+  // v1.6.2: tryby krótka rozmowa i błąd w nazwie ulicy (tylko PL)
+  const shortCall   = currentLang==="pl" && getToggle("short_call");
+  const streetError = currentLang==="pl" && getToggle("street_error");
+
+  let base;
+  if(currentLang==="de"){
+    base = BASE_PROMPT_DE;
+  } else if(shortCall){
+    base = SHORT_PROMPT_PL;
+  } else {
+    base = BASE_PROMPT_PL;
+  }
+
+  // Dołącz sufiks błędu w nazwie ulicy (tylko do pełnego promptu PL)
+  if(streetError && currentLang==="pl" && !shortCall){
+    base = base + STREET_ERROR_SUFFIX_PL;
+  }
+
   const extra=localStorage.getItem("admin_extra_"+currentLang)||"";
   if(extra.trim())return base+"\n\n"+getLoc().extraHeader+"\n"+extra;
   return base;
 }
-function getAdminPass(){return localStorage.getItem("admin_pass")||ADMIN_DEFAULT_PASS;}
 function setLang(lang){currentLang=lang;localStorage.setItem("app_lang",lang);applyLocale();}
 function refreshAdminExtra(){document.getElementById("admin-extra").value=localStorage.getItem("admin_extra_"+currentLang)||"";}
 
@@ -592,9 +726,6 @@ function applyLocale(){
   setHTML("summary-tips-box",`<div style="font-weight:600;margin-bottom:6px;color:#fff;font-size:15px">${L.summaryTipsTitle}</div>`+L.summaryTips.map(t=>`<div>${t}</div>`).join(""));
   setText("admin-login-title",L.adminLoginTitle);
   setText("admin-login-subtitle",L.adminLoginSubtitle);
-  setPH("admin-pass-input",L.adminLoginPassPh);
-  setText("admin-login-btn",L.adminLoginBtn);
-  setText("admin-login-cancel",L.adminLoginCancel);
   setText("admin-panel-title",L.adminPanelTitle);
   setText("admin-panel-close",L.adminPanelClose);
   setText("admin-lang-section-title",L.adminLangSectionTitle);
@@ -630,12 +761,20 @@ function goToEmergency(){show("s-dialer");}
 function logoutAndRodo(){
   sessionStorage.clear();
   ACCESS_TOKEN="";TOKEN_CREDITS=0;TOKEN_SCHOOL="";
-  show("s-rodo");
+  const input=document.getElementById("token-input");
+  if(input){input.value="";}
+  const btn=document.getElementById("start-btn");
+  if(btn){btn.disabled=true;}
+  const status=document.getElementById("token-status");
+  if(status)status.textContent="";
+  const err=document.getElementById("setup-error");
+  if(err)err.textContent="";
+  show("s-setup");
 }
 
 // RODO accept — jeśli token w sessionStorage, idź do lock, inaczej setup
 function handleRodoAccept(){
-  if(ACCESS_TOKEN){show("s-lock");}else{show("s-setup");}
+  show("s-lock");
 }
 
 // ============================================================
@@ -674,7 +813,7 @@ async function validateTokenAndStart(){
   try{
     const res=await fetch(BACKEND_URL+"/api/validate-token",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token})});
     const data=await res.json();
-    if(!res.ok||!data.valid){errEl.textContent=data.message||L.invalidTokenMsg;btn.textContent=L.setupStartBtn;btn.disabled=false;statusEl.textContent="";return;}
+    if(!res.ok||!data.valid){log("ERR","validate-token: "+(res.status)+" — "+(data.message||data.error||JSON.stringify(data)));errEl.textContent=data.message||L.invalidTokenMsg;btn.textContent=L.setupStartBtn;btn.disabled=false;statusEl.textContent="";return;}
     if(data.credits<=0){errEl.textContent=L.noCreditsMsg;btn.textContent=L.setupStartBtn;btn.disabled=false;statusEl.textContent="";return;}
     ACCESS_TOKEN=token;TOKEN_CREDITS=data.credits;TOKEN_SCHOOL=data.school_name||"";
     sessionStorage.setItem("access_token",ACCESS_TOKEN);
@@ -682,7 +821,7 @@ async function validateTokenAndStart(){
     sessionStorage.setItem("token_school",TOKEN_SCHOOL);
     statusEl.textContent="✅ Kod aktywny · Sesje: "+TOKEN_CREDITS;statusEl.style.color="#34c759";
     updateTokenUI();unlockAudioContext();
-    setTimeout(()=>show("s-lock"),800);
+    setTimeout(()=>show("s-rodo"),800);
   }catch(e){errEl.textContent="Błąd połączenia: "+e.message;btn.textContent=L.setupStartBtn;btn.disabled=false;statusEl.textContent="";}
 }
 
@@ -731,31 +870,46 @@ function togglePause(){
 let tapCount=0,tapTimer=null;
 document.getElementById("logo-tap").addEventListener("click",()=>{
   tapCount++;clearTimeout(tapTimer);tapTimer=setTimeout(()=>{tapCount=0;},800);
-  if(tapCount>=3){tapCount=0;window._adminReturnTo="s-calling";document.getElementById("admin-pass-input").value="";document.getElementById("admin-login-err").textContent="";show("s-admin-login");}
+  if(tapCount>=3){tapCount=0;openAdmin("s-calling");}
 });
-function openAdminFromSetup(ret){
-  document.getElementById("admin-pass-input").value="";document.getElementById("admin-login-err").textContent="";
-  window._adminReturnTo=ret||"s-setup";show("s-admin-login");
+function openAdminFromSetup(ret){openAdmin(ret||"s-setup");}
+function openAdmin(ret){
+  window._adminReturnTo=ret;
+  document.getElementById("admin-extra").value=localStorage.getItem("admin_extra_"+currentLang)||"";
+  document.getElementById("admin-new-pass").value="";
+  document.getElementById("admin-msg").textContent="";
+  document.getElementById("auto-end-toggle").checked=getToggle("auto_end_call");
+  document.getElementById("short-call-toggle").checked=getToggle("short_call");
+  document.getElementById("street-error-toggle").checked=getToggle("street_error");
+  const rowStreet=document.getElementById("toggle-row-street");
+  if(rowStreet)rowStreet.style.opacity=getToggle("short_call")?"0.4":"1";
+  updateTokenUI();
+  show("s-admin");
 }
-function checkAdminPass(){
-  const v=document.getElementById("admin-pass-input").value;
-  if(v===getAdminPass()){
-    document.getElementById("admin-extra").value=localStorage.getItem("admin_extra_"+currentLang)||"";
-    document.getElementById("admin-new-pass").value="";
-    document.getElementById("admin-msg").textContent="";
-    // Wczytaj stan toggleów
-    document.getElementById("auto-end-toggle").checked=getToggle("auto_end_call");
-    updateTokenUI();
-    show("s-admin");
-  }else{document.getElementById("admin-login-err").textContent=getLoc().adminLoginErr;}
+// v1.6.2: krótka rozmowa i błąd w ulicy wzajemnie się wykluczają
+function onShortCallToggle(checked){
+  saveToggle("short_call", checked);
+  if(checked){
+    // Wyłącz street_error (nie ma sensu w trybie krótkim)
+    saveToggle("street_error", false);
+    const se=document.getElementById("street-error-toggle");
+    if(se)se.checked=false;
+    const row=document.getElementById("toggle-row-street");
+    if(row)row.style.opacity="0.4";
+  }else{
+    const row=document.getElementById("toggle-row-street");
+    if(row)row.style.opacity="1";
+  }
 }
+
 function saveAdminSettings(){
   const L=getLoc();
   const extra=document.getElementById("admin-extra").value.trim();
   const newPass=document.getElementById("admin-new-pass").value.trim();
+  const msg=document.getElementById("admin-msg");
   localStorage.setItem("admin_extra_"+currentLang,extra);
   if(newPass.length>=4)localStorage.setItem("admin_pass",newPass);
-  const msg=document.getElementById("admin-msg");msg.style.color="#34c759";msg.textContent=L.adminSavedMsg;setTimeout(()=>{msg.textContent="";},2000);
+  msg.style.color="#34c759";msg.textContent=L.adminSavedMsg;setTimeout(()=>{msg.textContent="";},2000);
 }
 function clearExtra(){
   const L=getLoc();if(!confirm(L.adminClearConfirm))return;
@@ -780,7 +934,7 @@ function log(type,msg){
 // ============================================================
 // NAWIGACJA
 // ============================================================
-const ALL_SCREENS=["s-rodo","s-setup","s-lock","s-dialer","s-calling","s-talking","s-summary","s-admin-login","s-admin"];
+const ALL_SCREENS=["s-rodo","s-setup","s-lock","s-dialer","s-calling","s-talking","s-summary","s-admin"];
 function show(id){ALL_SCREENS.forEach(s=>{document.getElementById(s).classList.toggle("hidden",s!==id);});document.body.style.overflow=(id==="s-lock")?"hidden":"";}
 
 // ============================================================
@@ -803,12 +957,27 @@ function updateDisplay(){
 async function speakEL(text,onEnd){
   speaking=true;updateMicState();
   const L=getLoc();log("EL","TTS ["+L.code+"]: "+text.substring(0,40)+"...");
+  const hint=document.getElementById("mic-hint");
+  let slowTimer=setTimeout(()=>{if(speaking&&hint){hint.textContent="⏳ Słabe połączenie z internetem...";hint.style.color="#ff9f0a";}},3500);
+  const tryTTS=async(timeoutMs)=>{
+    const ctrl=new AbortController();
+    const tId=setTimeout(()=>ctrl.abort(),timeoutMs);
+    try{
+      const isChild=childAnswers>=1;
+      const vs=isChild?{stability:0.35,similarity_boost:0.80,style:0.45,use_speaker_boost:true}:{stability:0.75,similarity_boost:0.75,style:0.0,use_speaker_boost:true};
+      const res=await fetch(BACKEND_URL+"/api/tts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text,lang:L.code,voice_id:L.voiceId,voice_settings:vs,token:ACCESS_TOKEN}),signal:ctrl.signal});
+      clearTimeout(tId);
+      if(!res.ok){const eb=await res.json().catch(()=>({}));log("ERR","EL response: "+res.status+" — "+(eb.error||JSON.stringify(eb)));throw new Error("TTS "+res.status);}
+      log("OK","EL response: "+res.status);
+      return res;
+    }catch(e){clearTimeout(tId);throw e;}
+  };
   try{
-    const isChild=childAnswers>=1;
-    const vs=isChild?{stability:0.35,similarity_boost:0.80,style:0.45,use_speaker_boost:true}:{stability:0.75,similarity_boost:0.75,style:0.0,use_speaker_boost:true};
-    const res=await fetch(BACKEND_URL+"/api/tts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text,lang:L.code,voice_id:L.voiceId,voice_settings:vs,token:ACCESS_TOKEN})});
-    log(res.ok?"OK":"ERR","EL response: "+res.status);
-    if(!res.ok)throw new Error("TTS "+res.status);
+    let res;
+    try{res=await tryTTS(6000);}
+    catch(firstErr){log("WARN","EL retry: "+firstErr.message);res=await tryTTS(4000);}
+    clearTimeout(slowTimer);
+    if(hint&&hint.textContent.includes("Słabe")){hint.textContent="";}
     const ab=await res.arrayBuffer();
     if(!audioCtx)unlockAudioContext();
     if(audioCtx.state==="suspended")await audioCtx.resume();
@@ -818,11 +987,33 @@ async function speakEL(text,onEnd){
     src.onended=()=>{
       log("OK","EL ended");speaking=false;updateMicState();
       if(onEnd)onEnd();
-      // FIX: nie startuj nasłuchu po komunikacie o błędzie
       else if(!lastReplyWasError&&!paused)autoStartListening();
     };
     src.start(0);
-  }catch(e){log("ERR","EL error: "+e.message);speaking=false;updateMicState();if(onEnd)onEnd();}
+  }catch(e){
+    clearTimeout(slowTimer);
+    log("WARN","EL failed — fallback TTS: "+e.message);
+    speakFallback(text,onEnd);
+  }
+}
+
+function speakFallback(text,onEnd){
+  const L=getLoc();
+  const hint=document.getElementById("mic-hint");
+  if(hint){hint.textContent="🔈 Głos tymczasowy (brak połączenia)";hint.style.color="#ff9f0a";}
+  const cleanText=text.replace("[KONIEC_ROZMOWY]","").trim();
+  if(!window.speechSynthesis){
+    log("WARN","No speechSynthesis available");
+    speaking=false;updateMicState();
+    if(onEnd)onEnd();else if(!lastReplyWasError&&!paused)autoStartListening();
+    return;
+  }
+  window.speechSynthesis.cancel();
+  const utt=new SpeechSynthesisUtterance(cleanText);
+  utt.lang=L.sttLang;utt.rate=0.9;
+  utt.onend=()=>{speaking=false;updateMicState();if(onEnd)onEnd();else if(!lastReplyWasError&&!paused)autoStartListening();};
+  utt.onerror=()=>{speaking=false;updateMicState();if(onEnd)onEnd();else if(!lastReplyWasError&&!paused)autoStartListening();};
+  window.speechSynthesis.speak(utt);
 }
 
 // ============================================================
@@ -833,9 +1024,8 @@ async function askClaude(userMessage){
   log("API","Claude ["+currentLang+"]: "+userMessage.substring(0,40));
   try{
     const res=await fetch(BACKEND_URL+"/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:userMessage,history:conversationHistory.slice(0,-1),system:getActivePrompt(),lang:currentLang,token:ACCESS_TOKEN,session_id:sessionId})});
-    log(res.ok?"OK":"ERR","Claude: "+res.status);
-    if(res.status===402){TOKEN_CREDITS=0;updateTokenUI();return getLoc().noCreditsMsg;}
-    if(!res.ok)throw new Error("Claude "+res.status);
+    if(!res.ok){const eb=await res.json().catch(()=>({}));log("ERR","Claude: "+res.status+" — "+(eb.error||JSON.stringify(eb)));if(res.status===402){TOKEN_CREDITS=0;updateTokenUI();return getLoc().noCreditsMsg;}throw new Error("Claude "+res.status);}
+    log("OK","Claude: "+res.status);
     const data=await res.json();
     const reply=data.reply;
     if(data.session_id)sessionId=data.session_id;
@@ -889,7 +1079,7 @@ async function startCall(){
   if(!ACCESS_TOKEN){alert("Brak tokenu dostępu.");show("s-setup");return;}
   if(TOKEN_CREDITS<=0){alert(L.noCreditsMsg);return;}
   if(digits!=="112"){unlockAudioContext();await speakEL(L.wrongNumberMsg);digits="";updateDisplay();return;}
-  show("s-calling");conversationHistory=[];childAnswers=0;callSecs=0;sessionId=null;paused=false;lastReplyWasError=false;
+  show("s-calling");conversationHistory=[];childAnswers=0;callSecs=0;sessionId=null;paused=false;lastReplyWasError=false;callEndingTriggered=false;
   unlockAudioContext();playDialTone();
   setTimeout(async()=>{
     show("s-talking");document.getElementById("messages").innerHTML="";
@@ -936,6 +1126,8 @@ function stopListening(e){e.preventDefault();if(rec)rec.stop();}
 // ============================================================
 // ODPOWIEDŹ
 // ============================================================
+let callEndingTriggered = false; // v1.6.2: guard przed wielokrotnym finishCall()
+
 async function handleAnswer(answer){
   if(!callActive||paused)return;
   addMessage("child",answer);childAnswers++;showTyping();
@@ -948,13 +1140,11 @@ async function handleAnswer(answer){
   const clean=reply.replace("[KONIEC_ROZMOWY]","").trim();
   addMessage("operator",clean);
 
-  if(reply.includes("[KONIEC_ROZMOWY]")){
-    // Auto-zakończ jeśli włączony w ustawieniach
-    if(getToggle("auto_end_call")){
-      await speakEL(clean,()=>setTimeout(()=>finishCall(),800));
-    }else{
-      await speakEL(clean,()=>setTimeout(()=>finishCall(),1500));
-    }
+  if(reply.includes("[KONIEC_ROZMOWY]") && !callEndingTriggered){
+    callEndingTriggered=true;
+    // v1.6.2: zawsze auto-zakończ — toggle decyduje tylko o opóźnieniu
+    const delay=getToggle("auto_end_call")?800:1500;
+    await speakEL(clean,()=>setTimeout(()=>finishCall(),delay));
   }else{
     await speakEL(clean);
   }
@@ -979,12 +1169,12 @@ function endCall(){
   if(sessionId){fetch(BACKEND_URL+"/api/session-end",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({session_id:sessionId,token:ACCESS_TOKEN,stars,messages:childAnswers,duration:callSecs,lang:currentLang,ended_by:"user"})}).catch(()=>{});}
   show("s-summary");
 }
-function resetApp(){callActive=false;paused=false;digits="";conversationHistory=[];childAnswers=0;callSecs=0;sessionId=null;lastReplyWasError=false;updateDisplay();show("s-lock");}
+function resetApp(){callActive=false;paused=false;digits="";conversationHistory=[];childAnswers=0;callSecs=0;sessionId=null;lastReplyWasError=false;callEndingTriggered=false;updateDisplay();show("s-lock");}
 
 // ============================================================
 // INIT — sessionStorage (nie persystuje po zamknięciu)
 // ============================================================
-if(ACCESS_TOKEN){show("s-lock");}else{show("s-rodo");}
+if(ACCESS_TOKEN){show("s-lock");}else{show("s-setup");}
 applyLocale();
 </script>
 </body>

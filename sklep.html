@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sklep — Zadzwoń pod 112 · HeroKids</title>
+<meta name="description" content="Kup dostęp do symulatora edukacyjnego Zadzwoń pod 112 dla przedszkoli i szkół. Pakiety sesji od 29 zł."/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0a0a0a;color:#e5e5ea;min-height:100vh}
+.container{max-width:860px;margin:0 auto;padding:24px 16px}
+.container-narrow{max-width:640px;margin:0 auto;padding:24px 16px}
+.card{background:#1c1c1e;border-radius:16px;padding:20px;margin-bottom:16px}
+.card-title{font-size:13px;color:#8e8e93;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px}
+button{border:none;border-radius:12px;padding:12px 20px;font-size:15px;cursor:pointer;font-family:-apple-system,sans-serif;transition:opacity 0.15s}
+button:disabled{opacity:0.4;cursor:not-allowed}
+.btn-primary{background:#0a84ff;color:#fff;width:100%}
+.btn-secondary{background:#2c2c2e;color:#fff;font-size:14px;padding:10px 18px}
+.hidden{display:none!important}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid #8e8e93;border-top-color:#0a84ff;border-radius:50%;animation:spin 0.6s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* HERO */
+.hero{text-align:center;padding:40px 16px 32px;border-bottom:0.5px solid #2c2c2e;margin-bottom:32px}
+.hero-badge{display:inline-block;background:#001a2e;color:#0a84ff;border:1px solid #0a84ff;border-radius:20px;padding:4px 14px;font-size:12px;font-weight:600;margin-bottom:16px;letter-spacing:0.5px}
+.hero h1{font-size:32px;font-weight:800;margin-bottom:10px;line-height:1.2}
+.hero p{font-size:16px;color:#8e8e93;max-width:520px;margin:0 auto 20px;line-height:1.6}
+.hero-stats{display:flex;justify-content:center;gap:32px;flex-wrap:wrap}
+.hero-stat{text-align:center}
+.hero-stat-value{font-size:24px;font-weight:800;color:#ffd60a}
+.hero-stat-label{font-size:12px;color:#636366;margin-top:2px}
+
+/* PRODUKT — opis */
+.product-section{margin-bottom:32px}
+.product-section h2{font-size:20px;font-weight:700;margin-bottom:16px}
+.product-visual{background:#1c1c1e;border-radius:16px;overflow:hidden;margin-bottom:20px}
+.features-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px}
+@media(max-width:520px){.features-grid{grid-template-columns:1fr}}
+.feature-card{background:#1c1c1e;border-radius:12px;padding:16px;border:0.5px solid #2c2c2e}
+.feature-icon{font-size:24px;margin-bottom:8px}
+.feature-title{font-size:14px;font-weight:600;margin-bottom:4px}
+.feature-desc{font-size:13px;color:#8e8e93;line-height:1.5}
+
+/* PAKIETY */
+.packages-section h2{font-size:20px;font-weight:700;margin-bottom:8px}
+.packages-subtitle{font-size:14px;color:#8e8e93;margin-bottom:20px}
+.packages{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+@media(max-width:600px){.packages{grid-template-columns:1fr}}
+.pkg{background:#111;border-radius:16px;padding:20px;cursor:pointer;border:1.5px solid #2c2c2e;transition:border-color 0.15s,transform 0.1s,box-shadow 0.15s;position:relative;text-align:center}
+.pkg:hover{border-color:#0a84ff;transform:translateY(-2px);box-shadow:0 8px 24px rgba(10,132,255,0.15)}
+.pkg.selected{border-color:#0a84ff;background:#001a2e;box-shadow:0 8px 24px rgba(10,132,255,0.2)}
+.pkg.popular{border-color:#0a84ff}
+.pkg-badge{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#0a84ff;color:#fff;font-size:10px;font-weight:700;padding:3px 12px;border-radius:6px;white-space:nowrap}
+.pkg-visual{margin:0 auto 12px;display:flex;align-items:center;justify-content:center}
+.pkg-sessions{font-size:36px;font-weight:800;line-height:1;color:#fff}
+.pkg-unit{font-size:12px;color:#636366;margin-top:3px}
+.pkg-price{font-size:24px;color:#ffd60a;font-weight:800;margin:12px 0 4px}
+.pkg-per{font-size:11px;color:#636366}
+.pkg-name{font-size:11px;color:#8e8e93;margin-top:8px;text-transform:uppercase;letter-spacing:1px;font-weight:600}
+.pkg-features{text-align:left;margin-top:14px;padding-top:14px;border-top:0.5px solid #2c2c2e}
+.pkg-feature{font-size:12px;color:#8e8e93;padding:3px 0;display:flex;align-items:center;gap:6px}
+.pkg-feature::before{content:"✓";color:#34c759;font-weight:700;flex-shrink:0}
+.pkg.selected .pkg-feature{color:#a0c4ff}
+.pkg-check{position:absolute;top:12px;right:12px;width:22px;height:22px;border-radius:50%;background:#0a84ff;display:none;align-items:center;justify-content:center;font-size:11px;color:#fff}
+.pkg.selected .pkg-check{display:flex}
+
+/* PODSUMOWANIE */
+.summary-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:0.5px solid #2c2c2e;font-size:14px}
+.summary-row:last-child{border-bottom:none}
+.summary-label{color:#8e8e93}
+.summary-value{font-weight:600}
+.summary-total{font-size:20px;font-weight:800;color:#ffd60a}
+
+/* FAQ */
+.faq-item{padding:14px 0;border-bottom:0.5px solid #2c2c2e}
+.faq-item:last-child{border-bottom:none}
+.faq-q{font-size:14px;font-weight:600;margin-bottom:6px;color:#e5e5ea}
+.faq-a{font-size:13px;color:#8e8e93;line-height:1.6}
+
+/* Komunikaty */
+.msg{padding:12px 14px;border-radius:10px;font-size:13px;margin-bottom:12px;line-height:1.5}
+.msg-ok{background:#0d2818;color:#34c759;border:0.5px solid #34c759}
+.msg-err{background:#1a0000;color:#ff3b30;border:0.5px solid #ff3b30}
+.msg-info{background:#001a2e;color:#0a84ff;border:0.5px solid #0a84ff}
+
+/* Status płatności */
+.status-icon{font-size:64px;text-align:center;margin-bottom:16px}
+.status-title{font-size:22px;font-weight:700;text-align:center;margin-bottom:8px}
+.status-sub{font-size:14px;color:#8e8e93;text-align:center;margin-bottom:24px}
+.token-box{background:#0d2818;border:1px solid #34c759;border-radius:12px;padding:16px;text-align:center;margin-bottom:16px}
+.token-code{font-family:monospace;font-size:22px;font-weight:700;color:#34c759;letter-spacing:3px}
+
+/* Koszyk sticky */
+.cart-bar{position:fixed;bottom:0;left:0;right:0;background:#1c1c1e;border-top:0.5px solid #3a3a3c;padding:12px 16px;z-index:50;display:none}
+.cart-bar.visible{display:block}
+.cart-inner{max-width:640px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.cart-info{flex:1}
+.cart-pkg{font-size:14px;font-weight:600}
+.cart-price{font-size:13px;color:#ffd60a}
+
+/* Nawigacja */
+.nav{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+.nav-back{background:transparent;color:#0a84ff;font-size:14px;padding:0;border:none;cursor:pointer;font-family:-apple-system,sans-serif}
+.nav-logo{font-size:14px;font-weight:700;color:#fff}
+</style>
+</head>
+<body>
+
+<!-- WIDOK: Ładowanie -->
+<div id="view-loading" class="container-narrow" style="padding-top:80px;text-align:center">
+  <div class="spinner" style="width:32px;height:32px;border-width:3px"></div>
+  <div style="margin-top:16px;color:#636366;font-size:14px">Ładowanie...</div>
+</div>
+
+<!-- WIDOK: Niezalogowany -->
+<div id="view-unauth" class="container-narrow hidden" style="padding-top:80px;text-align:center">
+  <div style="font-size:48px;margin-bottom:16px">🔒</div>
+  <div style="font-size:22px;font-weight:700;margin-bottom:8px">Zaloguj się</div>
+  <div style="font-size:14px;color:#636366;margin-bottom:24px">Musisz być zalogowany aby kupić pakiet</div>
+  <a href="panel.html"><button class="btn-primary" style="max-width:280px;margin:0 auto">Przejdź do logowania</button></a>
+  <div style="margin-top:16px">
+    <button onclick="showView('view-shop')" style="background:transparent;color:#636366;border:none;font-size:13px;cursor:pointer;font-family:-apple-system,sans-serif">Przeglądaj ofertę bez logowania</button>
+  </div>
+</div>
+
+<!-- WIDOK: Sklep -->
+<div id="view-shop" class="container hidden">
+
+  <!-- Nawigacja -->
+  <div class="nav">
+    <button class="nav-back" onclick="goToPanel()">← Panel</button>
+    <div style="flex:1"></div>
+    <div style="font-size:13px;color:#636366" id="user-email-display"></div>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badge">🚨 Symulator edukacyjny</div>
+    <h1>Zadzwoń pod 112</h1>
+    <p>Interaktywny symulator rozmowy z dyspozytorem 112 dla przedszkoli i szkół podstawowych. Uczy dzieci jak prawidłowo wzywać pomoc w sytuacji zagrożenia.</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="hero-stat-value">112</div><div class="hero-stat-label">Numer alarmowy</div></div>
+      <div class="hero-stat"><div class="hero-stat-value">AI</div><div class="hero-stat-label">Dyspozytor</div></div>
+      <div class="hero-stat"><div class="hero-stat-value">3–10</div><div class="hero-stat-label">Wiek dzieci (lata)</div></div>
+      <div class="hero-stat"><div class="hero-stat-value">PL</div><div class="hero-stat-label">Język</div></div>
+    </div>
+  </div>
+
+  <!-- OPIS PRODUKTU -->
+  <div class="product-section">
+    <h2>O produkcie</h2>
+
+    <!-- Wizualizacja produktu -->
+    <div class="product-visual">
+      <svg viewBox="0 0 860 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block">
+        <rect width="860" height="220" fill="#111"/>
+        <!-- Telefon po lewej -->
+        <rect x="60" y="20" width="100" height="180" rx="16" fill="#1c1c1e" stroke="#3a3a3c" stroke-width="1.5"/>
+        <rect x="70" y="35" width="80" height="130" rx="8" fill="#000"/>
+        <circle cx="110" cy="185" r="8" fill="#2c2c2e"/>
+        <!-- Ekran telefonu -->
+        <text x="110" y="75" text-anchor="middle" fill="#636366" font-size="9" font-family="monospace">1  2  3</text>
+        <text x="110" y="92" text-anchor="middle" fill="#636366" font-size="9" font-family="monospace">4  5  6</text>
+        <text x="110" y="109" text-anchor="middle" fill="#636366" font-size="9" font-family="monospace">7  8  9</text>
+        <text x="110" y="126" text-anchor="middle" fill="#ffd60a" font-size="11" font-family="monospace" font-weight="bold">1  1  2</text>
+        <!-- Przycisk zielony -->
+        <rect x="88" y="138" width="44" height="20" rx="10" fill="#34c759"/>
+        <text x="110" y="152" text-anchor="middle" fill="#fff" font-size="10" font-weight="bold">ZADZWOŃ</text>
+
+        <!-- Strzałka -->
+        <text x="195" y="115" fill="#0a84ff" font-size="28" font-weight="bold">→</text>
+
+        <!-- Dyspozytor po środku -->
+        <rect x="240" y="30" width="200" height="160" rx="12" fill="#1c1c1e" stroke="#0a84ff" stroke-width="1.5"/>
+        <circle cx="340" cy="80" r="28" fill="#001a2e" stroke="#0a84ff" stroke-width="1.5"/>
+        <text x="340" y="88" text-anchor="middle" fill="#0a84ff" font-size="28">👮</text>
+        <text x="340" y="125" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold">Dyspozytor AI</text>
+        <rect x="260" y="138" width="160" height="16" rx="8" fill="#2c2c2e"/>
+        <rect x="260" y="138" width="100" height="16" rx="8" fill="#0a84ff" opacity="0.7"/>
+        <text x="340" y="170" text-anchor="middle" fill="#8e8e93" font-size="10">Rozmawia z dzieckiem</text>
+        <text x="340" y="185" text-anchor="middle" fill="#34c759" font-size="10">● Na żywo</text>
+
+        <!-- Strzałka -->
+        <text x="465" y="115" fill="#0a84ff" font-size="28" font-weight="bold">→</text>
+
+        <!-- Wynik po prawej -->
+        <rect x="510" y="30" width="300" height="160" rx="12" fill="#1c1c1e" stroke="#34c759" stroke-width="1.5"/>
+        <text x="660" y="70" text-anchor="middle" fill="#34c759" font-size="32">🎓</text>
+        <text x="660" y="100" text-anchor="middle" fill="#fff" font-size="13" font-weight="bold">Dziecko uczy się</text>
+        <text x="660" y="120" text-anchor="middle" fill="#8e8e93" font-size="11">jak prawidłowo zadzwonić</text>
+        <text x="660" y="137" text-anchor="middle" fill="#8e8e93" font-size="11">pod numer 112</text>
+        <!-- Gwiazdki -->
+        <text x="625" y="168" fill="#ffd60a" font-size="22">★★★</text>
+        <text x="660" y="185" text-anchor="middle" fill="#636366" font-size="10">Ocena po rozmowie</text>
+      </svg>
+    </div>
+
+    <!-- Cechy produktu -->
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🎙️</div>
+        <div class="feature-title">Rozmowa głosowa</div>
+        <div class="feature-desc">Dziecko mówi do mikrofonu, dyspozytor AI odpowiada głosem w języku polskim. Realistyczna symulacja rozmowy z centrum 112.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🤖</div>
+        <div class="feature-title">Sztuczna inteligencja</div>
+        <div class="feature-desc">Dyspozytor oparty na modelu Claude AI zadaje właściwe pytania i prowadzi dziecko przez cały scenariusz ratunkowy.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <div class="feature-title">Logi dla nauczyciela</div>
+        <div class="feature-desc">Każda sesja jest zapisywana i anonimizowana. Dyrektor może przejrzeć logi rozmów i ocenić postępy dzieci.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📱</div>
+        <div class="feature-title">Działa na każdym urządzeniu</div>
+        <div class="feature-desc">Aplikacja webowa — działa na tabletach, smartfonach i komputerach bez instalacji. Dostęp przez przeglądarkę.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <div class="feature-title">Zgodność z RODO</div>
+        <div class="feature-desc">Dane dzieci są anonimizowane automatycznie. Żadne imiona ani dane osobowe nie są trwale przechowywane.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🏫</div>
+        <div class="feature-title">Panel dyrektora</div>
+        <div class="feature-desc">Dedykowany panel do zarządzania sesjami, przeglądania historii i wysyłania raportów mailem.</div>
+      </div>
+    </div>
+
+    <!-- Jak działa -->
+    <div class="card">
+      <div class="card-title">Jak działa jedna sesja?</div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;gap:14px;align-items:flex-start">
+          <div style="width:28px;height:28px;border-radius:50%;background:#001a2e;border:2px solid #0a84ff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#0a84ff;flex-shrink:0">1</div>
+          <div><div style="font-size:14px;font-weight:600;margin-bottom:2px">Dziecko wchodzi na stronę</div><div style="font-size:13px;color:#8e8e93">Nauczyciel otwiera aplikację na tablecie lub komputerze. Dziecko widzi ekran telefonu z numerem 112.</div></div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:flex-start">
+          <div style="width:28px;height:28px;border-radius:50%;background:#001a2e;border:2px solid #0a84ff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#0a84ff;flex-shrink:0">2</div>
+          <div><div style="font-size:14px;font-weight:600;margin-bottom:2px">Wpisuje 1-1-2 i dzwoni</div><div style="font-size:13px;color:#8e8e93">Dziecko wybiera cyfry na klawiaturze i naciska zielony przycisk. Nawiązuje się "połączenie" z dyspozytorem AI.</div></div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:flex-start">
+          <div style="width:28px;height:28px;border-radius:50%;background:#001a2e;border:2px solid #0a84ff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#0a84ff;flex-shrink:0">3</div>
+          <div><div style="font-size:14px;font-weight:600;margin-bottom:2px">Rozmawia z dyspozytorem</div><div style="font-size:13px;color:#8e8e93">Dyspozytor AI pyta o sytuację, miejsce zdarzenia i dane dziecka. Symulacja trwa 3–5 minut.</div></div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:flex-start">
+          <div style="width:28px;height:28px;border-radius:50%;background:#0d2818;border:2px solid #34c759;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#34c759;flex-shrink:0">4</div>
+          <div><div style="font-size:14px;font-weight:600;margin-bottom:2px">Ocena i podsumowanie</div><div style="font-size:13px;color:#8e8e93">Po zakończeniu dziecko otrzymuje ocenę w gwiazdkach. Nauczyciel może przejrzeć log rozmowy w panelu.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAKIETY -->
+  <div class="packages-section">
+    <h2>Wybierz pakiet</h2>
+    <div class="packages-subtitle">Jedna sesja = jedna rozmowa dziecka z dyspozytorem. Sesje nie wygasają.</div>
+
+    <div class="packages">
+      <!-- Basic -->
+      <div class="pkg" id="pkg-basic" onclick="selectPackage('basic')">
+        <div class="pkg-check">✓</div>
+        <div class="pkg-visual">
+          <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="32" cy="32" r="30" fill="#1c1c1e" stroke="#3a3a3c" stroke-width="2"/>
+            <text x="32" y="28" text-anchor="middle" font-size="22" font-weight="800" fill="#fff" font-family="sans-serif">30</text>
+            <text x="32" y="44" text-anchor="middle" font-size="10" fill="#636366" font-family="sans-serif">sesji</text>
+          </svg>
+        </div>
+        <div class="pkg-sessions">30</div>
+        <div class="pkg-unit">sesji</div>
+        <div class="pkg-price">29 zł</div>
+        <div class="pkg-per">~0,97 zł / sesja</div>
+        <div class="pkg-name">Basic</div>
+        <div class="pkg-features">
+          <div class="pkg-feature">30 symulacji rozmów</div>
+          <div class="pkg-feature">Panel dyrektora</div>
+          <div class="pkg-feature">Logi sesji</div>
+          <div class="pkg-feature">Wsparcie email</div>
+        </div>
+      </div>
+
+      <!-- Standard -->
+      <div class="pkg popular" id="pkg-standard" onclick="selectPackage('standard')">
+        <div class="pkg-badge">Najpopularniejszy</div>
+        <div class="pkg-check">✓</div>
+        <div class="pkg-visual">
+          <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="32" cy="32" r="30" fill="#001a2e" stroke="#0a84ff" stroke-width="2"/>
+            <text x="32" y="28" text-anchor="middle" font-size="22" font-weight="800" fill="#0a84ff" font-family="sans-serif">60</text>
+            <text x="32" y="44" text-anchor="middle" font-size="10" fill="#0a84ff" font-family="sans-serif">sesji</text>
+          </svg>
+        </div>
+        <div class="pkg-sessions">60</div>
+        <div class="pkg-unit">sesji</div>
+        <div class="pkg-price">49 zł</div>
+        <div class="pkg-per">~0,82 zł / sesja</div>
+        <div class="pkg-name">Standard</div>
+        <div class="pkg-features">
+          <div class="pkg-feature">60 symulacji rozmów</div>
+          <div class="pkg-feature">Panel dyrektora</div>
+          <div class="pkg-feature">Logi sesji + email</div>
+          <div class="pkg-feature">Wsparcie priorytetowe</div>
+        </div>
+      </div>
+
+      <!-- Pro -->
+      <div class="pkg" id="pkg-pro" onclick="selectPackage('pro')">
+        <div class="pkg-check">✓</div>
+        <div class="pkg-visual">
+          <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="32" cy="32" r="30" fill="#1c1c1e" stroke="#ffd60a" stroke-width="2"/>
+            <text x="32" y="26" text-anchor="middle" font-size="18" font-weight="800" fill="#ffd60a" font-family="sans-serif">100</text>
+            <text x="32" y="44" text-anchor="middle" font-size="10" fill="#ffd60a" font-family="sans-serif">sesji</text>
+          </svg>
+        </div>
+        <div class="pkg-sessions">100</div>
+        <div class="pkg-unit">sesji</div>
+        <div class="pkg-price">79 zł</div>
+        <div class="pkg-per">~0,79 zł / sesja</div>
+        <div class="pkg-name">Pro</div>
+        <div class="pkg-features">
+          <div class="pkg-feature">100 symulacji rozmów</div>
+          <div class="pkg-feature">Panel dyrektora</div>
+          <div class="pkg-feature">Logi sesji + email</div>
+          <div class="pkg-feature">Wsparcie priorytetowe</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Podsumowanie zamówienia -->
+    <div class="card" id="summary-box" style="display:none">
+      <div class="card-title">Podsumowanie zamówienia</div>
+      <div class="summary-row">
+        <span class="summary-label">Produkt</span>
+        <span class="summary-value">Zadzwoń pod 112 — pakiet <span id="sum-name">—</span></span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">Liczba sesji</span>
+        <span class="summary-value" id="sum-sessions">—</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">Placówka</span>
+        <span class="summary-value" id="sum-school">—</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">Metody płatności</span>
+        <span class="summary-value" style="color:#8e8e93;font-size:13px">BLIK · Przelew · Karta</span>
+      </div>
+      <div class="summary-row" style="padding-top:14px">
+        <span class="summary-label" style="font-size:16px;font-weight:600;color:#fff">Do zapłaty</span>
+        <span class="summary-total" id="sum-price">—</span>
+      </div>
+    </div>
+
+    <div id="shop-msg"></div>
+
+    <button class="btn-primary" id="pay-btn" onclick="startPayment()" disabled style="margin-bottom:12px">
+      Wybierz pakiet aby kontynuować
+    </button>
+
+    <div style="text-align:center;font-size:12px;color:#636366;margin-bottom:32px">
+      🔒 Bezpieczna płatność przez <b style="color:#e5e5ea">PayU</b> · Faktury VAT na życzenie · Wsparcie: <a href="mailto:support@herokids.eu" style="color:#0a84ff">support@herokids.eu</a>
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-title">Często zadawane pytania</div>
+    <div class="faq-item">
+      <div class="faq-q">Czym jest "sesja"?</div>
+      <div class="faq-a">Jedna sesja to jedna kompletna rozmowa dziecka z dyspozytorem AI — od momentu "połączenia" do zakończenia symulacji. Sesja trwa zazwyczaj 3–7 minut.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Czy sesje wygasają?</div>
+      <div class="faq-a">Nie — sesje nie mają daty ważności. Możesz ich używać w swoim tempie przez cały rok szkolny i kolejne lata.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Ile dzieci może korzystać z jednego pakietu?</div>
+      <div class="faq-a">Dowolna liczba dzieci. Pakiet dotyczy liczby sesji, nie liczby użytkowników. Jedna klasa 25-osobowa może wykonać 25 sesji z pakietu Basic.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Jak otrzymam kod dostępu?</div>
+      <div class="faq-a">Po zakończeniu płatności sesje zostaną automatycznie doliczone do Twojego konta. Kod dostępu do aplikacji znajdziesz w panelu dyrektora.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Czy mogę otrzymać fakturę VAT?</div>
+      <div class="faq-a">Tak — napisz na <a href="mailto:support@herokids.eu" style="color:#0a84ff">support@herokids.eu</a> podając dane do faktury, a wystawimy ją w ciągu 7 dni roboczych.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Jak wygląda polityka zwrotów?</div>
+      <div class="faq-a">Niewykorzystane sesje podlegają zwrotowi w ciągu 14 dni od zakupu. Z chwilą pierwszego użycia sesji prawo do zwrotu za wykorzystane sesje wygasa — szczegóły poniżej w regulaminie.</div>
+    </div>
+  </div>
+
+  <!-- REGULAMIN I POLITYKA ZWROTÓW -->
+  <div class="card" id="regulamin" style="margin-bottom:16px">
+    <div class="card-title">Regulamin i polityka zwrotów</div>
+
+    <div style="font-size:13px;color:#8e8e93;line-height:1.9">
+
+      <div style="font-size:14px;font-weight:600;color:#e5e5ea;margin-bottom:8px">§1 Przedmiot umowy</div>
+      <p style="margin-bottom:12px">Sprzedawcą jest HeroKids (herokids.eu). Przedmiotem sprzedaży są pakiety sesji do symulatora edukacyjnego „Zadzwoń pod 112" — treść cyfrowa w rozumieniu ustawy z dnia 30 maja 2014 r. o prawach konsumenta (Dz.U. 2014 poz. 827 z późn. zm.).</p>
+
+      <div style="font-size:14px;font-weight:600;color:#e5e5ea;margin-bottom:8px">§2 Realizacja zamówienia</div>
+      <p style="margin-bottom:12px">Po zaksięgowaniu płatności przez PayU sesje są doliczane do konta kupującego automatycznie, bez zbędnej zwłoki. Dostęp następuje poprzez panel dyrektora dostępny na herokids.eu.</p>
+
+      <div style="font-size:14px;font-weight:600;color:#e5e5ea;margin-bottom:8px">§3 Prawo do odstąpienia od umowy — treści cyfrowe</div>
+      <p style="margin-bottom:8px">Zgodnie z art. 38 pkt 13 ustawy o prawach konsumenta, <b style="color:#fff">prawo do odstąpienia od umowy nie przysługuje</b> w odniesieniu do treści cyfrowych niedostarczanych na nośniku materialnym, jeżeli spełnianie świadczenia rozpoczęło się za wyraźną zgodą konsumenta przed upływem terminu do odstąpienia i po poinformowaniu go o utracie tego prawa.</p>
+      <p style="margin-bottom:12px">Oznacza to: z chwilą <b style="color:#fff">pierwszego użycia sesji</b> (rozpoczęcia rozmowy z dyspozytorem AI) prawo do zwrotu za tę sesję wygasa. Klikając „Zapłać przez PayU" potwierdzasz, że zostałeś o tym poinformowany i wyrażasz zgodę na natychmiastowe rozpoczęcie świadczenia.</p>
+
+      <div style="font-size:14px;font-weight:600;color:#e5e5ea;margin-bottom:8px">§4 Zwrot niewykorzystanych sesji</div>
+      <p style="margin-bottom:12px"><b style="color:#fff">Niewykorzystane sesje</b> podlegają zwrotowi w ciągu 14 dni od daty zakupu. Aby złożyć wniosek o zwrot, napisz na <a href="mailto:support@herokids.eu" style="color:#0a84ff">support@herokids.eu</a> podając adres email konta oraz numer zamówienia. Zwrot zostanie zrealizowany tą samą metodą płatności w ciągu 14 dni roboczych od zatwierdzenia wniosku.</p>
+
+      <div style="font-size:14px;font-weight:600;color:#e5e5ea;margin-bottom:8px">§5 Reklamacje</div>
+      <p style="margin-bottom:12px">Reklamacje dotyczące działania usługi przyjmujemy na adres <a href="mailto:support@herokids.eu" style="color:#0a84ff">support@herokids.eu</a>. Rozpatrzenie reklamacji następuje w ciągu 14 dni roboczych.</p>
+
+      <div style="font-size:14px;font-weight:600;color:#e5e5ea;margin-bottom:8px">§6 Dane osobowe</div>
+      <p style="margin-bottom:4px">Dane przetwarzane są zgodnie z RODO wyłącznie w celu realizacji zamówienia i obsługi konta. Dane dzieci uczestniczących w sesjach są anonimizowane automatycznie i nie są trwale przechowywane w formie umożliwiającej identyfikację.</p>
+
+    </div>
+  </div>
+
+  <!-- Checkbox zgody przy przycisku płatności — informacja -->
+  <div id="consent-box" class="card hidden" style="margin-bottom:16px;background:#001a2e;border:0.5px solid #0a84ff">
+    <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;font-size:13px;color:#8e8e93;line-height:1.6">
+      <input type="checkbox" id="consent-check" onchange="updatePayBtn()" style="margin-top:3px;width:16px;height:16px;flex-shrink:0;accent-color:#0a84ff"/>
+      <span>Wyrażam zgodę na natychmiastowe rozpoczęcie świadczenia usługi cyfrowej i przyjmuję do wiadomości, że z chwilą pierwszego użycia sesji utracę prawo do odstąpienia od umowy w odniesieniu do wykorzystanych sesji. Akceptuję <a href="#regulamin" style="color:#0a84ff">regulamin</a>.</span>
+    </label>
+  </div>
+
+  <!-- Stopka -->
+  <div style="text-align:center;font-size:12px;color:#636366;padding:16px 0 40px;line-height:2">
+    <div style="margin-bottom:8px">
+      <a href="mailto:support@herokids.eu" style="color:#0a84ff">support@herokids.eu</a> · 
+      <a href="#regulamin" style="color:#636366">Regulamin</a> · 
+      <a href="#polityka" style="color:#636366">Polityka prywatności</a>
+    </div>
+    © 2026 HeroKids · Zadzwoń pod 112 · Symulator edukacyjny
+  </div>
+</div>
+
+<!-- WIDOK: Przetwarzanie płatności -->
+<div id="view-processing" class="container-narrow hidden" style="padding-top:80px;text-align:center">
+  <div class="spinner" style="width:40px;height:40px;border-width:3px;margin:0 auto 20px"></div>
+  <div style="font-size:18px;font-weight:600;margin-bottom:8px">Przekierowuję do PayU...</div>
+  <div style="font-size:14px;color:#636366">Za chwilę zostaniesz przeniesiony na stronę płatności</div>
+</div>
+
+<!-- WIDOK: Sukces płatności -->
+<div id="view-success" class="container-narrow hidden" style="padding-top:60px">
+  <div class="status-icon">✅</div>
+  <div class="status-title">Płatność zakończona!</div>
+  <div class="status-sub">Sesje zostały doliczone do Twojego konta</div>
+  <div class="token-box">
+    <div style="font-size:13px;color:#8e8e93;margin-bottom:6px">Twój kod dostępu</div>
+    <div class="token-code" id="success-token">—</div>
+    <div style="font-size:12px;color:#8e8e93;margin-top:6px" id="success-credits">— sesji dostępnych</div>
+  </div>
+  <div class="card">
+    <div class="summary-row"><span style="color:#8e8e93;font-size:14px">Pakiet</span><span style="font-weight:600" id="success-package">—</span></div>
+    <div class="summary-row" style="border:none"><span style="color:#8e8e93;font-size:14px">Dodano sesji</span><span style="font-weight:600" id="success-sessions">—</span></div>
+  </div>
+  <button class="btn-primary" onclick="goToPanel()">Przejdź do panelu →</button>
+</div>
+
+<!-- WIDOK: Oczekiwanie na płatność -->
+<div id="view-pending" class="container-narrow hidden" style="padding-top:60px;text-align:center">
+  <div class="status-icon">⏳</div>
+  <div class="status-title">Płatność w toku</div>
+  <div class="status-sub" style="margin-bottom:24px">Czekamy na potwierdzenie od PayU. Może to potrwać kilka minut.</div>
+  <button class="btn-secondary" onclick="checkOrderStatus()" style="margin:0 auto 12px;display:block">Sprawdź status</button>
+  <button class="btn-primary" onclick="goToPanel()">Wróć do panelu</button>
+</div>
+
+<!-- WIDOK: Błąd płatności -->
+<div id="view-error" class="container-narrow hidden" style="padding-top:60px;text-align:center">
+  <div class="status-icon">❌</div>
+  <div class="status-title">Płatność nieudana</div>
+  <div class="status-sub" id="error-msg" style="margin-bottom:24px">Spróbuj ponownie lub skontaktuj się z obsługą.</div>
+  <button class="btn-primary" onclick="showView('view-shop')">Spróbuj ponownie</button>
+</div>
+
+<!-- Koszyk sticky -->
+<div class="cart-bar" id="cart-bar">
+  <div class="cart-inner">
+    <div class="cart-info">
+      <div class="cart-pkg" id="cart-pkg-name">—</div>
+      <div class="cart-price" id="cart-pkg-price">—</div>
+    </div>
+    <button onclick="startPayment()" id="cart-pay-btn" style="background:#0a84ff;color:#fff;border-radius:12px;padding:12px 24px;font-size:15px;font-weight:600;white-space:nowrap">Zapłać →</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// KONFIGURACJA
+// ============================================================
+const SUPABASE_URL = "https://vnennalmoexaqkohzjkm.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_fcOplky2nD4ERYlDpaa1zw_04Us8URx";
+const BACKEND_URL = "https://telefon112-dev.up.railway.app";
+const PANEL_URL = "panel.html";
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const PACKAGES = {
+  basic:    { name: "Basic",    sessions: 30,  price: "29 zł", sessionsLabel: "30 sesji", amount: 2900 },
+  standard: { name: "Standard", sessions: 60,  price: "49 zł", sessionsLabel: "60 sesji", amount: 4900 },
+  pro:      { name: "Pro",      sessions: 100, price: "79 zł", sessionsLabel: "100 sesji", amount: 7900 }
+};
+
+let currentUser = null;
+let currentSchool = null;
+let currentToken = null;
+let selectedPackage = null;
+let pendingExtOrderId = null;
+
+// ============================================================
+// INIT
+// ============================================================
+async function init() {
+  const params = new URLSearchParams(window.location.search);
+  const extOrderId = params.get("order");
+  const error = params.get("error");
+
+  if (extOrderId) {
+    pendingExtOrderId = extOrderId;
+    showView("view-loading");
+    await loadUser();
+    await checkOrderStatus();
+    return;
+  }
+
+  if (error) {
+    showView("view-error");
+    document.getElementById("error-msg").textContent = decodeURIComponent(error);
+    return;
+  }
+
+  await loadUser();
+}
+
+async function loadUser() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    showView("view-unauth");
+    return;
+  }
+  currentUser = session.user;
+  document.getElementById("user-email-display").textContent = currentUser.email;
+  await loadSchoolData();
+  showView("view-shop");
+}
+
+async function loadSchoolData() {
+  try {
+    const { data: school } = await sb.from("schools").select("id, name").eq("director_email", currentUser.email).single();
+    currentSchool = school;
+    if (school) {
+      const { data: token } = await sb.from("tokens").select("id, token_code, credits").eq("school_id", school.id).eq("active", true).order("credits", { ascending: false }).limit(1).single();
+      currentToken = token;
+    }
+    if (document.getElementById("sum-school")) {
+      document.getElementById("sum-school").textContent = currentSchool?.name || currentUser?.email || "—";
+    }
+  } catch (e) {
+    console.error("loadSchoolData error:", e);
+  }
+}
+
+// ============================================================
+// WYBÓR PAKIETU
+// ============================================================
+function selectPackage(key) {
+  selectedPackage = key;
+  document.querySelectorAll(".pkg").forEach(el => el.classList.remove("selected"));
+  document.getElementById("pkg-" + key).classList.add("selected");
+
+  const pkg = PACKAGES[key];
+  document.getElementById("sum-name").textContent = pkg.name;
+  document.getElementById("sum-sessions").textContent = pkg.sessionsLabel;
+  document.getElementById("sum-price").textContent = pkg.price;
+  document.getElementById("sum-school").textContent = currentSchool?.name || currentUser?.email || "—";
+  document.getElementById("summary-box").style.display = "block";
+
+  const btn = document.getElementById("pay-btn");
+  btn.disabled = false;
+  btn.textContent = `Zapłać ${pkg.price} przez PayU →`;
+
+  // Pokaż checkbox zgody i zresetuj
+  document.getElementById("consent-box").classList.remove("hidden");
+  document.getElementById("consent-check").checked = false;
+  updatePayBtn();
+
+  // Koszyk sticky
+  document.getElementById("cart-pkg-name").textContent = `Pakiet ${pkg.name} · ${pkg.sessionsLabel}`;
+  document.getElementById("cart-pkg-price").textContent = pkg.price;
+  document.getElementById("cart-bar").classList.add("visible");
+}
+
+// ============================================================
+// ZGODA — aktualizuj stan przycisku płatności
+// ============================================================
+function updatePayBtn() {
+  const checked = document.getElementById("consent-check")?.checked;
+  const pkg = PACKAGES[selectedPackage];
+  const btn = document.getElementById("pay-btn");
+  const cartBtn = document.getElementById("cart-pay-btn");
+  if (!pkg) return;
+  btn.disabled = !checked;
+  btn.textContent = checked ? `Zapłać ${pkg.price} przez PayU →` : `Zaakceptuj regulamin na dole tej strony, aby kontynuować`;
+  if (cartBtn) cartBtn.disabled = !checked;
+}
+
+// ============================================================
+// PŁATNOŚĆ
+// ============================================================
+async function startPayment() {
+  if (!selectedPackage) return;
+  if (!currentUser) { showView("view-unauth"); return; }
+
+  const btn = document.getElementById("pay-btn");
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Łączę z PayU...';
+  showMsg("", "");
+
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { showView("view-unauth"); return; }
+
+    const returnUrl = window.location.href.split("?")[0];
+    const res = await fetch(`${BACKEND_URL}/api/create-order`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        package: selectedPackage,
+        school_id: currentSchool?.id || null,
+        token_id: currentToken?.id || null,
+        buyer_email: currentUser.email,
+        buyer_name: currentSchool?.name || currentUser.email,
+        return_url: returnUrl + "?order={extOrderId}"
+      })
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.redirect_url) throw new Error(data.error || "Błąd tworzenia zamówienia");
+
+    sessionStorage.setItem("payu_ext_order_id", data.ext_order_id);
+    showView("view-processing");
+    setTimeout(() => { window.location.href = data.redirect_url; }, 800);
+
+  } catch (e) {
+    console.error("startPayment error:", e);
+    btn.disabled = false;
+    btn.textContent = `Zapłać przez PayU →`;
+    showMsg("❌ " + e.message, "err");
+  }
+}
+
+// ============================================================
+// STATUS ZAMÓWIENIA
+// ============================================================
+async function checkOrderStatus() {
+  const extOrderId = pendingExtOrderId || sessionStorage.getItem("payu_ext_order_id");
+  if (!extOrderId) { showView("view-shop"); return; }
+  showView("view-loading");
+
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/order-status/${extOrderId}`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Błąd sprawdzania statusu");
+
+    if (data.status === "completed") {
+      sessionStorage.removeItem("payu_ext_order_id");
+      document.getElementById("success-token").textContent = data.token_code || "—";
+      document.getElementById("success-credits").textContent = `${data.credits || 0} sesji dostępnych`;
+      document.getElementById("success-package").textContent = PACKAGES[data.package]?.name || data.package;
+      document.getElementById("success-sessions").textContent = PACKAGES[data.package]?.sessionsLabel || data.sessions;
+      showView("view-success");
+    } else if (data.status === "pending" || data.status === "waiting_for_confirmation") {
+      showView("view-pending");
+    } else if (data.status === "canceled" || data.status === "rejected") {
+      sessionStorage.removeItem("payu_ext_order_id");
+      document.getElementById("error-msg").textContent = "Płatność została anulowana lub odrzucona.";
+      showView("view-error");
+    } else {
+      showView("view-pending");
+    }
+  } catch (e) {
+    document.getElementById("error-msg").textContent = e.message;
+    showView("view-error");
+  }
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function showView(id) {
+  ["view-loading","view-unauth","view-shop","view-processing","view-success","view-pending","view-error"]
+    .forEach(v => document.getElementById(v).classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
+}
+
+function showMsg(text, type) {
+  const el = document.getElementById("shop-msg");
+  if (!text) { el.innerHTML = ""; return; }
+  el.innerHTML = `<div class="msg msg-${type}">${text}</div>`;
+}
+
+function goToPanel() { window.location.href = PANEL_URL; }
+
+init();
+</script>
+</body>
+</html>
