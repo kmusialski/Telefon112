@@ -61,9 +61,9 @@ const PAYU_BASE = PAYU_SANDBOX === "true"
   : "https://secure.payu.com";
 
 const PACKAGES = {
-  basic:    { name: "Basic",    sessions: 30,  amount: 2900, label: "30 sesji · 29 zł" },
-  standard: { name: "Standard", sessions: 60,  amount: 4900, label: "60 sesji · 49 zł" },
-  pro:      { name: "Pro",      sessions: 100, amount: 7900, label: "100 sesji · 79 zł" }
+  P1: { name: "Pakiet Mały",   sessions: 20, amount: 2900, label: "20 sesji · 29 zł" },
+  P2: { name: "Pakiet Średni", sessions: 40, amount: 4900, label: "40 sesji · 49 zł" },
+  P3: { name: "Pakiet Duży",   sessions: 70, amount: 6900, label: "70 sesji · 69 zł" }
 };
 
 // ============================================================
