@@ -469,7 +469,7 @@
             <li>Informacja zwrotna po rozmowie</li>
             <li>Wsparcie techniczne</li>
           </ul>
-          <button onclick="openBuyModal('Pakiet Mały','20','29')" class="pkg-btn">Kup pakiet →</button>
+          <button onclick="openBuyModal('P1','Pakiet Mały','20','29')" class="pkg-btn">Kup pakiet →</button>
         </div>
 
         <!-- Pakiet Średni (wyróżniony) -->
@@ -486,7 +486,7 @@
             <li>Informacja zwrotna po rozmowie</li>
             <li>Wsparcie techniczne</li>
           </ul>
-          <button onclick="openBuyModal('Pakiet Średni','40','49')" class="pkg-btn">Kup pakiet →</button>
+          <button onclick="openBuyModal('P2','40','49')" class="pkg-btn">Kup pakiet →</button>
         </div>
 
         <!-- Pakiet Duży -->
@@ -503,7 +503,7 @@
             <li>Informacja zwrotna po rozmowie</li>
             <li>Wsparcie techniczne</li>
           </ul>
-          <button onclick="openBuyModal('Pakiet Duży','70','69')" class="pkg-btn">Kup pakiet →</button>
+          <button onclick="openBuyModal('P3','70','69')" class="pkg-btn">Kup pakiet →</button>
         </div>
 
       </div>
@@ -1049,8 +1049,8 @@ function switchTab(name) {
 // ════════════════════════════════════════════════════════
 let currentPkg = null;
 
-function openBuyModal(name, sessions, price) {
-  currentPkg = { name, sessions, price };
+function openBuyModal(key, name, sessions, price) {
+  currentPkg = { key, name, sessions, price };
   document.getElementById("buy-modal-title").textContent = name;
   document.getElementById("buy-pkg-name").textContent = name;
   document.getElementById("buy-pkg-sessions").textContent = sessions + " sesji";
@@ -1085,7 +1085,7 @@ async function doPayment() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         access_jwt: authSession?.access_token,
-        package_name: currentPkg.name,
+        package: currentPkg.key,
         sessions: parseInt(currentPkg.sessions),
         amount_pln: parseInt(currentPkg.price)
       })
