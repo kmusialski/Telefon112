@@ -339,33 +339,6 @@ input:checked+.toggle-slider:before{transform:translateX(18px)}
     </div>
   </div>
 
-  <!-- Baza promptu -->
-  <div style="width:100%;margin-bottom:16px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-      <div id="admin-base-label" style="font-size:13px;color:#52525b"></div>
-      <div id="admin-readonly-badge" style="font-size:11px;color:#52525b;background:#f4f4f5;padding:3px 8px;border-radius:6px"></div>
-    </div>
-    <div id="admin-base-desc" style="background:#f4f4f5;border:0.5px solid #e4e4e7;border-radius:12px;padding:12px;font-size:12px;color:#a1a1aa;line-height:1.6"></div>
-  </div>
-
-  <!-- Dodatkowe instrukcje -->
-  <div style="width:100%;margin-bottom:12px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-      <div id="admin-extra-label" style="font-size:13px;color:#52525b"></div>
-      <div id="admin-editable-badge" style="font-size:11px;color:#C8001E;background:#fff0f3;padding:3px 8px;border-radius:6px"></div>
-    </div>
-    <div id="admin-extra-hint" style="font-size:12px;color:#a1a1aa;margin-bottom:8px;line-height:1.5"></div>
-    <textarea id="admin-extra" style="background:#fff;border:1px solid #e4e4e7;border-radius:12px;color:#18181b;font-size:13px;padding:14px;width:100%;height:160px;outline:none;font-family:-apple-system,sans-serif;line-height:1.6;resize:vertical"></textarea>
-  </div>
-
-  <!-- Hasło -->
-  <div style="width:100%;margin-bottom:12px">
-    <div id="admin-pass-label" style="font-size:13px;color:#52525b;margin-bottom:6px"></div>
-    <input id="admin-new-pass" class="api-input" type="password" placeholder="..."/>
-  </div>
-  <div id="admin-msg" style="font-size:13px;color:#C8001E;text-align:center;min-height:20px;margin-bottom:8px"></div>
-  <button onclick="saveAdminSettings()" class="api-btn" id="admin-save-btn"></button>
-  <button onclick="clearExtra()" style="background:transparent;color:#52525b;border:0.5px solid #e4e4e7;border-radius:24px;padding:12px;font-size:14px;cursor:pointer;width:100%;margin-top:10px;font-family:-apple-system,sans-serif" id="admin-clear-btn"></button>
 
   <!-- Link do panelu dyrektora -->
   <div style="width:100%;margin-top:20px;padding-top:16px;border-top:0.5px solid #e4e4e7;text-align:center">
@@ -421,12 +394,12 @@ const LOCALES = {
     summarySteps:["Opowiedział co się stało","Podał stan poszkodowanego","Podał adres zdarzenia","Powiedział czy drzwi są otwarte"],
     summaryStepsTitle:"Ukończone etapy rozmowy:",
     summaryDisclaimer:"Pamiętaj: dzwoń tylko w prawdziwej nagłej sytuacji!",
-    summaryRetryBtn:"Spróbuj jeszcze raz", summaryAdminBtn:"Panel administratora",
-    adminLoginTitle:"Panel administratora",
+    summaryRetryBtn:"Spróbuj jeszcze raz", summaryAdminBtn:"Ustawienia",
+    adminLoginTitle:"Ustawienia",
     adminLoginSubtitle:"Dostęp tylko dla nauczycieli i opiekunów",
     adminLoginPassPh:"Hasło administratora", adminLoginBtn:"Zaloguj się",
     adminLoginCancel:"Anuluj", adminLoginErr:"Nieprawidłowe hasło!",
-    adminPanelTitle:"Panel administratora", adminPanelClose:"Zamknij",
+    adminPanelTitle:"Ustawienia", adminPanelClose:"Zamknij",
     adminLangSectionTitle:"Język aplikacji",
     adminLangNote:"Zmiana języka wpływa na interfejs, głos TTS oraz język rozmowy z dyspozytorem.",
     adminBaseLabel:"Baza systemu", adminReadonlyBadge:"Stała - tylko odczyt",
@@ -473,12 +446,12 @@ const LOCALES = {
     summarySteps:["Erzählt was passiert ist","Zustand des Verletzten genannt","Adresse des Unfalls angegeben","Tür-Status angegeben"],
     summaryStepsTitle:"Abgeschlossene Gesprächsschritte:",
     summaryDisclaimer:"Denk daran: Ruf nur in einem echten Notfall an!",
-    summaryRetryBtn:"Nochmal versuchen", summaryAdminBtn:"Administratorbereich",
-    adminLoginTitle:"Administratorbereich",
+    summaryRetryBtn:"Nochmal versuchen", summaryAdminBtn:"Einstellungen",
+    adminLoginTitle:"Einstellungen",
     adminLoginSubtitle:"Zugang nur für Lehrer und Betreuer",
     adminLoginPassPh:"Administratorpasswort", adminLoginBtn:"Anmelden",
     adminLoginCancel:"Abbrechen", adminLoginErr:"Falsches Passwort!",
-    adminPanelTitle:"Administratorbereich", adminPanelClose:"Schließen",
+    adminPanelTitle:"Einstellungen", adminPanelClose:"Schließen",
     adminLangSectionTitle:"App-Sprache",
     adminLangNote:"Die Sprachänderung wirkt sich auf die Benutzeroberfläche, die TTS-Stimme und die Disponentensprache aus.",
     adminBaseLabel:"Systembasis", adminReadonlyBadge:"Fest – nur lesen",
@@ -738,17 +711,6 @@ function applyLocale(){
   setText("admin-panel-close",L.adminPanelClose);
   setText("admin-lang-section-title",L.adminLangSectionTitle);
   setText("admin-lang-note",L.adminLangNote);
-  setText("admin-base-label",L.adminBaseLabel);
-  setText("admin-readonly-badge",L.adminReadonlyBadge);
-  setText("admin-base-desc",L.adminBaseDesc);
-  setText("admin-extra-label",L.adminExtraLabel);
-  setText("admin-editable-badge",L.adminEditableBadge);
-  setText("admin-extra-hint",L.adminExtraHint);
-  setPH("admin-extra",L.adminExtraPh);
-  setText("admin-pass-label",L.adminPassLabel);
-  setPH("admin-new-pass",L.adminPassPh);
-  setText("admin-save-btn",L.adminSaveBtn);
-  setText("admin-clear-btn",L.adminClearBtn);
   updateLockClock(); updateDisplay(); updateMicState(); updateTokenUI();
 }
 
@@ -887,9 +849,6 @@ document.getElementById("logo-tap").addEventListener("click",()=>{
 function openAdminFromSetup(ret){openAdmin(ret||"s-setup");}
 function openAdmin(ret){
   window._adminReturnTo=ret;
-  document.getElementById("admin-extra").value=localStorage.getItem("admin_extra_"+currentLang)||"";
-  document.getElementById("admin-new-pass").value="";
-  document.getElementById("admin-msg").textContent="";
   document.getElementById("auto-end-toggle").checked=getToggle("auto_end_call");
   document.getElementById("short-call-toggle").checked=getToggle("short_call");
   document.getElementById("street-error-toggle").checked=getToggle("street_error");
@@ -912,21 +871,6 @@ function onShortCallToggle(checked){
     const row=document.getElementById("toggle-row-street");
     if(row)row.style.opacity="1";
   }
-}
-
-function saveAdminSettings(){
-  const L=getLoc();
-  const extra=document.getElementById("admin-extra").value.trim();
-  const newPass=document.getElementById("admin-new-pass").value.trim();
-  const msg=document.getElementById("admin-msg");
-  localStorage.setItem("admin_extra_"+currentLang,extra);
-  if(newPass.length>=4)localStorage.setItem("admin_pass",newPass);
-  msg.style.color="#C8001E";msg.textContent=L.adminSavedMsg;setTimeout(()=>{msg.textContent="";},2000);
-}
-function clearExtra(){
-  const L=getLoc();if(!confirm(L.adminClearConfirm))return;
-  localStorage.removeItem("admin_extra_"+currentLang);document.getElementById("admin-extra").value="";
-  const msg=document.getElementById("admin-msg");msg.style.color="#C8001E";msg.textContent=L.adminClearedMsg;setTimeout(()=>{msg.textContent="";},2000);
 }
 
 // ============================================================
