@@ -237,8 +237,7 @@ input:checked+.toggle-slider:before{transform:translateX(18px)}
     </button>
   </div>
   <div id="messages" style="flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:10px;width:100%"></div>
-    <div style="padding:12px 20px 28px;display:flex;flex-direction:column;align-items:center;gap:8px;border-top:1px solid #e4e4e7;width:100%;flex-shrink:0">
-    <div id="state-icon" style="font-size:32px;line-height:1;min-height:36px;text-align:center"></div>
+  <div style="padding:12px 20px 28px;display:flex;flex-direction:column;align-items:center;gap:8px;border-top:1px solid #e4e4e7;width:100%;flex-shrink:0">
     <div id="transcript-box" style="font-size:13px;color:#52525b;font-style:italic;text-align:center;min-height:18px"></div>
     <div id="mic-hint" style="font-size:13px;color:#52525b;text-align:center"></div>
     <!-- MIC row — bez przycisku pauzy (przeniesiony do nagłówka) -->
@@ -260,7 +259,7 @@ input:checked+.toggle-slider:before{transform:translateX(18px)}
   </div>
   <div id="summary-title" style="font-size:26px;font-weight:600"></div>
   <div id="summary-subtitle" style="font-size:15px;color:#52525b;line-height:1.7"></div>
-  <div id="stars-row" style="display:flex;gap:8px;font-size:44px"></div>
+  <div id="steps-row" style="width:100%;background:#f4f4f5;border-radius:16px;padding:12px 16px"></div>
   <div id="summary-tips-box" style="background:#f4f4f5;border-radius:16px;padding:18px 20px;width:100%;font-size:14px;color:#18181b;line-height:2;text-align:left"></div>
   <div id="summary-disclaimer" style="font-size:12px;color:#a1a1aa"></div>
   <button onclick="resetApp()" id="summary-retry-btn" style="background:#C8001E;color:#fff;border:none;border-radius:24px;padding:14px 44px;font-size:17px;cursor:pointer;margin-top:4px"></button>
@@ -278,8 +277,8 @@ input:checked+.toggle-slider:before{transform:translateX(18px)}
   <div style="width:100%;margin-bottom:20px">
     <div id="admin-lang-section-title" style="font-size:13px;color:#52525b;margin-bottom:8px"></div>
     <div style="display:flex;gap:8px;width:100%">
-      <button id="admin-lang-btn-pl" class="lang-btn active" onclick="setLang('pl');refreshAdminExtra()">🇵🇱 Polski</button>
-      <button id="admin-lang-btn-de" class="lang-btn inactive" onclick="setLang('de');refreshAdminExtra()">🇩🇪 Deutsch</button>
+      <button id="admin-lang-btn-pl" class="lang-btn active" onclick="setLang('pl')">🇵🇱 Polski</button>
+      <button id="admin-lang-btn-de" class="lang-btn inactive" onclick="setLang('de')">🇩🇪 Deutsch</button>
     </div>
     <div id="admin-lang-note" style="font-size:11px;color:#a1a1aa;margin-top:8px;line-height:1.5"></div>
   </div>
@@ -339,6 +338,34 @@ input:checked+.toggle-slider:before{transform:translateX(18px)}
     </div>
   </div>
 
+  <!-- Baza promptu -->
+  <div style="width:100%;margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <div id="admin-base-label" style="font-size:13px;color:#52525b"></div>
+      <div id="admin-readonly-badge" style="font-size:11px;color:#52525b;background:#f4f4f5;padding:3px 8px;border-radius:6px"></div>
+    </div>
+    <div id="admin-base-desc" style="background:#f4f4f5;border:0.5px solid #e4e4e7;border-radius:12px;padding:12px;font-size:12px;color:#a1a1aa;line-height:1.6"></div>
+  </div>
+
+  <!-- Dodatkowe instrukcje -->
+  <div style="width:100%;margin-bottom:12px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <div id="admin-extra-label" style="font-size:13px;color:#52525b"></div>
+      <div id="admin-editable-badge" style="font-size:11px;color:#C8001E;background:#fff0f3;padding:3px 8px;border-radius:6px"></div>
+    </div>
+    <div id="admin-extra-hint" style="font-size:12px;color:#a1a1aa;margin-bottom:8px;line-height:1.5"></div>
+    <textarea id="admin-extra" style="background:#fff;border:1px solid #e4e4e7;border-radius:12px;color:#18181b;font-size:13px;padding:14px;width:100%;height:160px;outline:none;font-family:-apple-system,sans-serif;line-height:1.6;resize:vertical"></textarea>
+  </div>
+
+  <!-- Hasło -->
+  <div style="width:100%;margin-bottom:12px">
+    <div id="admin-pass-label" style="font-size:13px;color:#52525b;margin-bottom:6px"></div>
+    <input id="admin-new-pass" class="api-input" type="password" placeholder="..."/>
+  </div>
+  <div id="admin-msg" style="font-size:13px;color:#C8001E;text-align:center;min-height:20px;margin-bottom:8px"></div>
+  <button onclick="saveAdminSettings()" class="api-btn" id="admin-save-btn"></button>
+  <button onclick="clearExtra()" style="background:transparent;color:#52525b;border:0.5px solid #e4e4e7;border-radius:24px;padding:12px;font-size:14px;cursor:pointer;width:100%;margin-top:10px;font-family:-apple-system,sans-serif" id="admin-clear-btn"></button>
+
   <!-- Link do panelu dyrektora -->
   <div style="width:100%;margin-top:20px;padding-top:16px;border-top:0.5px solid #e4e4e7;text-align:center">
     <div style="font-size:12px;color:#a1a1aa;margin-bottom:8px">Panel dyrektora / administratora szkoły</div>
@@ -390,6 +417,8 @@ const LOCALES = {
     summarySubtitle:"Nauczyłeś się jak rozmawiać\nz operatorem numeru 112.",
     summaryTipsTitle:"Co mówić pod 112:",
     summaryTips:["🔴 Co się stało (pożar, wypadek)","📍 Gdzie jesteś (adres, miasto)","👦 Jak masz na imię i nazwisko","🤕 Czy ktoś jest ranny","🚪 Czy drzwi są otwarte dla ratowników"],
+    summarySteps:["Opowiedział co się stało","Podał stan poszkodowanego","Podał adres zdarzenia","Powiedział czy drzwi są otwarte"],
+    summaryStepsTitle:"Ukończone etapy rozmowy:",
     summaryDisclaimer:"Pamiętaj: dzwoń tylko w prawdziwej nagłej sytuacji!",
     summaryRetryBtn:"Spróbuj jeszcze raz", summaryAdminBtn:"Panel administratora",
     adminLoginTitle:"Panel administratora",
@@ -440,6 +469,8 @@ const LOCALES = {
     summarySubtitle:"Du hast gelernt, wie man mit dem\nNotruf 112 spricht.",
     summaryTipsTitle:"Was man beim Notruf sagt:",
     summaryTips:["🔴 Was passiert ist (Feuer, Unfall)","📍 Wo du bist (Adresse, Stadt)","👦 Wie du heißt (Vor- und Nachname)","🤕 Ob jemand verletzt ist","🚪 Ob die Tür für die Retter offen ist"],
+    summarySteps:["Erzählt was passiert ist","Zustand des Verletzten genannt","Adresse des Unfalls angegeben","Tür-Status angegeben"],
+    summaryStepsTitle:"Abgeschlossene Gesprächsschritte:",
     summaryDisclaimer:"Denk daran: Ruf nur in einem echten Notfall an!",
     summaryRetryBtn:"Nochmal versuchen", summaryAdminBtn:"Administratorbereich",
     adminLoginTitle:"Administratorbereich",
@@ -664,10 +695,12 @@ function getActivePrompt(){
   if(streetError && currentLang==="pl" && !shortCall){
     base = base + STREET_ERROR_SUFFIX_PL;
   }
+
+  const extra=localStorage.getItem("admin_extra_"+currentLang)||"";
+  if(extra.trim())return base+"\n\n"+getLoc().extraHeader+"\n"+extra;
   return base;
 }
-function setLang(lang){currentLang=lang;localStorage.setItem("app_lang",lang);applyLocale();}
-function refreshAdminExtra(){document.getElementById("admin-extra").value=localStorage.getItem("admin_extra_"+currentLang)||"";}
+function setLang(lang){currentLang=lang;localStorage.setItem("app_lang",lang);applyLocale();if(audioCtx&&audioCtx.state==="suspended")audioCtx.resume();}
 
 // Toggle settings
 function saveToggle(key,val){localStorage.setItem(key,val?"1":"0");}
@@ -853,6 +886,9 @@ document.getElementById("logo-tap").addEventListener("click",()=>{
 function openAdminFromSetup(ret){openAdmin(ret||"s-setup");}
 function openAdmin(ret){
   window._adminReturnTo=ret;
+  document.getElementById("admin-extra").value=localStorage.getItem("admin_extra_"+currentLang)||"";
+  document.getElementById("admin-new-pass").value="";
+  document.getElementById("admin-msg").textContent="";
   document.getElementById("auto-end-toggle").checked=getToggle("auto_end_call");
   document.getElementById("short-call-toggle").checked=getToggle("short_call");
   document.getElementById("street-error-toggle").checked=getToggle("street_error");
@@ -875,6 +911,21 @@ function onShortCallToggle(checked){
     const row=document.getElementById("toggle-row-street");
     if(row)row.style.opacity="1";
   }
+}
+
+function saveAdminSettings(){
+  const L=getLoc();
+  const extra=document.getElementById("admin-extra").value.trim();
+  const newPass=document.getElementById("admin-new-pass").value.trim();
+  const msg=document.getElementById("admin-msg");
+  localStorage.setItem("admin_extra_"+currentLang,extra);
+  if(newPass.length>=4)localStorage.setItem("admin_pass",newPass);
+  msg.style.color="#C8001E";msg.textContent=L.adminSavedMsg;setTimeout(()=>{msg.textContent="";},2000);
+}
+function clearExtra(){
+  const L=getLoc();if(!confirm(L.adminClearConfirm))return;
+  localStorage.removeItem("admin_extra_"+currentLang);document.getElementById("admin-extra").value="";
+  const msg=document.getElementById("admin-msg");msg.style.color="#C8001E";msg.textContent=L.adminClearedMsg;setTimeout(()=>{msg.textContent="";},2000);
 }
 
 // ============================================================
@@ -1001,30 +1052,16 @@ async function askClaude(userMessage){
 // ============================================================
 function updateMicState(){
   const L=getLoc();
-  const btn=document.getElementById("mic-btn"),hint=document.getElementById("mic-hint"),status=document.getElementById("call-status"),icon=document.getElementById("state-icon");
+  const btn=document.getElementById("mic-btn"),hint=document.getElementById("mic-hint"),status=document.getElementById("call-status");
   if(!btn)return;
   if(paused){
     btn.style.background="#e4e4e7";btn.style.opacity="0.4";btn.style.animation="none";
     if(hint){hint.style.color="#C8001E";hint.textContent=L.micPaused;}
-    if(icon)icon.textContent="⏸";
     return;
   }
-  if(speaking){
-    btn.style.background="#C8001E";btn.style.opacity="0.4";btn.style.animation="none";
-    if(hint){hint.style.color="#C8001E";hint.textContent=L.micSpeaking;}
-    if(status){status.style.color="#C8001E";status.textContent=L.micSpeaking;}
-    if(icon)icon.textContent="🎧";
-  } else if(listening){
-    btn.style.background="#C8001E";btn.style.opacity="1";btn.style.animation="pulse 0.8s infinite";
-    if(hint){hint.style.color="#C8001E";hint.textContent=L.micListening;}
-    if(icon)icon.textContent=currentTranscript.trim()?"🗣️":"🎤";
-  } else {
-    btn.style.background="#C8001E";btn.style.opacity="1";btn.style.animation="none";
-    if(hint){hint.style.color="#52525b";hint.textContent=L.micHoldToTalk;}
-    const mm=Math.floor(callSecs/60),ss=callSecs%60;
-    if(status){status.style.color="#C8001E";status.textContent=String(mm).padStart(2,"0")+":"+String(ss).padStart(2,"0")+" "+L.talkingConnected;}
-    if(icon)icon.textContent="⏳";
-  }
+  if(speaking){btn.style.background="#C8001E";btn.style.opacity="0.4";btn.style.animation="none";if(hint){hint.style.color="#C8001E";hint.textContent=L.micSpeaking;}if(status){status.style.color="#C8001E";status.textContent=L.micSpeaking;}}
+  else if(listening){btn.style.background="#C8001E";btn.style.opacity="1";btn.style.animation="pulse 0.8s infinite";if(hint){hint.style.color="#C8001E";hint.textContent=L.micListening;}}
+  else{btn.style.background="#C8001E";btn.style.opacity="1";btn.style.animation="none";if(hint){hint.style.color="#52525b";hint.textContent=L.micHoldToTalk;}const mm=Math.floor(callSecs/60),ss=callSecs%60;if(status){status.style.color="#C8001E";status.textContent=String(mm).padStart(2,"0")+":"+String(ss).padStart(2,"0")+" "+L.talkingConnected;}}
 }
 
 // ============================================================
@@ -1085,7 +1122,7 @@ function autoStartListening(){
   const L=getLoc();
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return;
   rec=new SR();rec.lang=L.sttLang;rec.interimResults=true;rec.maxAlternatives=1;currentTranscript="";
-  rec.onresult=(ev)=>{currentTranscript=Array.from(ev.results).map(r=>r[0].transcript).join("");document.getElementById("transcript-box").textContent='"'+currentTranscript+'"';updateMicState();};
+  rec.onresult=(ev)=>{currentTranscript=Array.from(ev.results).map(r=>r[0].transcript).join("");document.getElementById("transcript-box").textContent='"'+currentTranscript+'"';};
   rec.onend=()=>{listening=false;document.getElementById("transcript-box").textContent="";updateMicState();if(currentTranscript.trim()&&!paused)handleAnswer(currentTranscript.trim());currentTranscript="";};
   rec.onerror=(e)=>{log("ERR","SR: "+e.error);listening=false;updateMicState();if(e.error==="aborted"&&!speaking&&!paused){setTimeout(()=>{if(!speaking&&!listening&&!paused)autoStartListening();},500);return;}if(e.error==="not-allowed"||e.error==="service-not-allowed"){const hint=document.getElementById("mic-hint");if(hint){hint.textContent=L.micPressToTalk;hint.style.color="#C8001E";}}};
   rec.onstart=()=>{log("OK","Auto-listen ["+L.sttLang+"]");listening=true;updateMicState();};
@@ -1097,7 +1134,7 @@ function startListening(e){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){alert(L.srAlert);return;}
   if(rec){try{rec.abort();}catch(x){}}
   rec=new SR();rec.lang=L.sttLang;rec.interimResults=true;rec.maxAlternatives=1;currentTranscript="";
-  rec.onresult=(ev)=>{currentTranscript=Array.from(ev.results).map(r=>r[0].transcript).join("");document.getElementById("transcript-box").textContent='"'+currentTranscript+'"';updateMicState();};
+  rec.onresult=(ev)=>{currentTranscript=Array.from(ev.results).map(r=>r[0].transcript).join("");document.getElementById("transcript-box").textContent='"'+currentTranscript+'"';};
   rec.onend=()=>{listening=false;document.getElementById("transcript-box").textContent="";updateMicState();if(currentTranscript.trim()&&!paused)handleAnswer(currentTranscript.trim());currentTranscript="";};
   rec.onerror=()=>{listening=false;updateMicState();};
   try{rec.start();listening=true;updateMicState();}catch(err){console.error(err);}
@@ -1134,11 +1171,26 @@ async function handleAnswer(answer){
 // ============================================================
 // ZAKOŃCZENIE
 // ============================================================
+function renderSteps(){
+  const L=getLoc();
+  const steps=L.summarySteps||[];
+  const title=L.summaryStepsTitle||"";
+  const box=document.getElementById("steps-row");
+  if(!box)return;
+  box.innerHTML='<div style="font-size:12px;color:#52525b;font-weight:600;margin-bottom:8px;letter-spacing:0.3px">'+title+'</div>'+
+    steps.map((s,i)=>{
+      const done=childAnswers>i;
+      return '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;'+(i<steps.length-1?'border-bottom:1px solid #e4e4e7':'')+'">'
+        +'<span style="font-size:18px">'+(done?'✅':'⬜')+'</span>'
+        +'<span style="font-size:14px;color:'+(done?'#18181b':'#a1a1aa')+'">'+s+'</span>'
+        +'</div>';
+    }).join("");
+}
 function finishCall(){
   callActive=false;paused=false;clearInterval(timerInt);speaking=false;listening=false;
   if(rec){try{rec.onend=null;rec.onresult=null;rec.onerror=null;rec.abort();}catch(x){}rec=null;}
   const stars=childAnswers>=4?3:childAnswers>=2?2:1;
-  document.getElementById("stars-row").innerHTML=[1,2,3].map(i=>'<span style="color:'+(i<=stars?"#ffd60a":"#d4d4d8")+'">★</span>').join("");
+  renderSteps();
   if(sessionId){fetch(BACKEND_URL+"/api/session-end",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({session_id:sessionId,token:ACCESS_TOKEN,stars,messages:childAnswers,duration:callSecs,lang:currentLang})}).catch(()=>{});}
   show("s-summary");
 }
@@ -1146,7 +1198,7 @@ function endCall(){
   callActive=false;paused=false;clearInterval(timerInt);speaking=false;listening=false;
   if(rec){try{rec.onend=null;rec.onresult=null;rec.onerror=null;rec.abort();}catch(x){}rec=null;}
   const stars=childAnswers>=4?3:childAnswers>=2?2:1;
-  document.getElementById("stars-row").innerHTML=[1,2,3].map(i=>'<span style="color:'+(i<=stars?"#ffd60a":"#d4d4d8")+'">★</span>').join("");
+  renderSteps();
   if(sessionId){fetch(BACKEND_URL+"/api/session-end",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({session_id:sessionId,token:ACCESS_TOKEN,stars,messages:childAnswers,duration:callSecs,lang:currentLang,ended_by:"user"})}).catch(()=>{});}
   show("s-summary");
 }
@@ -1158,6 +1210,5 @@ function resetApp(){callActive=false;paused=false;digits="";conversationHistory=
 if(ACCESS_TOKEN){show("s-lock");}else{show("s-setup");}
 applyLocale();
 </script>
-<div style="position:fixed;bottom:6px;right:10px;font-size:10px;color:#a1a1aa;pointer-events:none;z-index:999;letter-spacing:0.3px">v1.6.4</div>
 </body>
 </html>
